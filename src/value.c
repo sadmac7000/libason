@@ -425,6 +425,109 @@ json_distribute_right(json_t operand, json_t disjoin, json_type_t operator)
 }
 
 /**
+ * Reduce an overlap of two objects.
+ **/
+static json_t
+json_reduce_object_overlap(json_t a, json_t b)
+{
+	size_t a_i = 0;
+	size_t b_i = 0;
+	size_t ret_i = 0;
+	int cmp;
+	json_t ret;
+
+	json_object_sort_kvs(a);
+	json_object_sort_kvs(b);
+
+	if (a.v->type == JSON_UOBJECT && b.v->type == JSON_UOBJECT)
+		ret.v->type = JSON_UOBJECT;
+	else
+		ret.v->type = JSON_OBJECT;
+
+	ret.v->count = a.v->count + b.v->count;
+	ret.v->kvs = xcalloc(ret.v->count, sizeof(struct kv_pair));
+
+	while (a_i < a.v->count && b_i < b.v->count) {
+		cmp = strcmp(a.v->kvs[a_i].key, b.v->kvs[b_i].key);
+
+		if (! cmp) {
+			ret.v->kvs[ret_i].key = xstrdup(a.v->kvs[a_i].key);
+			ret.v->kvs[ret_i].value = json_overlap(
+			       a.v->kvs[a_i].value, b.v->kvs[b_i].value);
+			ret_i++;
+		} else if (cmp < 0 && b.v->type == JSON_UOBJECT) {
+			ret.v->kvs[ret_i].key = xstrdup(a.v->kvs[a_i].key);
+			ret.v->kvs[ret_i].value = a.v->kvs[a_i].value;
+			ret_i++;
+		} else if (cmp > 0 && a.v->type == JSON_UOBJECT) {
+			ret.v->kvs[ret_i].key = xstrdup(b.v->kvs[b_i].key);
+			ret.v->kvs[ret_i].value = b.v->kvs[b_i].value;
+			ret_i++;
+		}
+
+		if (cmp <= 0)
+			a_i++;
+
+		if (cmp >= 0)
+			b_i++;
+	}
+
+	for (; a_i < a.v->count; a_i++) {
+		if (b.v->type != JSON_UOBJECT)
+			continue;
+
+		ret.v->kvs[ret_i].key = xstrdup(a.v->kvs[a_i].key);
+		ret.v->kvs[ret_i].value = a.v->kvs[a_i].value;
+		ret_i++;
+	}
+
+	for (; b_i < b.v->count; b_i++) {
+		if (a.v->type != JSON_UOBJECT)
+			continue;
+
+		ret.v->kvs[ret_i].key = xstrdup(b.v->kvs[b_i].key);
+		ret.v->kvs[ret_i].value = b.v->kvs[b_i].value;
+		ret_i++;
+	}
+
+	return ret;
+}
+
+/**
+ * Reduce an overlap of two lists.
+ **/
+static json_t
+json_reduce_list_overlap(json_t a, json_t b)
+{
+	size_t i = 0;
+	json_t ret;
+	size_t count = a.v->count;
+	json_t a_sub;
+	json_t b_sub;
+
+	if (b.v->count > count)
+		count = b.v->count;
+
+	ret.v->type = JSON_LIST;
+	ret.v->items = xcalloc(count, sizeof(json_t));
+	ret.v->count = count;
+
+	for (; i < count; i++) {
+		a_sub = b_sub = VALUE_NULL;
+
+		if (i < a.v->count)
+			a_sub = a.v->items[i];
+
+		if (i < b.v->count)
+			b_sub = b.v->items[i];
+
+		ret.v->items[i] = json_overlap(a_sub, b_sub);
+	}
+
+	return ret;
+}
+
+/**
  * Reduce an overlap of two non-disjoin values.
  **/
 static json_t
