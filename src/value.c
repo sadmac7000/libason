@@ -594,6 +594,69 @@ json_reduce_list_append(json_t a, json_t b)
 	return ret;
 }
 
+/**
+ * Reduce an append of two objects.
+ **/
+static json_t
+json_reduce_object_append(json_t a, json_t b)
+{
+	size_t a_i = 0;
+	size_t b_i = 0;
+	size_t ret_i = 0;
+	int cmp;
+	json_t ret;
+
+	json_object_sort_kvs(a);
+	json_object_sort_kvs(b);
+
+	if (a.v->type == JSON_UOBJECT || b.v->type == JSON_UOBJECT)
+		ret.v->type = JSON_UOBJECT;
+	else
+		ret.v->type = JSON_OBJECT;
+
+	ret.v->count = a.v->count + b.v->count;
+	ret.v->kvs = xcalloc(ret.v->count, sizeof(struct kv_pair));
+
+	while (a_i < a.v->count && b_i < b.v->count) {
+		cmp = strcmp(a.v->kvs[a_i].key, b.v->kvs[b_i].key);
+
+		if (! cmp) {
+			ret.v->kvs[ret_i].key = xstrdup(a.v->kvs[a_i].key);
+			ret.v->kvs[ret_i].value = json_intersect(
+			       a.v->kvs[a_i].value, b.v->kvs[b_i].value);
+			ret_i++;
+		} else if (cmp < 0) {
+			ret.v->kvs[ret_i] = a.v->kvs[a_i];
+			ret.v->kvs[ret_i].key = xstrdup(ret.v->kvs[ret_i].key);
+			ret_i++;
+		} else if (cmp > 0) {
+			ret.v->kvs[ret_i] = b.v->kvs[b_i];
+			ret.v->kvs[ret_i].key = xstrdup(ret.v->kvs[ret_i].key);
+			ret_i++;
+		}
+
+		if (cmp <= 0)
+			a_i++;
+
+		if (cmp >= 0)
+			b_i++;
+	}
+
+	for (; a_i < a.v->count; a_i++) {
+		ret.v->kvs[ret_i] = a.v->kvs[a_i];
+		ret.v->kvs[ret_i].key = xstrdup(ret.v->kvs[ret_i].key);
+		ret_i++;
+	}
+
+	for (; b_i < b.v->count; b_i++) {
+		ret.v->kvs[ret_i] = b.v->kvs[b_i];
+		ret.v->kvs[ret_i].key = xstrdup(ret.v->kvs[ret_i].key);
+		ret_i++;
+	}
+
+	return ret;
+}
+
 /* Predeclaration */
 static json_t json_simplify_transform(json_t in);
 
