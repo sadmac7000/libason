@@ -1,5 +1,6 @@
 AC_INIT([libjsonalg], [0.1], [casey.dahlin@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_SILENT_RULES([yes])
 AC_PROG_CC
 m4_pattern_allow([AM_PROG_AR])
 AM_PROG_AR
