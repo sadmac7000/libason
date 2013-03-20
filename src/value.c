@@ -42,18 +42,28 @@ static inline void *xcalloc(size_t memb, size_t sz)
 	return ret;
 }
 
+static inline void *xstrdup(const char *str)
+{
+	void *ret = strdup(str);
+
+	if (! ret)
+		errx(1, "Malloc failed");
+
+	return ret;
+}
+
 /**
  * Test if a JSON value is an object.
  **/
-#define IS_OBJECT(_x) (x.v->type == JSON_OBJECT || x.v->type == JSON_UOBJECT)
-#define IS_NULL(_x) (x.v->type == JSON_NULL || x.v->type == JSON_STRONG_NULL)
+#define IS_OBJECT(_x) (_x.v->type == JSON_OBJECT || _x.v->type == JSON_UOBJECT)
+#define IS_NULL(_x) (_x.v->type == JSON_NULL || _x.v->type == JSON_STRONG_NULL)
 
 /**
  * A Key-value pair.
  **/
 struct kv_pair {
 	const char *key;
-	json_t *value;
+	json_t value;
 };
 
 /**
@@ -77,35 +87,35 @@ struct value_data {
 static struct value_data VALUE_NULL_DATA = {
 	.type = JSON_NULL,
 	.items = NULL,
-	.count = 0;
+	.count = 0,
 };
 const json_t VALUE_NULL = { .v = &VALUE_NULL_DATA, };
 
 static struct value_data VALUE_STRONG_NULL_DATA = {
 	.type = JSON_STRONG_NULL,
 	.items = NULL,
-	.count = 0;
+	.count = 0,
 };
 const json_t VALUE_STRONG_NULL = { .v = &VALUE_STRONG_NULL_DATA, };
 
 static struct value_data VALUE_UNIVERSE_DATA = {
 	.type = JSON_UNIVERSE,
 	.items = NULL,
-	.count = 0;
+	.count = 0,
 };
 const json_t VALUE_UNIVERSE = { .v = &VALUE_UNIVERSE_DATA, };
 
 static struct value_data VALUE_WILD_DATA = {
 	.type = JSON_WILD,
 	.items = NULL,
-	.count = 0;
+	.count = 0,
 };
 const json_t VALUE_WILD = { .v = &VALUE_WILD_DATA, };
 
 static struct value_data VALUE_OBJ_ANY_DATA = {
-	.type = JSON_OBJ_ANY,
+	.type = JSON_UOBJECT,
 	.items = NULL,
-	.count = 0;
+	.count = 0,
 };
 const json_t VALUE_OBJ_ANY = { .v = &VALUE_OBJ_ANY_DATA, };
 
@@ -160,7 +170,7 @@ json_create_object(const char *key, json_t value)
 	ret.v = xmalloc(sizeof(struct value_data));
 
 	ret.v->type = JSON_OBJECT;
-	if (! IS_NULL(content)) {
+	if (! IS_NULL(value)) {
 		ret.v->kvs = xcalloc(1, sizeof(struct kv_pair));
 		ret.v->kvs[0].key = xstrdup(key);
 		ret.v->kvs[0].value = value;
@@ -237,6 +247,9 @@ json_append(json_t a, json_t b)
 	return json_operate(a, b, JSON_APPEND);
 }
 
+/* Predeclaration */
+static int json_do_check_equality(json_t a, json_t b, int null_eq);
+
 /**
  * See if a disjoin is equal to another value.
  **/
@@ -246,7 +259,7 @@ json_check_disjoin_equals(json_t disjoin, json_t other)
 	size_t i;
 
 	for (i = 0; i < disjoin.v->count; i++)
-		if (json_do_check_equality(disjion.v->items[i], other, 0))
+		if (json_do_check_equality(disjoin.v->items[i], other, 0))
 			return 1;
 
 	return 0;
@@ -310,7 +323,7 @@ kv_pair_quicksort(struct kv_pair *kvs, size_t count)
 static void
 json_object_sort_kvs(json_t obj)
 {
-	struct kv_pair *kvs = obj.v->kv_pairs;
+	struct kv_pair *kvs = obj.v->kvs;
 	size_t count = obj.v->count;
 
 	kv_pair_quicksort(kvs, count);
@@ -330,7 +343,7 @@ json_check_objects_equal(json_t a, json_t b)
 	json_object_sort_kvs(b);
 
 	while (a_i < a.v->count && b_i < b.v->count) {
-		cmp = strcmp(a.v->kvs[a_i], b.v->kvs[b_i]);
+		cmp = strcmp(a.v->kvs[a_i].key, b.v->kvs[b_i].key);
 
 		if (! cmp && ! json_check_equality(a.v->kvs[a_i].value,
 						   b.v->kvs[b_i].value)) {
@@ -347,6 +360,24 @@ json_check_objects_equal(json_t a, json_t b)
 		if (cmp >= 0)
 			b_i++;
 	}
+
+	for (; a_i < a.v->count; a_i++) {
+		if (b.v->type == JSON_UOBJECT)
+			return 1;
+
+		if (! IS_NULL(a.v->kvs[a_i].value))
+			return 0;
+	}
+
+	for (; b_i < b.v->count; b_i++) {
+		if (a.v->type == JSON_UOBJECT)
+			return 1;
+
+		if (! IS_NULL(b.v->kvs[b_i].value))
+			return 0;
+	}
+
+	return 1;
 }
 
 /**
@@ -446,12 +477,11 @@ static json_t
 json_reduce_list_append(json_t a, json_t b)
 {
 	json_t ret;
-	size_t i;
 
 	ret.v = xmalloc(sizeof(struct value_data));
 
 	ret.v->count = a.v->count + b.v->count;
-	ret.v->type = JSON_list;
+	ret.v->type = JSON_LIST;
 	ret.v->items = xcalloc(ret.v->count, sizeof(json_t));
 
 	memcpy(ret.v->items, a.v->items, a.v->count * sizeof(json_t));
@@ -460,6 +490,9 @@ json_reduce_list_append(json_t a, json_t b)
 
 	return ret;
 }
+
+/* Predeclaration */
+static json_t json_simplify_transform(json_t in);
 
 /**
  * Reduce an append of two non-disjoin values.
@@ -486,8 +519,6 @@ json_reduce_append(json_t a, json_t b)
 static json_t
 json_simplify_transform(json_t in)
 {
-	json_t out;
-
 	switch (in.v->type) {
 	case JSON_INTERSECT:
 	case JSON_QUERY:
@@ -577,7 +608,7 @@ json_do_check_equality(json_t a, json_t b, int null_eq)
 int
 json_check_equality(json_t a, json_t b)
 {
-	json_do_check_equality(a, b, 1);
+	return json_do_check_equality(a, b, 1);
 }
 
 /**
@@ -637,7 +668,7 @@ json_flatten(json_t value)
 		if (value.v->items[i].v->type != JSON_DISJOIN) {
 			ret.v->items[k++] = value.v->items[i];
 		} else if (value.v->items[i].v->type != JSON_NULL) {
-			for (j = 0; j < value.v->items[i].count; j++)
+			for (j = 0; j < value.v->items[i].v->count; j++)
 				ret.v->items[k++] =
 					value.v->items[i].v->items[j];
 		}
