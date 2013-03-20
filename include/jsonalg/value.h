@@ -28,9 +28,9 @@ typedef enum {
 	JSON_UNIVERSE,
 	JSON_WILD,
 	JSON_DISJOIN,
-	JSON_INTERSECT,
+	JSON_OVERLAP,
 	JSON_QUERY,
-	JSON_COQUERY,
+	JSON_INTERSECT,
 	JSON_OBJECT,
 	JSON_UOBJECT,
 	JSON_LIST,
@@ -62,9 +62,9 @@ json_t json_create_number(int number);
 json_t json_create_list(json_t content);
 json_t json_create_object(const char *key, json_t value); 
 json_t json_disjoin(json_t a, json_t b);
-json_t json_intersect(json_t a, json_t b);
+json_t json_overlap(json_t a, json_t b);
 json_t json_query(json_t a, json_t b);
-json_t json_coquery(json_t a, json_t b);
+json_t json_intersect(json_t a, json_t b);
 json_t json_append(json_t a, json_t b);
 
 int json_check_equality(json_t a, json_t b);

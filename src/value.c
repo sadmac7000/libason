@@ -215,9 +215,9 @@ json_disjoin(json_t a, json_t b)
  * Intersect two JSON values.
  **/
 json_t
-json_intersect(json_t a, json_t b)
+json_overlap(json_t a, json_t b)
 {
-	return json_operate(a, b, JSON_INTERSECT);
+	return json_operate(a, b, JSON_OVERLAP);
 }
 
 /**
@@ -233,9 +233,9 @@ json_query(json_t a, json_t b)
  * Coquery JSON values a and b.
  **/
 json_t
-json_coquery(json_t a, json_t b)
+json_intersect(json_t a, json_t b)
 {
-	return json_operate(a, b, JSON_COQUERY);
+	return json_operate(a, b, JSON_INTERSECT);
 }
 
 /**
@@ -425,16 +425,16 @@ json_distribute_right(json_t operand, json_t disjoin, json_type_t operator)
 }
 
 /**
- * Reduce an intersection of two non-disjoin values.
+ * Reduce an overlap of two non-disjoin values.
  **/
 static json_t
-json_reduce_intersect(json_t a, json_t b)
+json_reduce_overlap(json_t a, json_t b)
 {
 	if (IS_OBJECT(a) && IS_OBJECT(b))
-		return json_reduce_object_intersect(a, b);
+		return json_reduce_object_overlap(a, b);
 
 	if (a.v->type == JSON_LIST && b.v->type == JSON_LIST)
-		return json_reduce_list_intersect(a, b);
+		return json_reduce_list_overlap(a, b);
 
 	if (json_check_equality(a, b))
 		return a;
@@ -448,7 +448,7 @@ json_reduce_intersect(json_t a, json_t b)
 static json_t
 json_reduce_query(json_t a, json_t b)
 {
-	json_t ret = json_reduce_intersect(a, b);
+	json_t ret = json_reduce_overlap(a, b);
 
 	if (json_check_represented_in(ret, b))
 		return ret;
@@ -457,10 +457,10 @@ json_reduce_query(json_t a, json_t b)
 }
 
 /**
- * Reduce a coquery of two non-disjoin values.
+ * Reduce a intersect of two non-disjoin values.
  **/
 static json_t
-json_reduce_coquery(json_t a, json_t b)
+json_reduce_intersect(json_t a, json_t b)
 {
 	json_t ret = json_reduce_query(a, b);
 
@@ -514,15 +514,15 @@ json_reduce_append(json_t a, json_t b)
 
 /**
  * Reduce a JSON value so it is not expressed, at the top level, as a query,
- * coquery, intersect, or append.
+ * intersect, overlap, or append.
  **/
 static json_t
 json_simplify_transform(json_t in)
 {
 	switch (in.v->type) {
-	case JSON_INTERSECT:
+	case JSON_OVERLAP:
 	case JSON_QUERY:
-	case JSON_COQUERY:
+	case JSON_INTERSECT:
 	case JSON_APPEND:
 		break;
 	default:
@@ -541,12 +541,12 @@ json_simplify_transform(json_t in)
 					     in.v->type);
 
 	switch (in.v->type) {
-	case JSON_INTERSECT:
-		return json_reduce_intersect(in.v->items[0], in.v->items[1]);
+	case JSON_OVERLAP:
+		return json_reduce_overlap(in.v->items[0], in.v->items[1]);
 	case JSON_QUERY:
 		return json_reduce_query(in.v->items[0], in.v->items[1]);
-	case JSON_COQUERY:
-		return json_reduce_coquery(in.v->items[0], in.v->items[1]);
+	case JSON_INTERSECT:
+		return json_reduce_intersect(in.v->items[0], in.v->items[1]);
 	case JSON_APPEND:
 		return json_reduce_append(in.v->items[0], in.v->items[1]);
 	default:
