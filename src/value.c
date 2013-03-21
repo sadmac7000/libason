@@ -783,6 +783,106 @@ json_check_equality(json_t a, json_t b)
 	return json_do_check_equality(a, b, 1);
 }
 
+/* Predeclaration */
+static json_t json_flatten(json_t value);
+
+/**
+ * Flatten a JSON list.
+ **/
+static json_t
+json_flatten_list(json_t value)
+{
+	size_t i;
+	size_t j;
+	json_t disjoin;
+	json_t ret;
+
+	for (i = 0; i < value.v->count; i++)
+		value.v->items[i] = json_flatten(value.v->items[i]);
+
+	for (i = 0; i < value.v->count; i++)
+		if (value.v->items[i].v->type == JSON_DISJOIN)
+			break;
+
+	if (i == value.v->count)
+		return value;
+
+	disjoin = value.v->items[i];
+
+	ret.v = xmalloc(sizeof(struct value_data));
+
+	ret.v->type = JSON_DISJOIN;
+	ret.v->count = disjoin.v->count;
+	ret.v->items = xcalloc(ret.v->count, sizeof(json_t));
+
+	for (j = 0; j < ret.v->count; j++) {
+		ret.v->items[j].v = xmalloc(sizeof(struct value_data));
+
+		ret.v->items[j].v->type = JSON_LIST;
+		ret.v->items[j].v->count = value.v->count;
+		ret.v->items[j].v->items = xcalloc(value.v->count,
+						   sizeof(json_t));
+
+		memcpy(ret.v->items[j].v->items, value.v->items,
+		       value.v->count * sizeof(json_t));
+
+		ret.v->items[j].v->items[i] = disjoin.v->items[j];
+	}
+
+	return json_flatten(ret);
+}
+
+/**
+ * Flatten a JSON object.
+ **/
+static json_t
+json_flatten_object(json_t value)
+{
+	size_t i;
+	size_t j;
+	size_t k;
+	json_t disjoin;
+	json_t ret;
+
+	for (i = 0; i < value.v->count; i++)
+		value.v->kvs[i].value = json_flatten(value.v->items[i]);
+
+	for (i = 0; i < value.v->count; i++)
+		if (value.v->kvs[i].value.v->type == JSON_DISJOIN)
+			break;
+
+	if (i == value.v->count)
+		return value;
+
+	disjoin = value.v->kvs[i].value;
+
+	ret.v = xmalloc(sizeof(struct value_data));
+
+	ret.v->type = JSON_DISJOIN;
+	ret.v->count = disjoin.v->count;
+	ret.v->items = xcalloc(ret.v->count, sizeof(json_t));
+
+	for (j = 0; j < ret.v->count; j++) {
+		ret.v->items[j].v = xmalloc(sizeof(struct value_data));
+
+		ret.v->items[j].v->type = value.v->type;
+		ret.v->items[j].v->count = value.v->count;
+		ret.v->items[j].v->kvs = xcalloc(value.v->count,
+						   sizeof(struct kv_pair));
+
+		memcpy(ret.v->items[j].v->kvs, value.v->kvs,
+		       value.v->count * sizeof(struct kv_pair));
+
+		for (k = 0; k < ret.v->items[j].v->count; k++)
+			ret.v->items[j].v->kvs[k].key =
+				xstrdup(ret.v->items[j].v->kvs[k].key);
+
+		ret.v->items[j].v->kvs[i].value = disjoin.v->items[j];
+	}
+
+	return json_flatten(ret);
+}
+
 /**
  * Ensure a JSON object has no indeterminate values.
  **/
