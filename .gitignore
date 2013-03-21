@@ -17,3 +17,6 @@ config.status
 include/stamp-h1
 src/.deps
 libtool
+.libs
+*.la
+*.lo
