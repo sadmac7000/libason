@@ -439,6 +439,8 @@ json_reduce_object_overlap(json_t a, json_t b)
 	json_object_sort_kvs(a);
 	json_object_sort_kvs(b);
 
+	ret.v = xmalloc(sizeof(struct value_data));
+
 	if (a.v->type == JSON_UOBJECT && b.v->type == JSON_UOBJECT)
 		ret.v->type = JSON_UOBJECT;
 	else
@@ -507,6 +509,8 @@ json_reduce_list_overlap(json_t a, json_t b)
 
 	if (b.v->count > count)
 		count = b.v->count;
+
+	ret.v = xmalloc(sizeof(struct value_data));
 
 	ret.v->type = JSON_LIST;
 	ret.v->items = xcalloc(count, sizeof(json_t));
@@ -608,6 +612,8 @@ json_reduce_object_append(json_t a, json_t b)
 
 	json_object_sort_kvs(a);
 	json_object_sort_kvs(b);
+
+	ret.v = xmalloc(sizeof(struct value_data));
 
 	if (a.v->type == JSON_UOBJECT || b.v->type == JSON_UOBJECT)
 		ret.v->type = JSON_UOBJECT;
