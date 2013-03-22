@@ -40,38 +40,32 @@ typedef enum {
 /**
  * An ASON value
  **/
-typedef struct ason_t {
-#ifdef IN_LIBASON
-	struct ason *v;
-#else
-	void *opaque__;
-#endif
-} ason_t;
+typedef struct ason ason_t;
 
-extern const ason_t VALUE_NULL;
-extern const ason_t VALUE_STRONG_NULL;
-extern const ason_t VALUE_UNIVERSE;
-extern const ason_t VALUE_WILD;
-extern const ason_t VALUE_OBJ_ANY;
+extern ason_t * const VALUE_NULL;
+extern ason_t * const VALUE_STRONG_NULL;
+extern ason_t * const VALUE_UNIVERSE;
+extern ason_t * const VALUE_WILD;
+extern ason_t * const VALUE_OBJ_ANY;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-ason_t ason_create_number(int number);
-ason_t ason_create_list(ason_t content);
-ason_t ason_create_object(const char *key, ason_t value); 
-ason_t ason_disjoin(ason_t a, ason_t b);
-ason_t ason_overlap(ason_t a, ason_t b);
-ason_t ason_query(ason_t a, ason_t b);
-ason_t ason_intersect(ason_t a, ason_t b);
-ason_t ason_append(ason_t a, ason_t b);
+ason_t *ason_create_number(int number);
+ason_t *ason_create_list(ason_t *content);
+ason_t *ason_create_object(const char *key, ason_t *value); 
+ason_t *ason_disjoin(ason_t *a, ason_t *b);
+ason_t *ason_overlap(ason_t *a, ason_t *b);
+ason_t *ason_query(ason_t *a, ason_t *b);
+ason_t *ason_intersect(ason_t *a, ason_t *b);
+ason_t *ason_append(ason_t *a, ason_t *b);
 
-int ason_check_equality(ason_t a, ason_t b);
-int ason_check_represented_in(ason_t a, ason_t b);
-int ason_check_corepresented(ason_t a, ason_t b);
+int ason_check_equality(ason_t *a, ason_t *b);
+int ason_check_represented_in(ason_t *a, ason_t *b);
+int ason_check_corepresented(ason_t *a, ason_t *b);
 
-ason_type_t ason_type(ason_t value);
+ason_type_t ason_type(ason_t *value);
 
 #ifdef __cplusplus
 }
