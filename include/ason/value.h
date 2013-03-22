@@ -27,7 +27,7 @@ typedef enum {
 	ASON_STRONG_NULL,
 	ASON_UNIVERSE,
 	ASON_WILD,
-	ASON_DISJOIN,
+	ASON_UNION,
 	ASON_OVERLAP,
 	ASON_QUERY,
 	ASON_INTERSECT,
@@ -55,7 +55,7 @@ extern "C" {
 ason_t *ason_create_number(int number);
 ason_t *ason_create_list(ason_t *content);
 ason_t *ason_create_object(const char *key, ason_t *value); 
-ason_t *ason_disjoin(ason_t *a, ason_t *b);
+ason_t *ason_union(ason_t *a, ason_t *b);
 ason_t *ason_overlap(ason_t *a, ason_t *b);
 ason_t *ason_query(ason_t *a, ason_t *b);
 ason_t *ason_intersect(ason_t *a, ason_t *b);

@@ -206,9 +206,9 @@ ason_operate(ason_t *a, ason_t *b, ason_type_t type)
  * Disjoin two ASON values.
  **/
 ason_t *
-ason_disjoin(ason_t *a, ason_t *b)
+ason_union(ason_t *a, ason_t *b)
 {
-	return ason_operate(a, b, ASON_DISJOIN);
+	return ason_operate(a, b, ASON_UNION);
 }
 
 /**
@@ -251,15 +251,15 @@ ason_append(ason_t *a, ason_t *b)
 static int ason_do_check_equality(ason_t *a, ason_t *b, int null_eq);
 
 /**
- * See if a disjoin is equal to another value.
+ * See if a union is equal to another value.
  **/
 static int
-ason_check_disjoin_equals(ason_t *disjoin, ason_t *other)
+ason_check_union_equals(ason_t *un, ason_t *other)
 {
 	size_t i;
 
-	for (i = 0; i < disjoin->count; i++)
-		if (ason_do_check_equality(disjoin->items[i], other, 0))
+	for (i = 0; i < un->count; i++)
+		if (ason_do_check_equality(un->items[i], other, 0))
 			return 1;
 
 	return 0;
@@ -381,44 +381,44 @@ ason_check_objects_equal(ason_t *a, ason_t *b)
 }
 
 /**
- * Distribute an operator through a disjoin on the left-hand side.
+ * Distribute an operator through a union on the left-hand side.
  **/
 static ason_t *
-ason_distribute_left(ason_t *disjoin, ason_t *operand, ason_type_t operator)
+ason_distribute_left(ason_t *un, ason_t *operand, ason_type_t operator)
 {
 	ason_t *ret;
 	size_t i;
 
 	ret = xmalloc(sizeof(struct ason));
 
-	ret->type = ASON_DISJOIN;
-	ret->items = xcalloc(disjoin->count, sizeof(ason_t));
-	ret->count = disjoin->count;
+	ret->type = ASON_UNION;
+	ret->items = xcalloc(un->count, sizeof(ason_t));
+	ret->count = un->count;
 
 	for (i = 0; i < ret->count; i++)
-		ret->items[i] = ason_operate(disjoin->items[i], operand,
+		ret->items[i] = ason_operate(un->items[i], operand,
 					       operator);
 
 	return ret;
 }
 
 /**
- * Distribute an operator through a disjoin on the right-hand side.
+ * Distribute an operator through a union on the right-hand side.
  **/
 static ason_t *
-ason_distribute_right(ason_t *operand, ason_t *disjoin, ason_type_t operator)
+ason_distribute_right(ason_t *operand, ason_t *un, ason_type_t operator)
 {
 	ason_t *ret;
 	size_t i;
 
 	ret = xmalloc(sizeof(struct ason));
 
-	ret->type = ASON_DISJOIN;
-	ret->items = xcalloc(disjoin->count, sizeof(ason_t));
-	ret->count = disjoin->count;
+	ret->type = ASON_UNION;
+	ret->items = xcalloc(un->count, sizeof(ason_t));
+	ret->count = un->count;
 
 	for (i = 0; i < ret->count; i++)
-		ret->items[i] = ason_operate(operand, disjoin->items[i],
+		ret->items[i] = ason_operate(operand, un->items[i],
 					       operator);
 
 	return ret;
@@ -532,7 +532,7 @@ ason_reduce_list_overlap(ason_t *a, ason_t *b)
 }
 
 /**
- * Reduce an overlap of two non-disjoin values.
+ * Reduce an overlap of two non-union values.
  **/
 static ason_t *
 ason_reduce_overlap(ason_t *a, ason_t *b)
@@ -550,7 +550,7 @@ ason_reduce_overlap(ason_t *a, ason_t *b)
 }
 
 /**
- * Reduce a query of two non-disjoin values.
+ * Reduce a query of two non-union values.
  **/
 static ason_t *
 ason_reduce_query(ason_t *a, ason_t *b)
@@ -564,7 +564,7 @@ ason_reduce_query(ason_t *a, ason_t *b)
 }
 
 /**
- * Reduce a intersect of two non-disjoin values.
+ * Reduce a intersect of two non-union values.
  **/
 static ason_t *
 ason_reduce_intersect(ason_t *a, ason_t *b)
@@ -667,7 +667,7 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 static ason_t *ason_simplify_transform(ason_t *in);
 
 /**
- * Reduce an append of two non-disjoin values.
+ * Reduce an append of two non-union values.
  **/
 static ason_t *
 ason_reduce_append(ason_t *a, ason_t *b)
@@ -704,11 +704,11 @@ ason_simplify_transform(ason_t *in)
 	in->items[0] = ason_simplify_transform(in->items[0]);
 	in->items[1] = ason_simplify_transform(in->items[1]);
 
-	if (in->items[0]->type == ASON_DISJOIN)
+	if (in->items[0]->type == ASON_UNION)
 		return ason_distribute_left(in->items[0], in->items[1],
 					    in->type);
 
-	if (in->items[1]->type == ASON_DISJOIN)
+	if (in->items[1]->type == ASON_UNION)
 		return ason_distribute_right(in->items[0], in->items[1],
 					     in->type);
 
@@ -747,11 +747,11 @@ ason_do_check_equality(ason_t *a, ason_t *b, int null_eq)
 	if (a->type == ASON_WILD || b->type == ASON_WILD)
 		return 0;
 
-	if (a->type == ASON_DISJOIN)
-		return ason_check_disjoin_equals(a, b);
+	if (a->type == ASON_UNION)
+		return ason_check_union_equals(a, b);
 	
-	if (b->type == ASON_DISJOIN)
-		return ason_check_disjoin_equals(b, a);
+	if (b->type == ASON_UNION)
+		return ason_check_union_equals(b, a);
 
 	if (IS_OBJECT(a) && IS_OBJECT(b))
 		return ason_check_objects_equal(a, b);
@@ -794,25 +794,25 @@ ason_flatten_list(ason_t *value)
 {
 	size_t i;
 	size_t j;
-	ason_t *disjoin;
+	ason_t *un;
 	ason_t *ret;
 
 	for (i = 0; i < value->count; i++)
 		value->items[i] = ason_flatten(value->items[i]);
 
 	for (i = 0; i < value->count; i++)
-		if (value->items[i]->type == ASON_DISJOIN)
+		if (value->items[i]->type == ASON_UNION)
 			break;
 
 	if (i == value->count)
 		return value;
 
-	disjoin = value->items[i];
+	un = value->items[i];
 
 	ret = xmalloc(sizeof(struct ason));
 
-	ret->type = ASON_DISJOIN;
-	ret->count = disjoin->count;
+	ret->type = ASON_UNION;
+	ret->count = un->count;
 	ret->items = xcalloc(ret->count, sizeof(ason_t));
 
 	for (j = 0; j < ret->count; j++) {
@@ -826,7 +826,7 @@ ason_flatten_list(ason_t *value)
 		memcpy(ret->items[j]->items, value->items,
 		       value->count * sizeof(ason_t));
 
-		ret->items[j]->items[i] = disjoin->items[j];
+		ret->items[j]->items[i] = un->items[j];
 	}
 
 	return ason_flatten(ret);
@@ -841,25 +841,25 @@ ason_flatten_object(ason_t *value)
 	size_t i;
 	size_t j;
 	size_t k;
-	ason_t *disjoin;
+	ason_t *un;
 	ason_t *ret;
 
 	for (i = 0; i < value->count; i++)
 		value->kvs[i].value = ason_flatten(value->items[i]);
 
 	for (i = 0; i < value->count; i++)
-		if (value->kvs[i].value->type == ASON_DISJOIN)
+		if (value->kvs[i].value->type == ASON_UNION)
 			break;
 
 	if (i == value->count)
 		return value;
 
-	disjoin = value->kvs[i].value;
+	un = value->kvs[i].value;
 
 	ret = xmalloc(sizeof(struct ason));
 
-	ret->type = ASON_DISJOIN;
-	ret->count = disjoin->count;
+	ret->type = ASON_UNION;
+	ret->count = un->count;
 	ret->items = xcalloc(ret->count, sizeof(ason_t));
 
 	for (j = 0; j < ret->count; j++) {
@@ -877,7 +877,7 @@ ason_flatten_object(ason_t *value)
 			ret->items[j]->kvs[k].key =
 				xstrdup(ret->items[j]->kvs[k].key);
 
-		ret->items[j]->kvs[i].value = disjoin->items[j];
+		ret->items[j]->kvs[i].value = un->items[j];
 	}
 
 	return ason_flatten(ret);
@@ -908,7 +908,7 @@ ason_flatten(ason_t *value)
 		return ason_flatten_list(value);
 	case ASON_OBJECT:
 		return ason_flatten_object(value);
-	case ASON_DISJOIN:
+	case ASON_UNION:
 		break;
 	default:
 		errx(1, "Unreachable statement at %s:%d", __FILE__, __LINE__);
@@ -920,7 +920,7 @@ ason_flatten(ason_t *value)
 
 	count = 0;
 	for (i = 0; i < value->count; i++) {
-		if (value->type == ASON_DISJOIN)
+		if (value->type == ASON_UNION)
 			count += value->count;
 		else
 			count += 1;
@@ -931,13 +931,13 @@ ason_flatten(ason_t *value)
 
 	ret = xmalloc(sizeof(struct ason));
 
-	ret->type = ASON_DISJOIN;
+	ret->type = ASON_UNION;
 	ret->items = xcalloc(count, sizeof(ason_t));
 	ret->count = count;
 
 	k = 0;
 	for (i = 0; i < value->count; i++) {
-		if (value->items[i]->type != ASON_DISJOIN) {
+		if (value->items[i]->type != ASON_UNION) {
 			ret->items[k++] = value->items[i];
 		} else if (value->items[i]->type != ASON_NULL) {
 			for (j = 0; j < value->items[i]->count; j++)
@@ -960,7 +960,7 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 	a = ason_flatten(a);
 	b = ason_simplify_transform(b);
 
-	if (a->type == ASON_DISJOIN) {
+	if (a->type == ASON_UNION) {
 		for (i = 0; i < a->count; i++)
 			if (! ason_check_represented_in(a->items[i], b))
 				return 0;
@@ -968,7 +968,7 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 		return 1;
 	}
 
-	if (b->type == ASON_DISJOIN) {
+	if (b->type == ASON_UNION) {
 		for (i = 0; i < b->count; i++)
 			if (ason_check_represented_in(a, b->items[i]))
 				return 1;
