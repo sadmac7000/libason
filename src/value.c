@@ -62,7 +62,7 @@ static inline void *xstrdup(const char *str)
  * A Key-value pair.
  **/
 struct kv_pair {
-	const char *key;
+	char *key;
 	ason_t *value;
 };
 
@@ -79,6 +79,7 @@ struct ason {
 	};
 
 	size_t count;
+	size_t refcount;
 };
 
 /**
@@ -120,18 +121,87 @@ static struct ason VALUE_OBJ_ANY_DATA = {
 ason_t * const VALUE_OBJ_ANY = &VALUE_OBJ_ANY_DATA;
 
 /**
+ * Create a new ASON value struct.
+ **/
+static ason_t *
+ason_create(ason_type_t type, size_t count, int use_kvs)
+{
+	ason_t *ret = xcalloc(1, sizeof(struct ason));
+
+	ret->type = type;
+	ret->count = count;
+	ret->refcount = 1;
+
+	if (! ret->count)
+		return ret;
+
+	if (use_kvs)
+		ret->kvs = xcalloc(count, sizeof(struct kv_pair));
+	else
+		ret->items = xcalloc(count, sizeof(ason_t *));
+
+	return ret;
+}
+
+/**
+ * Copy an ASON value.
+ **/
+ason_t *
+ason_copy(ason_t *a)
+{
+	if (a == VALUE_NULL		||
+	    a == VALUE_STRONG_NULL	||
+	    a == VALUE_UNIVERSE		||
+	    a == VALUE_WILD		||
+	    a == VALUE_OBJ_ANY)
+		return a;
+
+	a->refcount++;
+	return a;
+}
+
+/**
+ * Destroy an ASON value.
+ **/
+void
+ason_destroy(ason_t *a)
+{
+	size_t i;
+
+	if (a == VALUE_NULL		||
+	    a == VALUE_STRONG_NULL	||
+	    a == VALUE_UNIVERSE		||
+	    a == VALUE_WILD		||
+	    a == VALUE_OBJ_ANY		||
+	    --a->refcount)
+		return;
+
+	if (IS_OBJECT(a)) {
+		for (i = 0; i < a->count; i++) {
+			free(a->kvs[i].key);
+			ason_destroy(a->kvs[i].value);
+		}
+
+		free(a->kvs);
+	} else if (a->count > 0) {
+		for (i = 0; i < a->count; i++)
+			ason_destroy(a->items[i]);
+
+		free(a->items);
+	}
+
+	free(a);
+}
+
+/**
  * Create an ASON numeric value.
  **/
 ason_t *
 ason_create_number(int number)
 {
-	ason_t *ret;
+	ason_t *ret = ason_create(ASON_NUMERIC, 0, 0);
 
-	ret = xmalloc(sizeof(struct ason));
-
-	ret->type = ASON_NUMERIC;
 	ret->n = number;
-	ret->count = 0;
 
 	return ret;
 }
@@ -144,17 +214,11 @@ ason_create_list(ason_t *content)
 {
 	ason_t *ret;
 
-	ret = xmalloc(sizeof(struct ason));
+	if (! content)
+		return ason_create(ASON_LIST, 0, 0);
 
-	ret->type = ASON_LIST;
-	if (! IS_NULL(content)) {
-		ret->items = xcalloc(1, sizeof(ason_t));
-		ret->items[0] = content;
-		ret->count = 1;
-	} else {
-		ret->items = NULL;
-		ret->count = 0;
-	}
+	ret = ason_create(ASON_LIST, 1, 0);
+	ret->items[0] = ason_copy(content);
 
 	return ret;
 }
@@ -167,18 +231,13 @@ ason_create_object(const char *key, ason_t *value)
 {
 	ason_t *ret;
 
-	ret = xmalloc(sizeof(struct ason));
+	if (! value)
+		return ason_create(ASON_OBJECT, 0, 0);
 
-	ret->type = ASON_OBJECT;
-	if (! IS_NULL(value)) {
-		ret->kvs = xcalloc(1, sizeof(struct kv_pair));
-		ret->kvs[0].key = xstrdup(key);
-		ret->kvs[0].value = value;
-		ret->count = 1;
-	} else {
-		ret->kvs = NULL;
-		ret->count = 0;
-	}
+	ret = ason_create(ASON_OBJECT, 1, 1);
+
+	ret->kvs[0].key = xstrdup(key);
+	ret->kvs[0].value = ason_copy(value);
 
 	return ret;
 }
@@ -191,13 +250,10 @@ ason_operate(ason_t *a, ason_t *b, ason_type_t type)
 {
 	ason_t *ret;
 
-	ret = xmalloc(sizeof(struct ason));
+	ret = ason_create(type, 2, 0);
 
-	ret->type = type;
-	ret->items = xcalloc(2, sizeof(ason_t));
-	ret->items[0] = a;
-	ret->items[1] = b;
-	ret->count = 2;
+	ret->items[0] = ason_copy(a);
+	ret->items[1] = ason_copy(b);
 
 	return ret;
 }
@@ -389,11 +445,7 @@ ason_distribute_left(ason_t *un, ason_t *operand, ason_type_t operator)
 	ason_t *ret;
 	size_t i;
 
-	ret = xmalloc(sizeof(struct ason));
-
-	ret->type = ASON_UNION;
-	ret->items = xcalloc(un->count, sizeof(ason_t));
-	ret->count = un->count;
+	ret = ason_create(ASON_UNION, un->count, 0);
 
 	for (i = 0; i < ret->count; i++)
 		ret->items[i] = ason_operate(un->items[i], operand,
@@ -411,11 +463,7 @@ ason_distribute_right(ason_t *operand, ason_t *un, ason_type_t operator)
 	ason_t *ret;
 	size_t i;
 
-	ret = xmalloc(sizeof(struct ason));
-
-	ret->type = ASON_UNION;
-	ret->items = xcalloc(un->count, sizeof(ason_t));
-	ret->count = un->count;
+	ret = ason_create(ASON_UNION, un->count, 0);
 
 	for (i = 0; i < ret->count; i++)
 		ret->items[i] = ason_operate(operand, un->items[i],
@@ -439,15 +487,10 @@ ason_reduce_object_overlap(ason_t *a, ason_t *b)
 	ason_object_sort_kvs(a);
 	ason_object_sort_kvs(b);
 
-	ret = xmalloc(sizeof(struct ason));
-
 	if (a->type == ASON_UOBJECT && b->type == ASON_UOBJECT)
-		ret->type = ASON_UOBJECT;
+		ret = ason_create(ASON_UOBJECT, a->count + b->count, 1);
 	else
-		ret->type = ASON_OBJECT;
-
-	ret->count = a->count + b->count;
-	ret->kvs = xcalloc(ret->count, sizeof(struct kv_pair));
+		ret = ason_create(ASON_OBJECT, a->count + b->count, 1);
 
 	while (a_i < a->count && b_i < b->count) {
 		cmp = strcmp(a->kvs[a_i].key, b->kvs[b_i].key);
@@ -459,11 +502,11 @@ ason_reduce_object_overlap(ason_t *a, ason_t *b)
 			ret_i++;
 		} else if (cmp < 0 && b->type == ASON_UOBJECT) {
 			ret->kvs[ret_i].key = xstrdup(a->kvs[a_i].key);
-			ret->kvs[ret_i].value = a->kvs[a_i].value;
+			ret->kvs[ret_i].value = ason_copy(a->kvs[a_i].value);
 			ret_i++;
 		} else if (cmp > 0 && a->type == ASON_UOBJECT) {
 			ret->kvs[ret_i].key = xstrdup(b->kvs[b_i].key);
-			ret->kvs[ret_i].value = b->kvs[b_i].value;
+			ret->kvs[ret_i].value = ason_copy(b->kvs[b_i].value);
 			ret_i++;
 		}
 
@@ -479,7 +522,7 @@ ason_reduce_object_overlap(ason_t *a, ason_t *b)
 			continue;
 
 		ret->kvs[ret_i].key = xstrdup(a->kvs[a_i].key);
-		ret->kvs[ret_i].value = a->kvs[a_i].value;
+		ret->kvs[ret_i].value = ason_copy(a->kvs[a_i].value);
 		ret_i++;
 	}
 
@@ -488,7 +531,7 @@ ason_reduce_object_overlap(ason_t *a, ason_t *b)
 			continue;
 
 		ret->kvs[ret_i].key = xstrdup(b->kvs[b_i].key);
-		ret->kvs[ret_i].value = b->kvs[b_i].value;
+		ret->kvs[ret_i].value = ason_copy(b->kvs[b_i].value);
 		ret_i++;
 	}
 
@@ -510,11 +553,7 @@ ason_reduce_list_overlap(ason_t *a, ason_t *b)
 	if (b->count > count)
 		count = b->count;
 
-	ret = xmalloc(sizeof(struct ason));
-
-	ret->type = ASON_LIST;
-	ret->items = xcalloc(count, sizeof(ason_t));
-	ret->count = count;
+	ret = ason_create(ASON_LIST, count, 0);
 
 	for (; i < count; i++) {
 		a_sub = b_sub = VALUE_NULL;
@@ -544,7 +583,7 @@ ason_reduce_overlap(ason_t *a, ason_t *b)
 		return ason_reduce_list_overlap(a, b);
 
 	if (ason_check_equality(a, b))
-		return a;
+		return ason_copy(a);
 
 	return VALUE_NULL;
 }
@@ -560,6 +599,8 @@ ason_reduce_query(ason_t *a, ason_t *b)
 	if (ason_check_represented_in(ret, b))
 		return ret;
 
+	ason_destroy(ret);
+
 	return VALUE_NULL;
 }
 
@@ -574,6 +615,8 @@ ason_reduce_intersect(ason_t *a, ason_t *b)
 	if (ason_check_represented_in(ret, a))
 		return ret;
 
+	ason_destroy(ret);
+
 	return VALUE_NULL;
 }
 
@@ -584,16 +627,16 @@ static ason_t *
 ason_reduce_list_append(ason_t *a, ason_t *b)
 {
 	ason_t *ret;
+	size_t i;
 
-	ret = xmalloc(sizeof(struct ason));
-
-	ret->count = a->count + b->count;
-	ret->type = ASON_LIST;
-	ret->items = xcalloc(ret->count, sizeof(ason_t));
+	ret = ason_create(ASON_LIST, a->count + b->count, 0);
 
 	memcpy(ret->items, a->items, a->count * sizeof(ason_t));
 	memcpy(ret->items + a->count, b->items,
 	       b->count * sizeof(ason_t));
+
+	for (i = 0; i < ret->count; i++)
+		ret->items[i] = ason_copy(ret->items[i]);
 
 	return ret;
 }
@@ -613,15 +656,11 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 	ason_object_sort_kvs(a);
 	ason_object_sort_kvs(b);
 
-	ret = xmalloc(sizeof(struct ason));
 
 	if (a->type == ASON_UOBJECT || b->type == ASON_UOBJECT)
-		ret->type = ASON_UOBJECT;
+		ret = ason_create(ASON_UOBJECT, a->count + b->count, 0);
 	else
-		ret->type = ASON_OBJECT;
-
-	ret->count = a->count + b->count;
-	ret->kvs = xcalloc(ret->count, sizeof(struct kv_pair));
+		ret = ason_create(ASON_OBJECT, a->count + b->count, 0);
 
 	while (a_i < a->count && b_i < b->count) {
 		cmp = strcmp(a->kvs[a_i].key, b->kvs[b_i].key);
@@ -632,12 +671,12 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 			       a->kvs[a_i].value, b->kvs[b_i].value);
 			ret_i++;
 		} else if (cmp < 0) {
-			ret->kvs[ret_i] = a->kvs[a_i];
 			ret->kvs[ret_i].key = xstrdup(ret->kvs[ret_i].key);
+			ret->kvs[ret_i].value = ason_copy(a->kvs[a_i].value);
 			ret_i++;
 		} else if (cmp > 0) {
-			ret->kvs[ret_i] = b->kvs[b_i];
 			ret->kvs[ret_i].key = xstrdup(ret->kvs[ret_i].key);
+			ret->kvs[ret_i].value = ason_copy(b->kvs[b_i].value);
 			ret_i++;
 		}
 
@@ -649,16 +688,18 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 	}
 
 	for (; a_i < a->count; a_i++) {
-		ret->kvs[ret_i] = a->kvs[a_i];
 		ret->kvs[ret_i].key = xstrdup(ret->kvs[ret_i].key);
+		ret->kvs[ret_i].value = ason_copy(a->kvs[a_i].value);
 		ret_i++;
 	}
 
 	for (; b_i < b->count; b_i++) {
-		ret->kvs[ret_i] = b->kvs[b_i];
 		ret->kvs[ret_i].key = xstrdup(ret->kvs[ret_i].key);
+		ret->kvs[ret_i].value = ason_copy(b->kvs[b_i].value);
 		ret_i++;
 	}
+
+	ret->count = ret_i;
 
 	return ret;
 }
@@ -672,14 +713,17 @@ static ason_t *ason_simplify_transform(ason_t *in);
 static ason_t *
 ason_reduce_append(ason_t *a, ason_t *b)
 {
-	ason_simplify_transform(a);
-	ason_simplify_transform(b);
+	a = ason_simplify_transform(a);
+	b = ason_simplify_transform(b);
 
 	if (IS_OBJECT(a) && IS_OBJECT(b))
 		return ason_reduce_object_append(a, b);
 
 	if (a->type == ASON_LIST && b->type == ASON_LIST)
 		return ason_reduce_list_append(a, b);
+
+	ason_destroy(a);
+	ason_destroy(b);
 
 	return VALUE_NULL;
 }
@@ -691,6 +735,9 @@ ason_reduce_append(ason_t *a, ason_t *b)
 static ason_t *
 ason_simplify_transform(ason_t *in)
 {
+	ason_t *a;
+	ason_t *b;
+
 	switch (in->type) {
 	case ASON_OVERLAP:
 	case ASON_QUERY:
@@ -698,11 +745,17 @@ ason_simplify_transform(ason_t *in)
 	case ASON_APPEND:
 		break;
 	default:
-		return in;
+		return ason_copy(in);
 	};
 
-	in->items[0] = ason_simplify_transform(in->items[0]);
-	in->items[1] = ason_simplify_transform(in->items[1]);
+	a = ason_simplify_transform(in->items[0]);
+	b = ason_simplify_transform(in->items[1]);
+
+	ason_destroy(in->items[0]);
+	ason_destroy(in->items[1]);
+
+	in->items[0] = a;
+	in->items[1] = b;
 
 	if (in->items[0]->type == ASON_UNION)
 		return ason_distribute_left(in->items[0], in->items[1],
@@ -732,46 +785,42 @@ ason_simplify_transform(ason_t *in)
 int
 ason_do_check_equality(ason_t *a, ason_t *b, int null_eq)
 {
+	int ret;
+
 	a = ason_simplify_transform(a);
 	b = ason_simplify_transform(b);
 
 	if (a->type == ASON_UNIVERSE || b->type == ASON_UNIVERSE)
-		return 1;
+		ret = 1;
+	else if (a->type == ASON_WILD && ! IS_NULL(b))
+		ret = 1;
+	else if (b->type == ASON_WILD && ! IS_NULL(a))
+		ret = 1;
+	else if (a->type == ASON_WILD || b->type == ASON_WILD)
+		ret = 0;
+	else if (a->type == ASON_UNION)
+		ret = ason_check_union_equals(a, b);
+	else if (b->type == ASON_UNION)
+		ret = ason_check_union_equals(b, a);
+	else if (IS_OBJECT(a) && IS_OBJECT(b))
+		ret = ason_check_objects_equal(a, b);
+	else if (IS_NULL(a) && b->type == ASON_STRONG_NULL)
+		ret = 1;
+	else if (IS_NULL(b) && a->type == ASON_STRONG_NULL)
+		ret = 1;
+	else if (a->type != b->type)
+		ret = 0;
+	else if (IS_NULL(a))
+		ret = null_eq;
+	else if (IS_NULL(b))
+		ret = ason_check_lists_equal(a, b);
+	else
+		ret = (a->n == b->n);
 
-	if (a->type == ASON_WILD && ! IS_NULL(b))
-		return 1;
+	ason_destroy(a);
+	ason_destroy(b);
 
-	if (b->type == ASON_WILD && ! IS_NULL(a))
-		return 1;
-
-	if (a->type == ASON_WILD || b->type == ASON_WILD)
-		return 0;
-
-	if (a->type == ASON_UNION)
-		return ason_check_union_equals(a, b);
-	
-	if (b->type == ASON_UNION)
-		return ason_check_union_equals(b, a);
-
-	if (IS_OBJECT(a) && IS_OBJECT(b))
-		return ason_check_objects_equal(a, b);
-
-	if (IS_NULL(a) && b->type == ASON_STRONG_NULL)
-		return 1;
-
-	if (IS_NULL(b) && a->type == ASON_STRONG_NULL)
-		return 1;
-
-	if (a->type != b->type)
-		return 0;
-
-	if (IS_NULL(a))
-		return null_eq;
-
-	if (IS_NULL(b))
-		return ason_check_lists_equal(a, b);
-
-	return a->n == b->n;
+	return ret;
 }
 
 /**
@@ -794,42 +843,42 @@ ason_flatten_list(ason_t *value)
 {
 	size_t i;
 	size_t j;
+	size_t k;
 	ason_t *un;
 	ason_t *ret;
+	ason_t *tmp;
 
-	for (i = 0; i < value->count; i++)
+	for (i = 0; i < value->count; i++) {
+		tmp = value->items[i];
 		value->items[i] = ason_flatten(value->items[i]);
+		ason_destroy(tmp);
+	}
 
 	for (i = 0; i < value->count; i++)
 		if (value->items[i]->type == ASON_UNION)
 			break;
 
 	if (i == value->count)
-		return value;
+		return ason_copy(value);
 
 	un = value->items[i];
 
-	ret = xmalloc(sizeof(struct ason));
-
-	ret->type = ASON_UNION;
-	ret->count = un->count;
-	ret->items = xcalloc(ret->count, sizeof(ason_t));
+	ret = ason_create(ASON_UNION, un->count, 0);
 
 	for (j = 0; j < ret->count; j++) {
-		ret->items[j] = xmalloc(sizeof(struct ason));
+		ret->items[j] = ason_create(ASON_LIST, value->count, 0);
 
-		ret->items[j]->type = ASON_LIST;
-		ret->items[j]->count = value->count;
-		ret->items[j]->items = xcalloc(value->count,
-						   sizeof(ason_t));
+		for (k = 0; k < ret->items[j]->count; k++)
+			if (k != i)
+				ret->items[j]->items[k] =
+					ason_copy(value->items[k]);
 
-		memcpy(ret->items[j]->items, value->items,
-		       value->count * sizeof(ason_t));
-
-		ret->items[j]->items[i] = un->items[j];
+		ret->items[j]->items[i] = ason_copy(un->items[j]);
 	}
 
-	return ason_flatten(ret);
+	tmp = ason_flatten(ret);
+	ason_destroy(ret);
+	return tmp;
 }
 
 /**
@@ -843,44 +892,43 @@ ason_flatten_object(ason_t *value)
 	size_t k;
 	ason_t *un;
 	ason_t *ret;
+	ason_t *tmp;
 
-	for (i = 0; i < value->count; i++)
+	for (i = 0; i < value->count; i++) {
+		tmp = value->kvs[i].value;
 		value->kvs[i].value = ason_flatten(value->items[i]);
+		ason_destroy(tmp);
+	}
 
 	for (i = 0; i < value->count; i++)
 		if (value->kvs[i].value->type == ASON_UNION)
 			break;
 
 	if (i == value->count)
-		return value;
+		return ason_copy(value);
 
 	un = value->kvs[i].value;
 
-	ret = xmalloc(sizeof(struct ason));
-
-	ret->type = ASON_UNION;
-	ret->count = un->count;
-	ret->items = xcalloc(ret->count, sizeof(ason_t));
+	ret = ason_create(ASON_UNION, un->count, 0);
 
 	for (j = 0; j < ret->count; j++) {
-		ret->items[j] = xmalloc(sizeof(struct ason));
+		ret->items[j] = ason_create(value->type, value->count, 1);
 
-		ret->items[j]->type = value->type;
-		ret->items[j]->count = value->count;
-		ret->items[j]->kvs = xcalloc(value->count,
-						   sizeof(struct kv_pair));
-
-		memcpy(ret->items[j]->kvs, value->kvs,
-		       value->count * sizeof(struct kv_pair));
-
-		for (k = 0; k < ret->items[j]->count; k++)
+		for (k = 0; k < ret->items[j]->count; k++) {
 			ret->items[j]->kvs[k].key =
-				xstrdup(ret->items[j]->kvs[k].key);
+				xstrdup(value->kvs[k].key);
 
-		ret->items[j]->kvs[i].value = un->items[j];
+			if (k != i)
+				ret->items[j]->kvs[k].value =
+					ason_copy(value->kvs[k].value);
+		}
+
+		ret->items[j]->kvs[i].value = ason_copy(un->items[j]);
 	}
 
-	return ason_flatten(ret);
+	tmp = ason_flatten(ret);
+	ason_destroy(ret);
+	return tmp;
 }
 
 /**
@@ -894,6 +942,7 @@ ason_flatten(ason_t *value)
 	size_t k;
 	size_t count;
 	ason_t *ret;
+	ason_t *tmp;
 
 	value = ason_simplify_transform(value);
 
@@ -905,9 +954,13 @@ ason_flatten(ason_t *value)
 	case ASON_UNIVERSE:
 		return value;
 	case ASON_LIST:
-		return ason_flatten_list(value);
+		ret = ason_flatten_list(value);
+		ason_destroy(value);
+		return ret;
 	case ASON_OBJECT:
-		return ason_flatten_object(value);
+		ret = ason_flatten_object(value);
+		ason_destroy(value);
+		return ret;
 	case ASON_UNION:
 		break;
 	default:
@@ -915,7 +968,9 @@ ason_flatten(ason_t *value)
 	};
 
 	for (i = 0; i < value->count; i++) {
+		tmp = value->items[i];
 		value->items[i] = ason_flatten(value->items[i]);
+		ason_destroy(tmp);
 	}
 
 	count = 0;
@@ -929,22 +984,20 @@ ason_flatten(ason_t *value)
 	if (count == value->count)
 		return value;
 
-	ret = xmalloc(sizeof(struct ason));
-
-	ret->type = ASON_UNION;
-	ret->items = xcalloc(count, sizeof(ason_t));
-	ret->count = count;
+	ret = ason_create(ASON_UNION, count, 0);
 
 	k = 0;
 	for (i = 0; i < value->count; i++) {
 		if (value->items[i]->type != ASON_UNION) {
-			ret->items[k++] = value->items[i];
+			ret->items[k++] = ason_copy(value->items[i]);
 		} else if (value->items[i]->type != ASON_NULL) {
 			for (j = 0; j < value->items[i]->count; j++)
 				ret->items[k++] =
-					value->items[i]->items[j];
+					ason_copy(value->items[i]->items[j]);
 		}
 	}
+
+	ason_destroy(value);
 
 	return ret;
 }
@@ -956,33 +1009,35 @@ int
 ason_check_represented_in(ason_t *a, ason_t *b)
 {
 	size_t i;
+	int ret;
 
 	a = ason_flatten(a);
 	b = ason_simplify_transform(b);
 
 	if (a->type == ASON_UNION) {
+		ret = 1;
+
 		for (i = 0; i < a->count; i++)
 			if (! ason_check_represented_in(a->items[i], b))
-				return 0;
+				ret = 0;
+	} else if (b->type == ASON_UNION) {
+		ret = 0;
 
-		return 1;
-	}
-
-	if (b->type == ASON_UNION) {
 		for (i = 0; i < b->count; i++)
 			if (ason_check_represented_in(a, b->items[i]))
-				return 1;
-
-		return 0;
+				ret = 1;
+	} else if (b->type == ASON_UNIVERSE) {
+		ret = 1;
+	} else if (b->type == ASON_WILD) {
+		ret = ! IS_NULL(a);
+	} else {
+		ret = ason_check_equality(a, b);
 	}
 
-	if (b->type == ASON_UNIVERSE)
-		return 1;
+	ason_destroy(a);
+	ason_destroy(b);
 
-	if (b->type == ASON_WILD)
-		return a->type != ASON_NULL;
-
-	return ason_check_equality(a, b);
+	return ret;
 }
 
 /**
