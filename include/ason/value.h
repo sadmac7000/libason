@@ -38,7 +38,7 @@ typedef enum {
 } ason_type_t;
 
 /**
- * A ASON value
+ * An ASON value
  **/
 typedef struct ason_t {
 #ifdef IN_LIBASON

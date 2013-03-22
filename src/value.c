@@ -53,7 +53,7 @@ static inline void *xstrdup(const char *str)
 }
 
 /**
- * Test if a ASON value is an object.
+ * Test if an ASON value is an object.
  **/
 #define IS_OBJECT(_x) (_x.v->type == ASON_OBJECT || _x.v->type == ASON_UOBJECT)
 #define IS_NULL(_x) (_x.v->type == ASON_NULL || _x.v->type == ASON_STRONG_NULL)
@@ -120,7 +120,7 @@ static struct ason VALUE_OBJ_ANY_DATA = {
 const ason_t VALUE_OBJ_ANY = { .v = &VALUE_OBJ_ANY_DATA, };
 
 /**
- * Create a ASON numeric value.
+ * Create an ASON numeric value.
  **/
 ason_t
 ason_create_number(int number)
@@ -137,7 +137,7 @@ ason_create_number(int number)
 }
 
 /**
- * Create a ASON list value.
+ * Create an ASON list value.
  **/
 ason_t
 ason_create_list(ason_t content)
@@ -160,7 +160,7 @@ ason_create_list(ason_t content)
 }
 
 /**
- * Create a ASON value.
+ * Create an ASON value.
  **/
 ason_t
 ason_create_object(const char *key, ason_t value) 
@@ -685,7 +685,7 @@ ason_reduce_append(ason_t a, ason_t b)
 }
 
 /**
- * Reduce a ASON value so it is not expressed, at the top level, as a query,
+ * Reduce an ASON value so it is not expressed, at the top level, as a query,
  * intersect, overlap, or append.
  **/
 static ason_t
@@ -787,7 +787,7 @@ ason_check_equality(ason_t a, ason_t b)
 static ason_t ason_flatten(ason_t value);
 
 /**
- * Flatten a ASON list.
+ * Flatten an ASON list.
  **/
 static ason_t
 ason_flatten_list(ason_t value)
@@ -833,7 +833,7 @@ ason_flatten_list(ason_t value)
 }
 
 /**
- * Flatten a ASON object.
+ * Flatten an ASON object.
  **/
 static ason_t
 ason_flatten_object(ason_t value)
@@ -884,7 +884,7 @@ ason_flatten_object(ason_t value)
 }
 
 /**
- * Ensure a ASON object has no indeterminate values.
+ * Ensure an ASON object has no indeterminate values.
  **/
 static ason_t
 ason_flatten(ason_t value)
@@ -1000,7 +1000,7 @@ ason_check_corepresented(ason_t a, ason_t b)
 }
 
 /**
- * Get the type of a ASON value.
+ * Get the type of an ASON value.
  **/
 ason_type_t
 ason_type(ason_t value)
