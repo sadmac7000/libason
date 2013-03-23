@@ -15,8 +15,9 @@ Makefile
 config.log
 config.status
 include/stamp-h1
-src/.deps
+.deps
 libtool
 .libs
 *.la
 *.lo
+test-driver
