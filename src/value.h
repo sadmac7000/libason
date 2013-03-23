@@ -1,6 +1,27 @@
+/**
+ * This file is part of libasonalg.
+ *
+ * libasonalg is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libasonalg is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with libasonalg. If not, see <http://www.gnu.org/licenses/>.
+ **/
 
-#ifndef ASON_LOCAL_VALUE_H
-#define ASON_LOCAL_VALUE_H
+#ifndef VALUE_H
+#define VALUE_H
+
+#include <stdio.h>
+#include <stdarg.h>
+
+#include <ason/value.h>
 
 /**
  * A Key-value pair.
@@ -66,8 +87,24 @@ static inline void *xstrdup(const char *str)
 	return ret;
 }
 
+static inline char *xasprintf(const char *fmt, ...)
+{
+	char *ret;
+	int got;
+	va_list ap;
+
+	va_start(ap, fmt);
+	got = vasprintf(&ret, fmt, ap);
+	va_end(ap);
+
+	if (got < 0)
+		errx(1, "Malloc failed");
+
+	return ret;
+}
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* ASON_LOCAL_VALUE_H */
+#endif /* VALUE_H */
