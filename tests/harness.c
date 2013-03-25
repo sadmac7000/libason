@@ -129,8 +129,7 @@ main(int argc, char **argv)
 
 	printf("TEST: %s", test_name_field);
 	fflush(stdout);
-	/* TODO: Errors after this point should go to the logs. */
-	pid = vfork();
+	pid = fork();
 
 	if (pid < 0)
 		err(1, "FATAL: Could not fork");
