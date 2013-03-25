@@ -1,5 +1,5 @@
 LOG_DRIVER = $(SHELL) am-harness
-TESTS = noop_test
+TESTS = print_object
 noinst_PROGRAMS = $(TESTS)
-noop_test_SOURCES = noop_test.c harness.c
-noop_test_LDADD = ../src/libason.la
+print_object_SOURCES = print_object.c harness.c
+print_object_LDADD = ../src/libason.la
