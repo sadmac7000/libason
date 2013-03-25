@@ -957,7 +957,9 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 	a = ason_flatten(a);
 	b = ason_simplify_transform(b);
 
-	if (a->type == ASON_UNION) {
+	if (a->type == ASON_NULL) {
+		ret = 1; 
+	} if (a->type == ASON_UNION) {
 		ret = 1;
 
 		for (i = 0; i < a->count; i++)
