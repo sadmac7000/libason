@@ -900,6 +900,7 @@ ason_flatten(ason_t *value)
 		ason_destroy(value);
 		return ret;
 	case ASON_OBJECT:
+	case ASON_UOBJECT:
 		ret = ason_flatten_object(value);
 		ason_destroy(value);
 		return ret;
