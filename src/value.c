@@ -775,9 +775,6 @@ ason_check_equality(ason_t *a, ason_t *b)
 	return ason_do_check_equality(a, b, 1);
 }
 
-/* Predeclaration */
-static ason_t *ason_flatten(ason_t *value);
-
 /**
  * Flatten an ASON list.
  **/
@@ -877,7 +874,7 @@ ason_flatten_object(ason_t *value)
 /**
  * Ensure an ASON object has no indeterminate values.
  **/
-static ason_t *
+ason_t *
 ason_flatten(ason_t *value)
 {
 	size_t i;
