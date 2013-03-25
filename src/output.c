@@ -32,9 +32,9 @@ static int
 ason_get_precedence(ason_type_t operator)
 {
 	switch (operator) {
-	case ASON_INTERSECT:
+	case ASON_COQUERY:
 		return 0;
-	case ASON_OVERLAP:
+	case ASON_INTERSECT:
 		return 1;
 	case ASON_QUERY:
 		return 2;
@@ -52,12 +52,12 @@ static const char *
 ason_get_opchar(ason_type_t operator, int use_unicode)
 {
 	switch (operator) {
-	case ASON_INTERSECT:
+	case ASON_COQUERY:
 		if (use_unicode)
 			return "∩";
 		else
 			return "&";
-	case ASON_OVERLAP:
+	case ASON_INTERSECT:
 		if (use_unicode)
 			return "⋒";
 		else
@@ -225,9 +225,9 @@ ason_asprint(ason_t *value, int use_unicode)
 		return xasprintf("U");
 	case ASON_WILD:
 		return xasprintf("*");
-	case ASON_OVERLAP:
-	case ASON_QUERY:
 	case ASON_INTERSECT:
+	case ASON_QUERY:
+	case ASON_COQUERY:
 	case ASON_APPEND:
 		return ason_asprint_operator(value, use_unicode);
 	case ASON_UNION:

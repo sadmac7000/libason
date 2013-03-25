@@ -214,9 +214,9 @@ ason_union(ason_t *a, ason_t *b)
  * Intersect two ASON values.
  **/
 ason_t *
-ason_overlap(ason_t *a, ason_t *b)
+ason_intersect(ason_t *a, ason_t *b)
 {
-	return ason_operate(a, b, ASON_OVERLAP);
+	return ason_operate(a, b, ASON_INTERSECT);
 }
 
 /**
@@ -232,9 +232,9 @@ ason_query(ason_t *a, ason_t *b)
  * Coquery ASON values a and b.
  **/
 ason_t *
-ason_intersect(ason_t *a, ason_t *b)
+ason_coquery(ason_t *a, ason_t *b)
 {
-	return ason_operate(a, b, ASON_INTERSECT);
+	return ason_operate(a, b, ASON_COQUERY);
 }
 
 /**
@@ -416,10 +416,10 @@ ason_distribute_right(ason_t *operand, ason_t *un, ason_type_t operator)
 }
 
 /**
- * Reduce an overlap of two objects.
+ * Reduce an intersect of two objects.
  **/
 static ason_t *
-ason_reduce_object_overlap(ason_t *a, ason_t *b)
+ason_reduce_object_intersect(ason_t *a, ason_t *b)
 {
 	size_t a_i = 0;
 	size_t b_i = 0;
@@ -440,7 +440,7 @@ ason_reduce_object_overlap(ason_t *a, ason_t *b)
 
 		if (! cmp) {
 			ret->kvs[ret_i].key = xstrdup(a->kvs[a_i].key);
-			ret->kvs[ret_i].value = ason_overlap(
+			ret->kvs[ret_i].value = ason_intersect(
 			       a->kvs[a_i].value, b->kvs[b_i].value);
 			ret_i++;
 		} else if (cmp < 0 && b->type == ASON_UOBJECT) {
@@ -482,10 +482,10 @@ ason_reduce_object_overlap(ason_t *a, ason_t *b)
 }
 
 /**
- * Reduce an overlap of two lists.
+ * Reduce an intersect of two lists.
  **/
 static ason_t *
-ason_reduce_list_overlap(ason_t *a, ason_t *b)
+ason_reduce_list_intersect(ason_t *a, ason_t *b)
 {
 	size_t i = 0;
 	ason_t *ret;
@@ -507,23 +507,23 @@ ason_reduce_list_overlap(ason_t *a, ason_t *b)
 		if (i < b->count)
 			b_sub = b->items[i];
 
-		ret->items[i] = ason_overlap(a_sub, b_sub);
+		ret->items[i] = ason_intersect(a_sub, b_sub);
 	}
 
 	return ret;
 }
 
 /**
- * Reduce an overlap of two non-union values.
+ * Reduce an intersect of two non-union values.
  **/
 static ason_t *
-ason_reduce_overlap(ason_t *a, ason_t *b)
+ason_reduce_intersect(ason_t *a, ason_t *b)
 {
 	if (IS_OBJECT(a) && IS_OBJECT(b))
-		return ason_reduce_object_overlap(a, b);
+		return ason_reduce_object_intersect(a, b);
 
 	if (a->type == ASON_LIST && b->type == ASON_LIST)
-		return ason_reduce_list_overlap(a, b);
+		return ason_reduce_list_intersect(a, b);
 
 	if (ason_check_equality(a, b))
 		return ason_copy(a);
@@ -537,7 +537,7 @@ ason_reduce_overlap(ason_t *a, ason_t *b)
 static ason_t *
 ason_reduce_query(ason_t *a, ason_t *b)
 {
-	ason_t *ret = ason_reduce_overlap(a, b);
+	ason_t *ret = ason_reduce_intersect(a, b);
 
 	if (ason_check_represented_in(ret, b))
 		return ret;
@@ -548,10 +548,10 @@ ason_reduce_query(ason_t *a, ason_t *b)
 }
 
 /**
- * Reduce a intersect of two non-union values.
+ * Reduce a coquery of two non-union values.
  **/
 static ason_t *
-ason_reduce_intersect(ason_t *a, ason_t *b)
+ason_reduce_coquery(ason_t *a, ason_t *b)
 {
 	ason_t *ret = ason_reduce_query(a, b);
 
@@ -610,7 +610,7 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 
 		if (! cmp) {
 			ret->kvs[ret_i].key = xstrdup(a->kvs[a_i].key);
-			ret->kvs[ret_i].value = ason_intersect(
+			ret->kvs[ret_i].value = ason_coquery(
 			       a->kvs[a_i].value, b->kvs[b_i].value);
 			ret_i++;
 		} else if (cmp < 0) {
@@ -673,7 +673,7 @@ ason_reduce_append(ason_t *a, ason_t *b)
 
 /**
  * Reduce an ASON value so it is not expressed, at the top level, as a query,
- * intersect, overlap, or append.
+ * coquery, intersect, or append.
  **/
 static ason_t *
 ason_simplify_transform(ason_t *in)
@@ -682,9 +682,9 @@ ason_simplify_transform(ason_t *in)
 	ason_t *b;
 
 	switch (in->type) {
-	case ASON_OVERLAP:
-	case ASON_QUERY:
 	case ASON_INTERSECT:
+	case ASON_QUERY:
+	case ASON_COQUERY:
 	case ASON_APPEND:
 		break;
 	default:
@@ -709,12 +709,12 @@ ason_simplify_transform(ason_t *in)
 					     in->type);
 
 	switch (in->type) {
-	case ASON_OVERLAP:
-		return ason_reduce_overlap(in->items[0], in->items[1]);
-	case ASON_QUERY:
-		return ason_reduce_query(in->items[0], in->items[1]);
 	case ASON_INTERSECT:
 		return ason_reduce_intersect(in->items[0], in->items[1]);
+	case ASON_QUERY:
+		return ason_reduce_query(in->items[0], in->items[1]);
+	case ASON_COQUERY:
+		return ason_reduce_coquery(in->items[0], in->items[1]);
 	case ASON_APPEND:
 		return ason_reduce_append(in->items[0], in->items[1]);
 	default:
