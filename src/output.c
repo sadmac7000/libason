@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
+#include <limits.h>
 #include <err.h>
 
 #include <ason/value.h>
@@ -41,7 +42,7 @@ ason_get_precedence(ason_type_t operator)
 	case ASON_APPEND:
 		return 3;
 	default:
-		errx(1, "Unreachable statement at %s:%d", __FILE__, __LINE__);
+		return INT_MAX;
 	}
 }
 
