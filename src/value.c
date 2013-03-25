@@ -656,19 +656,21 @@ static ason_t *ason_simplify_transform(ason_t *in);
 static ason_t *
 ason_reduce_append(ason_t *a, ason_t *b)
 {
+	ason_t *ret = VALUE_NULL;
+
 	a = ason_simplify_transform(a);
 	b = ason_simplify_transform(b);
 
 	if (IS_OBJECT(a) && IS_OBJECT(b))
-		return ason_reduce_object_append(a, b);
+		ret = ason_reduce_object_append(a, b);
 
 	if (a->type == ASON_LIST && b->type == ASON_LIST)
-		return ason_reduce_list_append(a, b);
+		ret = ason_reduce_list_append(a, b);
 
 	ason_destroy(a);
 	ason_destroy(b);
 
-	return VALUE_NULL;
+	return ret;
 }
 
 /**
