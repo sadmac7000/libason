@@ -72,11 +72,11 @@ main(int argc, char **argv)
 	pid_t pid;
 	siginfo_t info;
 	int ret;
-	int logfile;
-	int trsfile;
+	int logfile = 1;
+	int trsfile = 1;
 	char test_name_field[] = "........................................";
 	int idx;
-	FILE *trs_fp;
+	FILE *trs_fp = stdout;
 	int xfail = 0;
 	int color = 0;
 	int enable_hard = 1;
