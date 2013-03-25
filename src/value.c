@@ -614,11 +614,11 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 			       a->kvs[a_i].value, b->kvs[b_i].value);
 			ret_i++;
 		} else if (cmp < 0) {
-			ret->kvs[ret_i].key = xstrdup(ret->kvs[ret_i].key);
+			ret->kvs[ret_i].key = xstrdup(a->kvs[a_i].key);
 			ret->kvs[ret_i].value = ason_copy(a->kvs[a_i].value);
 			ret_i++;
 		} else if (cmp > 0) {
-			ret->kvs[ret_i].key = xstrdup(ret->kvs[ret_i].key);
+			ret->kvs[ret_i].key = xstrdup(b->kvs[a_i].key);
 			ret->kvs[ret_i].value = ason_copy(b->kvs[b_i].value);
 			ret_i++;
 		}
@@ -631,13 +631,13 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 	}
 
 	for (; a_i < a->count; a_i++) {
-		ret->kvs[ret_i].key = xstrdup(ret->kvs[ret_i].key);
+		ret->kvs[ret_i].key = xstrdup(a->kvs[a_i].key);
 		ret->kvs[ret_i].value = ason_copy(a->kvs[a_i].value);
 		ret_i++;
 	}
 
 	for (; b_i < b->count; b_i++) {
-		ret->kvs[ret_i].key = xstrdup(ret->kvs[ret_i].key);
+		ret->kvs[ret_i].key = xstrdup(b->kvs[b_i].key);
 		ret->kvs[ret_i].value = ason_copy(b->kvs[b_i].value);
 		ret_i++;
 	}
