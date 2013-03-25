@@ -54,24 +54,21 @@ ason_get_opchar(ason_type_t operator, int use_unicode)
 	switch (operator) {
 	case ASON_COQUERY:
 		if (use_unicode)
+			return "⋈";
+		else
+			return "~~";
+	case ASON_INTERSECT:
+		if (use_unicode)
 			return "∩";
 		else
 			return "&";
-	case ASON_INTERSECT:
-		if (use_unicode)
-			return "⋒";
-		else
-			return "&&";
 	case ASON_QUERY:
 		if (use_unicode)
 			return "⊳";
 		else
 			return "~";
 	case ASON_APPEND:
-		if (use_unicode)
-			return "⋅";
-		else
-			return ".";
+		return ".";
 	default:
 		errx(1, "Unreachable statement at %s:%d", __FILE__, __LINE__);
 	}
