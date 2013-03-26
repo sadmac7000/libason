@@ -28,6 +28,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
+#include "harness.h"
+
 /**
  * Special return code for when the harness itself breaks.
  **/
@@ -171,10 +173,15 @@ main(int argc, char **argv)
 		fprintf(trs_fp,
 			":test-result: ERROR !!! Broken Harness !!! %s\n",
 			test_name);
+	} else if (enable_hard && info.si_code == CLD_EXITED &&
+		   info.si_status == EXIT_TEST_FAIL) {
+		printf("ERROR (code: %d)\n", info.si_status);
+		fprintf(trs_fp, ":test-result: ERROR %s (return code %d)\n",
+			test_name, info.si_status);
 	} else {
 		printf("FAIL%s\n", xfail ? " (expected)" : "");
-		fprintf(trs_fp, ":test-result: %sFAIL %s (code %d)\n",
-			xfail ? "X" : "", test_name, info.si_status);
+		fprintf(trs_fp, ":test-result: %sFAIL %s\n",
+			xfail ? "X" : "", test_name);
 	}
 
 	return 0;

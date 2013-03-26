@@ -18,13 +18,12 @@
 #include <ason/value.h>
 #include <ason/output.h>
 
-const char *test_name = "Object printing";
+#include "harness.h"
 
 /**
  * A test which does nothing.
  **/
-int
-test_main(void)
+TEST_MAIN("Object printing")
 {
 	ason_t *six = ason_create_number(6);
 	ason_t *seven = ason_create_number(7);
