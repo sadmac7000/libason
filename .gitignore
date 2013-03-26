@@ -20,4 +20,3 @@ libtool
 .libs
 *.la
 *.lo
-test-driver
