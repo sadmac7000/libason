@@ -26,6 +26,9 @@
 
 #include "value.h"
 
+/* Predeclaration */
+static char *ason_do_asprint(ason_t *value, int use_unicode);
+
 /**
  * Get a precedence value for an operator.
  **/
@@ -81,8 +84,8 @@ ason_get_opchar(ason_type_t operator, int use_unicode)
 static char *
 ason_asprint_operator(ason_t *value, int use_unicode)
 {
-	char *a = ason_asprint(value->items[0], use_unicode);
-	char *b = ason_asprint(value->items[1], use_unicode);
+	char *a = ason_do_asprint(value->items[0], use_unicode);
+	char *b = ason_do_asprint(value->items[1], use_unicode);
 	const char *op = ason_get_opchar(value->type, use_unicode);
 	char *tmp;
 	int precedence = ason_get_precedence(value->type);
@@ -119,7 +122,7 @@ ason_asprint_union(ason_t *value, int use_unicode)
 	size_t i;
 
 	for (i = 0; i < value->count; i++) {
-		next = ason_asprint(value->items[i], use_unicode);
+		next = ason_do_asprint(value->items[i], use_unicode);
 
 		if (out) {
 			tmp = out;
@@ -147,7 +150,7 @@ ason_asprint_object(ason_t *value, int use_unicode)
 
 	/* FIXME: Escaping for keys. */
 	for (i = 0; i < value->count; i++) {
-		next = ason_asprint(value->kvs[i].value, use_unicode);
+		next = ason_do_asprint(value->kvs[i].value, use_unicode);
 
 		tmp = next;
 		next = xasprintf("\"%s\": %s", value->kvs[i].key, next);
@@ -183,7 +186,7 @@ ason_asprint_list(ason_t *value, int use_unicode)
 	size_t i;
 
 	for (i = 0; i < value->count; i++) {
-		next = ason_asprint(value->items[i], use_unicode);
+		next = ason_do_asprint(value->items[i], use_unicode);
 
 		if (out) {
 			tmp = out;
@@ -203,8 +206,8 @@ ason_asprint_list(ason_t *value, int use_unicode)
 /**
  * Print an ASON value as a string.
  **/
-char *
-ason_asprint(ason_t *value, int use_unicode)
+static char *
+ason_do_asprint(ason_t *value, int use_unicode)
 {
 	switch (value->type) {
 	case ASON_NUMERIC:
@@ -238,4 +241,22 @@ ason_asprint(ason_t *value, int use_unicode)
 	default:
 		errx(1, "Unreachable statement at %s:%d", __FILE__, __LINE__);
 	};
+}
+
+/**
+ * Print an ASON value as an ASCII string.
+ **/
+char *
+ason_asprint(ason_t *value)
+{
+	return ason_do_asprint(value, 0);
+}
+
+/**
+ * Print an ASON value as a unicode string.
+ **/
+char *
+ason_asprint_unicode(ason_t *value)
+{
+	return ason_do_asprint(value, 1);
 }

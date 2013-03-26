@@ -65,18 +65,18 @@ test_main(void)
 	ason_destroy(list);
 	object = b;
 
-	out = ason_asprint(object, 0);
+	out = ason_asprint(object);
 	printf("%s\n", out);
-	out = ason_asprint(object, 1);
+	out = ason_asprint_unicode(object);
 	printf("%s\n", out);
 
 	a = ason_flatten(object);
 	ason_destroy(a);
 	object = a;
 
-	out = ason_asprint(object, 0);
+	out = ason_asprint(object);
 	printf("%s\n", out);
-	out = ason_asprint(object, 1);
+	out = ason_asprint_unicode(object);
 	printf("%s\n", out);
 
 	return 0;

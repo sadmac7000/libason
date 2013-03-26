@@ -24,7 +24,8 @@
 extern "C" {
 #endif
 
-char *ason_asprint(ason_t *value, int use_unicode);
+char *ason_asprint(ason_t *value);
+char *ason_asprint_unicode(ason_t *value);
 
 #ifdef __cplusplus
 }
