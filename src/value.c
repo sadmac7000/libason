@@ -575,9 +575,9 @@ ason_reduce_list_append(ason_t *a, ason_t *b)
 
 	ret = ason_create(ASON_LIST, a->count + b->count);
 
-	memcpy(ret->items, a->items, a->count * sizeof(ason_t));
+	memcpy(ret->items, a->items, a->count * sizeof(ason_t *));
 	memcpy(ret->items + a->count, b->items,
-	       b->count * sizeof(ason_t));
+	       b->count * sizeof(ason_t *));
 
 	for (i = 0; i < ret->count; i++)
 		ret->items[i] = ason_copy(ret->items[i]);
