@@ -74,7 +74,7 @@ test_main(void)
 	free(out);
 
 	a = ason_flatten(object);
-	ason_destroy(a);
+	ason_destroy(object);
 	object = a;
 
 	out = ason_asprint(object);

@@ -86,7 +86,6 @@ ason_create(ason_type_t type, size_t count)
 	return ret;
 }
 
-char *ason_asprint(ason_t *value, int use_unicode);
 /**
  * Copy an ASON value.
  **/
