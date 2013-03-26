@@ -839,7 +839,7 @@ ason_flatten_object(ason_t *value)
 
 	for (i = 0; i < value->count; i++) {
 		tmp = value->kvs[i].value;
-		value->kvs[i].value = ason_flatten(value->items[i]);
+		value->kvs[i].value = ason_flatten(value->kvs[i].value);
 		ason_destroy(tmp);
 	}
 
