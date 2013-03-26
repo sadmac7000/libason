@@ -61,6 +61,7 @@ struct option options[] = {
 	{ "color-tests", required_argument, NULL, 0, },
 	{ "expect-failure", required_argument, NULL, 0, },
 	{ "enable-hard-errors", required_argument, NULL, 0, },
+	{ "raw", 0, NULL, 0, },
 };
 
 /**
@@ -110,6 +111,9 @@ main(int argc, char **argv)
 			xfail = 1;
 		if (idx == 5 && !strcmp("no", optarg))
 			enable_hard = 0;
+
+		if (idx == 6)
+			exit(test_main());
 	}
 
 	memcpy(test_name_field, test_name, strlen(test_name));
