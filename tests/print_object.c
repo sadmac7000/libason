@@ -85,5 +85,10 @@ test_main(void)
 	printf("%s\n", out);
 	free(out);
 
+	ason_destroy(object);
+	ason_destroy(six);
+	ason_destroy(seven);
+	ason_destroy(eight);
+
 	return 0;
 }
