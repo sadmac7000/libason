@@ -67,8 +67,11 @@ test_main(void)
 
 	out = ason_asprint(object);
 	printf("%s\n", out);
+	free(out);
+
 	out = ason_asprint_unicode(object);
 	printf("%s\n", out);
+	free(out);
 
 	a = ason_flatten(object);
 	ason_destroy(a);
@@ -76,8 +79,11 @@ test_main(void)
 
 	out = ason_asprint(object);
 	printf("%s\n", out);
+	free(out);
+
 	out = ason_asprint_unicode(object);
 	printf("%s\n", out);
+	free(out);
 
 	return 0;
 }
