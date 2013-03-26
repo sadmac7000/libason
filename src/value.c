@@ -67,7 +67,7 @@ ason_t * const VALUE_OBJ_ANY = &VALUE_OBJ_ANY_DATA;
  * Create a new ASON value struct.
  **/
 static ason_t *
-ason_create(ason_type_t type, size_t count, int use_kvs)
+ason_create(ason_type_t type, size_t count)
 {
 	ason_t *ret = xcalloc(1, sizeof(struct ason));
 
@@ -78,7 +78,7 @@ ason_create(ason_type_t type, size_t count, int use_kvs)
 	if (! ret->count)
 		return ret;
 
-	if (use_kvs)
+	if (type == ASON_OBJECT || type == ASON_UOBJECT)
 		ret->kvs = xcalloc(count, sizeof(struct kv_pair));
 	else
 		ret->items = xcalloc(count, sizeof(ason_t *));
@@ -86,6 +86,7 @@ ason_create(ason_type_t type, size_t count, int use_kvs)
 	return ret;
 }
 
+char *ason_asprint(ason_t *value, int use_unicode);
 /**
  * Copy an ASON value.
  **/
@@ -142,7 +143,7 @@ ason_destroy(ason_t *a)
 ason_t *
 ason_create_number(int number)
 {
-	ason_t *ret = ason_create(ASON_NUMERIC, 0, 0);
+	ason_t *ret = ason_create(ASON_NUMERIC, 0);
 
 	ret->n = number;
 
@@ -158,9 +159,9 @@ ason_create_list(ason_t *content)
 	ason_t *ret;
 
 	if (! content)
-		return ason_create(ASON_LIST, 0, 0);
+		return ason_create(ASON_LIST, 0);
 
-	ret = ason_create(ASON_LIST, 1, 0);
+	ret = ason_create(ASON_LIST, 1);
 	ret->items[0] = ason_copy(content);
 
 	return ret;
@@ -175,9 +176,9 @@ ason_create_object(const char *key, ason_t *value)
 	ason_t *ret;
 
 	if (! value)
-		return ason_create(ASON_OBJECT, 0, 0);
+		return ason_create(ASON_OBJECT, 0);
 
-	ret = ason_create(ASON_OBJECT, 1, 1);
+	ret = ason_create(ASON_OBJECT, 1);
 
 	ret->kvs[0].key = xstrdup(key);
 	ret->kvs[0].value = ason_copy(value);
@@ -193,7 +194,7 @@ ason_operate(ason_t *a, ason_t *b, ason_type_t type)
 {
 	ason_t *ret;
 
-	ret = ason_create(type, 2, 0);
+	ret = ason_create(type, 2);
 
 	ret->items[0] = ason_copy(a);
 	ret->items[1] = ason_copy(b);
@@ -388,7 +389,7 @@ ason_distribute_left(ason_t *un, ason_t *operand, ason_type_t operator)
 	ason_t *ret;
 	size_t i;
 
-	ret = ason_create(ASON_UNION, un->count, 0);
+	ret = ason_create(ASON_UNION, un->count);
 
 	for (i = 0; i < ret->count; i++)
 		ret->items[i] = ason_operate(un->items[i], operand,
@@ -406,7 +407,7 @@ ason_distribute_right(ason_t *operand, ason_t *un, ason_type_t operator)
 	ason_t *ret;
 	size_t i;
 
-	ret = ason_create(ASON_UNION, un->count, 0);
+	ret = ason_create(ASON_UNION, un->count);
 
 	for (i = 0; i < ret->count; i++)
 		ret->items[i] = ason_operate(operand, un->items[i],
@@ -431,9 +432,9 @@ ason_reduce_object_intersect(ason_t *a, ason_t *b)
 	ason_object_sort_kvs(b);
 
 	if (a->type == ASON_UOBJECT && b->type == ASON_UOBJECT)
-		ret = ason_create(ASON_UOBJECT, a->count + b->count, 1);
+		ret = ason_create(ASON_UOBJECT, a->count + b->count);
 	else
-		ret = ason_create(ASON_OBJECT, a->count + b->count, 1);
+		ret = ason_create(ASON_OBJECT, a->count + b->count);
 
 	while (a_i < a->count && b_i < b->count) {
 		cmp = strcmp(a->kvs[a_i].key, b->kvs[b_i].key);
@@ -496,7 +497,7 @@ ason_reduce_list_intersect(ason_t *a, ason_t *b)
 	if (b->count > count)
 		count = b->count;
 
-	ret = ason_create(ASON_LIST, count, 0);
+	ret = ason_create(ASON_LIST, count);
 
 	for (; i < count; i++) {
 		a_sub = b_sub = VALUE_NULL;
@@ -572,7 +573,7 @@ ason_reduce_list_append(ason_t *a, ason_t *b)
 	ason_t *ret;
 	size_t i;
 
-	ret = ason_create(ASON_LIST, a->count + b->count, 0);
+	ret = ason_create(ASON_LIST, a->count + b->count);
 
 	memcpy(ret->items, a->items, a->count * sizeof(ason_t));
 	memcpy(ret->items + a->count, b->items,
@@ -601,9 +602,9 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 
 
 	if (a->type == ASON_UOBJECT || b->type == ASON_UOBJECT)
-		ret = ason_create(ASON_UOBJECT, a->count + b->count, 0);
+		ret = ason_create(ASON_UOBJECT, a->count + b->count);
 	else
-		ret = ason_create(ASON_OBJECT, a->count + b->count, 0);
+		ret = ason_create(ASON_OBJECT, a->count + b->count);
 
 	while (a_i < a->count && b_i < b->count) {
 		cmp = strcmp(a->kvs[a_i].key, b->kvs[b_i].key);
@@ -805,10 +806,10 @@ ason_flatten_list(ason_t *value)
 
 	un = value->items[i];
 
-	ret = ason_create(ASON_UNION, un->count, 0);
+	ret = ason_create(ASON_UNION, un->count);
 
 	for (j = 0; j < ret->count; j++) {
-		ret->items[j] = ason_create(ASON_LIST, value->count, 0);
+		ret->items[j] = ason_create(ASON_LIST, value->count);
 
 		for (k = 0; k < ret->items[j]->count; k++)
 			if (k != i)
@@ -851,10 +852,10 @@ ason_flatten_object(ason_t *value)
 
 	un = value->kvs[i].value;
 
-	ret = ason_create(ASON_UNION, un->count, 0);
+	ret = ason_create(ASON_UNION, un->count);
 
 	for (j = 0; j < ret->count; j++) {
-		ret->items[j] = ason_create(value->type, value->count, 1);
+		ret->items[j] = ason_create(value->type, value->count);
 
 		for (k = 0; k < ret->items[j]->count; k++) {
 			ret->items[j]->kvs[k].key =
@@ -927,7 +928,7 @@ ason_flatten(ason_t *value)
 	if (count == value->count)
 		return value;
 
-	ret = ason_create(ASON_UNION, count, 0);
+	ret = ason_create(ASON_UNION, count);
 
 	k = 0;
 	for (i = 0; i < value->count; i++) {
