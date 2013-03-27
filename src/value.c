@@ -953,13 +953,18 @@ int
 ason_check_represented_in(ason_t *a, ason_t *b)
 {
 	size_t i;
-	int ret;
+	int ret = 0;
+	size_t a_i = 0;
+	size_t b_i = 0;
+	int cmp;
 
 	a = ason_flatten(a);
 	b = ason_simplify_transform(b);
 
 	if (a->type == ASON_NULL) {
 		ret = 1; 
+	} else if (b->type == ASON_UNIVERSE) {
+		ret = 1;
 	} if (a->type == ASON_UNION) {
 		ret = 1;
 
@@ -967,17 +972,52 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 			if (! ason_check_represented_in(a->items[i], b))
 				ret = 0;
 	} else if (b->type == ASON_UNION) {
-		ret = 0;
-
 		for (i = 0; i < b->count; i++)
 			if (ason_check_represented_in(a, b->items[i]))
 				ret = 1;
-	} else if (b->type == ASON_UNIVERSE) {
-		ret = 1;
 	} else if (b->type == ASON_WILD) {
-		ret = ! IS_NULL(a);
-	} else {
-		ret = ason_check_equality(a, b);
+		ret = a->type != ASON_STRONG_NULL;
+	} else if (a->type == ASON_LIST && b->type == ASON_LIST) {
+		ret = 1;
+
+		for (i = a->count; ret && i < b->count; i++)
+			ret = ason_check_represented_in(b->items[i],
+							VALUE_NULL);
+
+		for (i = 0; ret && i < a->count && i < b->count; i++)
+			ret = ason_check_represented_in(a->items[i],
+							b->items[i]);
+	} else if (a->type == ASON_UOBJECT && b->type == ASON_OBJECT) {
+		/* skip */
+	} else if (IS_OBJECT(a) && IS_OBJECT(b)) {
+		ret = 1;
+
+		ason_object_sort_kvs(a);
+		ason_object_sort_kvs(b);
+
+		while (ret && a_i < a->count && b_i < b->count) {
+			cmp = strcmp(a->kvs[a_i].key, b->kvs[b_i].key);
+
+			if (! cmp &&
+			    ! ason_check_represented_in(a->kvs[a_i].value,
+							b->kvs[b_i].value)) {
+				ret = 0;
+			} else if (cmp < 0 && b->type != ASON_UOBJECT) {
+				ret = a->kvs[a_i].value->type == ASON_NULL;
+			} else if (cmp > 0) {
+				ret = a->type != ASON_UOBJECT;
+				ret = ret || ason_check_represented_in(
+					VALUE_UNIVERSE, b->kvs[b_i].value);
+			}
+
+			if (cmp <= 0)
+				a_i++;
+
+			if (cmp >= 0)
+				b_i++;
+		}
+	} else if (a->type == ASON_NUMERIC && b->type == ASON_NUMERIC) {
+		ret = a->n == b->n;
 	}
 
 	ason_destroy(a);
