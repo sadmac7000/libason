@@ -25,6 +25,7 @@
 #include <ason/output.h>
 
 #include "value.h"
+#include "util.h"
 
 /* Predeclaration */
 static char *ason_do_asprint(ason_t *value, int use_unicode);

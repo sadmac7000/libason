@@ -15,50 +15,27 @@
  * along with libason. If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#ifndef VALUE_H
-#define VALUE_H
-
 #include <stdio.h>
-#include <stdarg.h>
+#include <stdlib.h>
 
 #include <ason/value.h>
+#include <ason/output.h>
+#include <ason/read.h>
+
+#include "harness.h"
 
 /**
- * A Key-value pair.
+ * Basic exercise of the parser.
  **/
-struct kv_pair {
-	char *key;
-	ason_t *value;
-};
+TEST_MAIN("Parse a simple value")
+{
+	ason_t *test_value = ason_read("{ \"foo\": 6 }");
+	char *result = ason_asprint(test_value);
+	
+	printf("%s\n", result);
+	ason_destroy(test_value);
+	free(result);
 
-/**
- * Data making up a value.
- **/
-struct ason {
-	ason_type_t type;
-	union {
-		int64_t n;
-		uint64_t u;
-		ason_t **items;
-		struct kv_pair *kvs;
-	};
-
-	size_t count;
-	size_t refcount;
-};
-
-/**
- * Test if an ASON value is an object.
- **/
-#define IS_OBJECT(_x) (_x->type == ASON_OBJECT || _x->type == ASON_UOBJECT)
-#define IS_NULL(_x) (_x->type == ASON_NULL || _x->type == ASON_STRONG_NULL)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef __cplusplus
+	return 0;
 }
-#endif
 
-#endif /* VALUE_H */

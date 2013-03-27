@@ -1,3 +1,4 @@
 print_object
+parser_test
 *.log
 *.trs
