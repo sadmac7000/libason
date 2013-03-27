@@ -114,9 +114,8 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data)
 	if (*text != '"' || *(text - 1) == '\\')
 		return 0;
 
-	text++;
-
 	data->c = xstrndup(tok_start, text - tok_start);
+	text++;
 	*type = ASON_LEX_STRING;
 	return text - text_start;
 }
