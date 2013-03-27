@@ -174,7 +174,7 @@ main(int argc, char **argv)
 			":test-result: ERROR !!! Broken Harness !!! %s\n",
 			test_name);
 	} else if (enable_hard && info.si_code == CLD_EXITED &&
-		   info.si_status == EXIT_TEST_FAIL) {
+		   info.si_status != EXIT_TEST_FAIL) {
 		printf("ERROR (code: %d)\n", info.si_status);
 		fprintf(trs_fp, ":test-result: ERROR %s (return code %d)\n",
 			test_name, info.si_status);
