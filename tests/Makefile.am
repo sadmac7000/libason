@@ -1,4 +1,3 @@
-LOG_DRIVER = $(SHELL) am-harness
 TESTS = print_object parser_test
 noinst_PROGRAMS = $(TESTS)
 print_object_SOURCES = print_object.c harness.c
