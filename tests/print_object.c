@@ -20,6 +20,7 @@
 
 #include <ason/value.h>
 #include <ason/output.h>
+#include <ason/read.h>
 
 #include "harness.h"
 
@@ -33,6 +34,7 @@ TEST_MAIN("Object printing")
 	ason_t *eight = ason_create_number(8);
 	ason_t *list = ason_create_list(six);
 	ason_t *object = ason_create_object("first", six);
+	ason_t *test;
 	ason_t *a, *b;
 	char *out;
 
@@ -68,24 +70,20 @@ TEST_MAIN("Object printing")
 	object = b;
 
 	out = ason_asprint(object);
-	printf("%s\n", out);
+	test = ason_read(out);
+
+	REQUIRE(ason_check_corepresented(object, test));
+
 	free(out);
+	ason_destroy(test);
 
 	out = ason_asprint_unicode(object);
-	printf("%s\n", out);
-	free(out);
+	test = ason_read(out);
 
-	a = ason_flatten(object);
-	ason_destroy(object);
-	object = a;
+	REQUIRE(ason_check_corepresented(object, test));
 
-	out = ason_asprint(object);
-	printf("%s\n", out);
 	free(out);
-
-	out = ason_asprint_unicode(object);
-	printf("%s\n", out);
-	free(out);
+	ason_destroy(test);
 
 	ason_destroy(object);
 	ason_destroy(six);
