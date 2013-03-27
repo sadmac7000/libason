@@ -77,9 +77,9 @@ value(A) ::= START_OBJ kv_list(B) COMMA WILD END_OBJ.	{
 	A = ason_append_d(B, VALUE_OBJ_ANY);
 }
 
-list(A) ::= union(B).				{ A = ason_create_list(B); }
+list(A) ::= union(B).				{ A = ason_create_list_d(B); }
 list(A) ::= union(B) COMMA list(C).		{
-	A = ason_append_d(B, C);
+	A = ason_append_d(ason_create_list_d(B), C);
 }
 
 kv_pair(A) ::= STRING(B) COLON union(C).	{
