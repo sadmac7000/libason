@@ -71,6 +71,83 @@ int ason_check_corepresented(ason_t *a, ason_t *b);
 
 ason_type_t ason_type(ason_t *value);
 
+/* Destructive operators */
+
+static inline ason_t *
+ason_create_list_d(ason_t *content)
+{
+	ason_t *ret = ason_create_list(content);
+	ason_destroy(content);
+	return ret;
+}
+
+static inline ason_t *
+ason_create_object_d(const char *key, ason_t *value)
+{
+	ason_t *ret = ason_create_object(key, value);
+	ason_destroy(value);
+	return ret;
+}
+
+static inline ason_t *
+ason_union_d(ason_t *a, ason_t *b)
+{
+	ason_t *ret;
+	ret = ason_union(a, b);
+	ason_destroy(a);
+	ason_destroy(b);
+	return ret;
+}
+
+static inline ason_t *
+ason_intersect_d(ason_t *a, ason_t *b)
+{
+	ason_t *ret;
+	ret = ason_intersect(a, b);
+	ason_destroy(a);
+	ason_destroy(b);
+	return ret;
+}
+
+static inline ason_t *
+ason_query_d(ason_t *a, ason_t *b)
+{
+	ason_t *ret;
+	ret = ason_query(a, b);
+	ason_destroy(a);
+	ason_destroy(b);
+	return ret;
+}
+
+static inline ason_t *
+ason_coquery_d(ason_t *a, ason_t *b)
+{
+	ason_t *ret;
+	ret = ason_coquery(a, b);
+	ason_destroy(a);
+	ason_destroy(b);
+	return ret;
+}
+
+static inline ason_t *
+ason_append_d(ason_t *a, ason_t *b)
+{
+	ason_t *ret;
+	ret = ason_append(a, b);
+	ason_destroy(a);
+	ason_destroy(b);
+	return ret;
+}
+
+static inline ason_t *
+ason_flatten_d(ason_t *in)
+{
+	ason_t *ret;
+	ret = ason_flatten(in);
+	ason_destroy(in);
+	return ret;
+}
+
 #ifdef __cplusplus
 }
 #endif
