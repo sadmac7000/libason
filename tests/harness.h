@@ -25,6 +25,7 @@
 	int test_main(void)
 
 #define EXIT_TEST_FAIL 88
+#define REQUIRE(x) if (! (x)) return EXIT_TEST_FAIL
 
 #ifdef __cplusplus
 extern "C" {
