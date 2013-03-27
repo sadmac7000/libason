@@ -41,37 +41,27 @@ result ::= union(A). { *ret = A; }
 
 union(A) ::= coquery(B).				{ A = B; }
 union(A) ::= union(B) UNION coquery(C).	{
-	A = ason_union(B, C);
-	ason_destroy(B);
-	ason_destroy(C);
+	A = ason_union_d(B, C);
 }
 
 coquery(A) ::= intersect(B).				{ A = B; }
-coquery(A) ::= coquery(B) COQUERY intersect(C).	{
-	A = ason_coquery(B, C);
-	ason_destroy(B);
-	ason_destroy(C);
+coquery(A) ::= coquery(B) COQUERY intersect(C). {
+	A = ason_coquery_d(B, C);
 }
 
 intersect(A) ::= query(B).				{ A = B; }
 intersect(A) ::= intersect(B) INTERSECT query(C).	{
-	A = ason_intersect(B, C);
-	ason_destroy(B);
-	ason_destroy(C);
+	A = ason_intersect_d(B, C);
 }
 
 query(A) ::= append(B).				{ A = B; }
 query(A) ::= query(B) QUERY append(C).	{
-	A = ason_query(B, C);
-	ason_destroy(B);
-	ason_destroy(C);
+	A = ason_query_d(B, C);
 }
 
 append(A) ::= value(B).				{ A = B; }
 append(A) ::= value(B) APPEND append(C).	{
-	A = ason_append(B, C);
-	ason_destroy(B);
-	ason_destroy(C);
+	A = ason_append_d(B, C);
 }
 
 value(A) ::= NIL.		{ A = VALUE_NULL; }
@@ -84,26 +74,20 @@ value(A) ::= INTEGER(B).	{ A = ason_create_number(B.i); }
 value(A) ::= START_LIST list(B) END_LIST.		{ A = B; }
 value(A) ::= START_OBJ kv_list(B) END_OBJ.		{ A = B; }
 value(A) ::= START_OBJ kv_list(B) COMMA WILD END_OBJ.	{
-	A = ason_append(B, VALUE_OBJ_ANY);
-	ason_destroy(B);
+	A = ason_append_d(B, VALUE_OBJ_ANY);
 }
 
 list(A) ::= union(B).				{ A = ason_create_list(B); }
 list(A) ::= union(B) COMMA list(C).		{
-	A = ason_append(B, C);
-	ason_destroy(B);
-	ason_destroy(C);
+	A = ason_append_d(B, C);
 }
 
 kv_pair(A) ::= STRING(B) COLON union(C).	{
-	A = ason_create_object(B.c, C);
+	A = ason_create_object_d(B.c, C);
 	free(B.c);
-	ason_destroy(C);
 }
 
 kv_list(A) ::= kv_pair(B).			{ A = B; }
 kv_list(A) ::= kv_list(B) COMMA kv_pair(C).	{
-	A = ason_append(B, C);
-	ason_destroy(B);
-	ason_destroy(C);
+	A = ason_append_d(B, C);
 }
