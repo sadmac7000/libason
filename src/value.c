@@ -417,48 +417,24 @@ ason_check_lists_equal(ason_t *a, ason_t *b)
 static int
 ason_check_objects_equal(ason_t *a, ason_t *b)
 {
-	size_t a_i = 0;
-	size_t b_i = 0;
-	int cmp;
+	struct ason_coiterator iter;
 
 	ason_object_sort_kvs(a);
 	ason_object_sort_kvs(b);
 
-	while (a_i < a->count && b_i < b->count) {
-		cmp = strcmp(a->kvs[a_i].key, b->kvs[b_i].key);
+	ason_coiterator_init(&iter, a, b);
+	ason_destroy(a);
+	ason_destroy(b);
 
-		if (! cmp && ! ason_check_equality(a->kvs[a_i].value,
-						   b->kvs[b_i].value)) {
-			return 0;
-		} else if (cmp < 0 && b->type != ASON_UOBJECT) {
-			return 0;
-		} else if (cmp > 0 && a->type != ASON_UOBJECT) {
-			return 0;
-		}
+	while (ason_coiterator_next(&iter, &a, &b)) {
+		if (ason_check_equality(a, b))
+		       continue;
 
-		if (cmp <= 0)
-			a_i++;
-
-		if (cmp >= 0)
-			b_i++;
+		ason_coiterator_release(&iter);
+		return 0;
 	}
 
-	for (; a_i < a->count; a_i++) {
-		if (b->type == ASON_UOBJECT)
-			return 1;
-
-		if (! IS_NULL(a->kvs[a_i].value))
-			return 0;
-	}
-
-	for (; b_i < b->count; b_i++) {
-		if (a->type == ASON_UOBJECT)
-			return 1;
-
-		if (! IS_NULL(b->kvs[b_i].value))
-			return 0;
-	}
-
+	ason_coiterator_release(&iter);
 	return 1;
 }
 
