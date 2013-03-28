@@ -148,12 +148,12 @@ ason_coiterator_next(struct ason_coiterator *iter, ason_t **a, ason_t **b)
 	if (iter->a_i >= iter->a->count && iter->b_i >= iter->b->count)
 		return NULL;
 
-	if (iter->a_i > iter->a->count) {
+	if (iter->a_i >= iter->a->count) {
 		*b = iter->b->kvs[iter->b_i].value;
 		return iter->b->kvs[iter->b_i++].key;
 	}
 
-	if (iter->b_i > iter->b->count) {
+	if (iter->b_i >= iter->b->count) {
 		*a = iter->a->kvs[iter->a_i].value;
 		return iter->a->kvs[iter->a_i++].key;
 	}
