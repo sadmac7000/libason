@@ -29,12 +29,41 @@
  **/
 TEST_MAIN("Parse a simple value")
 {
-	ason_t *test_value = ason_read("{ \"foo\": 6 }");
-	char *result = ason_asprint(test_value);
+	ason_t *test_value = ason_read("{ \"foo\": 6, \"bar\": 8 } | 98 | [1,2,3] & [1,2]");
+	ason_t *a;
+	ason_t *b;
+	ason_t *c;
+	ason_t *d;
+
+	a = ason_create_number(6);
+	a = ason_create_object_d("foo", a);
+
+	b = ason_create_number(8);
+	b = ason_create_object_d("bar", b);
+
+	a = ason_append_d(a, b);
+	b = ason_create_number(98);
+
+	a = ason_union_d(a, b);
+	b = ason_create_number(1);
+	b = ason_create_list_d(b);
+
+	c = ason_create_number(2);
+	c = ason_create_list_d(c);
+
+	b = ason_append_d(b, c);
+	c = ason_create_number(3);
+	c = ason_create_list_d(c);
+
+	d = ason_append(b, c);
+	ason_destroy(c);
+
+	b = ason_intersect_d(b, d);
+	a = ason_union_d(a, b);
 	
-	printf("%s\n", result);
+	REQUIRE(ason_check_corepresented(a, test_value));
 	ason_destroy(test_value);
-	free(result);
+	ason_destroy(a);
 
 	return 0;
 }
