@@ -962,9 +962,9 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 {
 	size_t i;
 	int ret = 0;
-	size_t a_i = 0;
-	size_t b_i = 0;
-	int cmp;
+	struct ason_coiterator iter;
+	ason_t *c;
+	ason_t *d;
 
 	a = ason_flatten(a);
 	b = ason_simplify_transform(b);
@@ -1000,30 +1000,12 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 	} else if (IS_OBJECT(a) && IS_OBJECT(b)) {
 		ret = 1;
 
-		ason_object_sort_kvs(a);
-		ason_object_sort_kvs(b);
+		ason_coiterator_init(&iter, a, b);
 
-		while (ret && a_i < a->count && b_i < b->count) {
-			cmp = strcmp(a->kvs[a_i].key, b->kvs[b_i].key);
+		while (ret && ason_coiterator_next(&iter, &c, &d))
+			ret = ason_check_represented_in(c, d);
 
-			if (! cmp &&
-			    ! ason_check_represented_in(a->kvs[a_i].value,
-							b->kvs[b_i].value)) {
-				ret = 0;
-			} else if (cmp < 0 && b->type != ASON_UOBJECT) {
-				ret = a->kvs[a_i].value->type == ASON_NULL;
-			} else if (cmp > 0) {
-				ret = a->type != ASON_UOBJECT;
-				ret = ret || ason_check_represented_in(
-					VALUE_UNIVERSE, b->kvs[b_i].value);
-			}
-
-			if (cmp <= 0)
-				a_i++;
-
-			if (cmp >= 0)
-				b_i++;
-		}
+		ason_coiterator_release(&iter);
 	} else if (a->type == ASON_NUMERIC && b->type == ASON_NUMERIC) {
 		ret = a->n == b->n;
 	}
