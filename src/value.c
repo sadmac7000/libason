@@ -894,8 +894,8 @@ ason_flatten(ason_t *value)
 
 	count = 0;
 	for (i = 0; i < value->count; i++) {
-		if (value->type == ASON_UNION)
-			count += value->count;
+		if (value->items[i]->type == ASON_UNION)
+			count += value->items[i]->count;
 		else
 			count += 1;
 	}
