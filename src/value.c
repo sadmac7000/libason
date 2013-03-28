@@ -418,12 +418,7 @@ ason_check_objects_equal(ason_t *a, ason_t *b)
 {
 	struct ason_coiterator iter;
 
-	ason_object_sort_kvs(a);
-	ason_object_sort_kvs(b);
-
 	ason_coiterator_init(&iter, a, b);
-	ason_destroy(a);
-	ason_destroy(b);
 
 	while (ason_coiterator_next(&iter, &a, &b)) {
 		if (ason_check_equality(a, b))
@@ -484,12 +479,7 @@ ason_reduce_object_intersect(ason_t *a, ason_t *b)
 	const char *key;
 	struct ason_coiterator iter;
 
-	ason_object_sort_kvs(a);
-	ason_object_sort_kvs(b);
-
 	ason_coiterator_init(&iter, a, b);
-	ason_destroy(a);
-	ason_destroy(b);
 
 	if (a->type == ASON_UOBJECT && b->type == ASON_UOBJECT)
 		ret = ason_create(ASON_UOBJECT, a->count + b->count);
@@ -623,14 +613,7 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 	ason_t *ret;
 	struct ason_coiterator iter;
 
-	ason_object_sort_kvs(a);
-	ason_object_sort_kvs(b);
-
 	ason_coiterator_init(&iter, a, b);
-
-	ason_destroy(a);
-	ason_destroy(b);
-
 
 	if (a->type == ASON_UOBJECT || b->type == ASON_UOBJECT)
 		ret = ason_create(ASON_UOBJECT, a->count + b->count);
