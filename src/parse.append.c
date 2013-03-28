@@ -80,6 +80,8 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data)
 	FIXED_TOKEN("{", ASON_LEX_START_OBJ);
 	FIXED_TOKEN("}", ASON_LEX_END_OBJ);
 	FIXED_TOKEN(":", ASON_LEX_COLON);
+	FIXED_TOKEN("(", ASON_LEX_O_PAREN);
+	FIXED_TOKEN(")", ASON_LEX_C_PAREN);
 
 #undef FIXED_TOKEN
 

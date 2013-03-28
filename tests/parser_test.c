@@ -29,7 +29,7 @@
  **/
 TEST_MAIN("Parse a simple value")
 {
-	ason_t *test_value = ason_read("{ \"foo\": 6, \"bar\": 8 } | 98 | [1,2,3] & [1,2]");
+	ason_t *test_value = ason_read("{ \"foo\": 6, \"bar\": 8 } | (98 | [1,2,3] & [1,2])");
 	ason_t *a;
 	ason_t *b;
 	ason_t *c;
