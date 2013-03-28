@@ -1,10 +1,17 @@
 %include {
 #include <ason/value.h>
 #include <assert.h>
+#include <stdlib.h>
+
 typedef union {
 	int i;
 	char *c;
 } token_t;
+
+/* Lemon has a problem with these */
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 }
 
 %token_type {token_t}
