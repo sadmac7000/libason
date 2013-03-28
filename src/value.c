@@ -987,10 +987,10 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 }
 
 /**
- * Check whether a and b are corepresentative.
+ * Check whether a and b are equal.
  **/
 int
-ason_check_corepresented(ason_t *a, ason_t *b)
+ason_check_equal(ason_t *a, ason_t *b)
 {
 	/* FIXME: This can be made quicker */
 	if (! ason_check_represented_in(a, b))

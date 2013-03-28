@@ -67,7 +67,7 @@ void ason_destroy(ason_t *a);
 
 int ason_check_congruent(ason_t *a, ason_t *b);
 int ason_check_represented_in(ason_t *a, ason_t *b);
-int ason_check_corepresented(ason_t *a, ason_t *b);
+int ason_check_equal(ason_t *a, ason_t *b);
 
 ason_type_t ason_type(ason_t *value);
 

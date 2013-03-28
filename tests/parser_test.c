@@ -61,7 +61,7 @@ TEST_MAIN("Parse a simple value")
 	b = ason_intersect_d(b, d);
 	a = ason_union_d(a, b);
 	
-	REQUIRE(ason_check_corepresented(a, test_value));
+	REQUIRE(ason_check_equal(a, test_value));
 	ason_destroy(test_value);
 	ason_destroy(a);
 
