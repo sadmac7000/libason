@@ -370,33 +370,33 @@ ason_append(ason_t *a, ason_t *b)
 }
 
 /* Predeclaration */
-static int ason_do_check_equality(ason_t *a, ason_t *b, int null_eq);
+static int ason_do_check_congruent(ason_t *a, ason_t *b, int null_eq);
 
 /**
- * See if a union is equal to another value.
+ * See if a union is congruent to another value.
  **/
 static int
-ason_check_union_equals(ason_t *un, ason_t *other)
+ason_check_union_congruent_to(ason_t *un, ason_t *other)
 {
 	size_t i;
 
 	for (i = 0; i < un->count; i++)
-		if (ason_do_check_equality(un->items[i], other, 0))
+		if (ason_do_check_congruent(un->items[i], other, 0))
 			return 1;
 
 	return 0;
 }
 
 /**
- * Check if two lists are equal.
+ * Check if two lists are congruent.
  **/
 static int
-ason_check_lists_equal(ason_t *a, ason_t *b)
+ason_check_lists_congruent(ason_t *a, ason_t *b)
 {
 	size_t i;
 
 	for (i = 0; i < a->count && i < b->count; i++)
-		if (! ason_check_equality(a->items[i], b->items[i]))
+		if (! ason_check_congruent(a->items[i], b->items[i]))
 			return 0;
 
 	for (; i < a->count; i++)
@@ -411,17 +411,17 @@ ason_check_lists_equal(ason_t *a, ason_t *b)
 }
 
 /**
- * Check if two ASON objects are equal.
+ * Check if two ASON objects are congruent.
  **/
 static int
-ason_check_objects_equal(ason_t *a, ason_t *b)
+ason_check_objects_congruent(ason_t *a, ason_t *b)
 {
 	struct ason_coiterator iter;
 
 	ason_coiterator_init(&iter, a, b);
 
 	while (ason_coiterator_next(&iter, &a, &b)) {
-		if (ason_check_equality(a, b))
+		if (ason_check_congruent(a, b))
 		       continue;
 
 		ason_coiterator_release(&iter);
@@ -542,7 +542,7 @@ ason_reduce_intersect(ason_t *a, ason_t *b)
 	if (a->type == ASON_LIST && b->type == ASON_LIST)
 		return ason_reduce_list_intersect(a, b);
 
-	if (ason_check_equality(a, b))
+	if (ason_check_congruent(a, b))
 		return ason_copy(a);
 
 	return VALUE_NULL;
@@ -717,10 +717,10 @@ ason_simplify_transform(ason_t *in)
 }
 
 /**
- * Check equality of two ASON values. If null_eq is 0, NULL != STRONG_NULL
+ * Check congruent of two ASON values. If null_eq is 0, NULL != STRONG_NULL
  **/
 int
-ason_do_check_equality(ason_t *a, ason_t *b, int null_eq)
+ason_do_check_congruent(ason_t *a, ason_t *b, int null_eq)
 {
 	int ret;
 
@@ -736,11 +736,11 @@ ason_do_check_equality(ason_t *a, ason_t *b, int null_eq)
 	else if (a->type == ASON_WILD || b->type == ASON_WILD)
 		ret = 0;
 	else if (a->type == ASON_UNION)
-		ret = ason_check_union_equals(a, b);
+		ret = ason_check_union_congruent_to(a, b);
 	else if (b->type == ASON_UNION)
-		ret = ason_check_union_equals(b, a);
+		ret = ason_check_union_congruent_to(b, a);
 	else if (IS_OBJECT(a) && IS_OBJECT(b))
-		ret = ason_check_objects_equal(a, b);
+		ret = ason_check_objects_congruent(a, b);
 	else if (IS_NULL(a) && b->type == ASON_STRONG_NULL)
 		ret = 1;
 	else if (IS_NULL(b) && a->type == ASON_STRONG_NULL)
@@ -750,7 +750,7 @@ ason_do_check_equality(ason_t *a, ason_t *b, int null_eq)
 	else if (IS_NULL(a))
 		ret = null_eq;
 	else if (a->type == ASON_LIST)
-		ret = ason_check_lists_equal(a, b);
+		ret = ason_check_lists_congruent(a, b);
 	else
 		ret = (a->n == b->n);
 
@@ -761,12 +761,12 @@ ason_do_check_equality(ason_t *a, ason_t *b, int null_eq)
 }
 
 /**
- * Check equality of two ASON values.
+ * Check congruent of two ASON values.
  **/
 int
-ason_check_equality(ason_t *a, ason_t *b)
+ason_check_congruent(ason_t *a, ason_t *b)
 {
-	return ason_do_check_equality(a, b, 1);
+	return ason_do_check_congruent(a, b, 1);
 }
 
 /**
