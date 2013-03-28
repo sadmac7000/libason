@@ -60,7 +60,6 @@ ason_t *ason_intersect(ason_t *a, ason_t *b);
 ason_t *ason_query(ason_t *a, ason_t *b);
 ason_t *ason_coquery(ason_t *a, ason_t *b);
 ason_t *ason_append(ason_t *a, ason_t *b);
-ason_t *ason_flatten(ason_t *in);
 
 ason_t *ason_copy(ason_t *a);
 void ason_destroy(ason_t *a);
@@ -136,15 +135,6 @@ ason_append_d(ason_t *a, ason_t *b)
 	ret = ason_append(a, b);
 	ason_destroy(a);
 	ason_destroy(b);
-	return ret;
-}
-
-static inline ason_t *
-ason_flatten_d(ason_t *in)
-{
-	ason_t *ret;
-	ret = ason_flatten(in);
-	ason_destroy(in);
 	return ret;
 }
 

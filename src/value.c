@@ -769,6 +769,21 @@ ason_check_congruent(ason_t *a, ason_t *b)
 	return ason_do_check_congruent(a, b, 1);
 }
 
+/* Predeclaration */
+static ason_t *ason_flatten(ason_t *in);
+
+/**
+ * Destroy a value and return a flattened version.
+ **/
+static inline ason_t *
+ason_flatten_d(ason_t *in)
+{
+	ason_t *ret;
+	ret = ason_flatten(in);
+	ason_destroy(in);
+	return ret;
+}
+
 /**
  * Flatten an ASON list.
  **/
@@ -856,7 +871,7 @@ ason_flatten_object(ason_t *value)
 /**
  * Ensure an ASON object has no indeterminate values.
  **/
-ason_t *
+static ason_t *
 ason_flatten(ason_t *value)
 {
 	size_t i;
