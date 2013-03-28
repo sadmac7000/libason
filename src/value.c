@@ -780,13 +780,9 @@ ason_flatten_list(ason_t *value)
 	size_t k;
 	ason_t *un;
 	ason_t *ret;
-	ason_t *tmp;
 
-	for (i = 0; i < value->count; i++) {
-		tmp = value->items[i];
-		value->items[i] = ason_flatten(value->items[i]);
-		ason_destroy(tmp);
-	}
+	for (i = 0; i < value->count; i++)
+		value->items[i] = ason_flatten_d(value->items[i]);
 
 	for (i = 0; i < value->count; i++)
 		if (value->items[i]->type == ASON_UNION)
@@ -810,9 +806,7 @@ ason_flatten_list(ason_t *value)
 		ret->items[j]->items[i] = ason_copy(un->items[j]);
 	}
 
-	tmp = ason_flatten(ret);
-	ason_destroy(ret);
-	return tmp;
+	return ason_flatten_d(ret);
 }
 
 /**
@@ -826,13 +820,9 @@ ason_flatten_object(ason_t *value)
 	size_t k;
 	ason_t *un;
 	ason_t *ret;
-	ason_t *tmp;
 
-	for (i = 0; i < value->count; i++) {
-		tmp = value->kvs[i].value;
-		value->kvs[i].value = ason_flatten(value->kvs[i].value);
-		ason_destroy(tmp);
-	}
+	for (i = 0; i < value->count; i++)
+		value->kvs[i].value = ason_flatten_d(value->kvs[i].value);
 
 	for (i = 0; i < value->count; i++)
 		if (value->kvs[i].value->type == ASON_UNION)
@@ -860,9 +850,7 @@ ason_flatten_object(ason_t *value)
 		ret->items[j]->kvs[i].value = ason_copy(un->items[j]);
 	}
 
-	tmp = ason_flatten(ret);
-	ason_destroy(ret);
-	return tmp;
+	return ason_flatten_d(ret);
 }
 
 /**
@@ -876,7 +864,6 @@ ason_flatten(ason_t *value)
 	size_t k;
 	size_t count;
 	ason_t *ret;
-	ason_t *tmp;
 
 	value = ason_simplify_transform(value);
 
@@ -902,11 +889,8 @@ ason_flatten(ason_t *value)
 		errx(1, "Unreachable statement at %s:%d", __FILE__, __LINE__);
 	};
 
-	for (i = 0; i < value->count; i++) {
-		tmp = value->items[i];
-		value->items[i] = ason_flatten(value->items[i]);
-		ason_destroy(tmp);
-	}
+	for (i = 0; i < value->count; i++)
+		value->items[i] = ason_flatten_d(value->items[i]);
 
 	count = 0;
 	for (i = 0; i < value->count; i++) {
