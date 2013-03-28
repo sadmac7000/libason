@@ -749,7 +749,7 @@ ason_do_check_equality(ason_t *a, ason_t *b, int null_eq)
 		ret = 0;
 	else if (IS_NULL(a))
 		ret = null_eq;
-	else if (IS_NULL(b))
+	else if (a->type == ASON_LIST)
 		ret = ason_check_lists_equal(a, b);
 	else
 		ret = (a->n == b->n);
