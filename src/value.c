@@ -907,13 +907,16 @@ ason_flatten(ason_t *value)
 
 	k = 0;
 	for (i = 0; i < value->count; i++) {
+		if (value->items[i]->type == ASON_NULL)
+			continue;
+
 		if (value->items[i]->type != ASON_UNION) {
 			ret->items[k++] = ason_copy(value->items[i]);
-		} else if (value->items[i]->type != ASON_NULL) {
-			for (j = 0; j < value->items[i]->count; j++)
-				ret->items[k++] =
-					ason_copy(value->items[i]->items[j]);
+			continue;
 		}
+
+		for (j = 0; j < value->items[i]->count; j++)
+			ret->items[k++] = ason_copy(value->items[i]->items[j]);
 	}
 
 	ason_destroy(value);
