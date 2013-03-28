@@ -25,6 +25,15 @@
 #include "value.h"
 #include "util.h"
 
+/**
+ * An iterator to iterate the keys in two objects at once.
+ **/
+struct ason_coiterator {
+	size_t a_i;
+	size_t b_i;
+	ason_t *a;
+	ason_t *b;
+};
 
 /**
  * Handy value constants.
@@ -63,6 +72,120 @@ static struct ason VALUE_OBJ_ANY_DATA = {
 	.count = 0,
 };
 ason_t * const VALUE_OBJ_ANY = &VALUE_OBJ_ANY_DATA;
+
+/**
+ * Quicksort an array of KV pairs.
+ **/
+static void
+kv_pair_quicksort(struct kv_pair *kvs, size_t count)
+{
+	size_t pivot;
+	size_t i;
+	struct kv_pair tmp;
+
+	if (count <= 1)
+		return;
+
+	pivot = 0;
+
+	for (i = 1; i < count; i++) {
+		if (strcmp(kvs[i].key, kvs[pivot].key) >= 0)
+			continue;
+
+		tmp = kvs[pivot + 1];
+		kvs[pivot + 1] = kvs[pivot];
+		kvs[pivot++] = kvs[i];
+		kvs[i] = tmp;
+	}
+
+	kv_pair_quicksort(kvs, pivot);
+	kv_pair_quicksort(kvs + pivot + 1, count - pivot - 1);
+}
+
+/**
+ * Sort the KV pairs in an object.
+ **/
+static void
+ason_object_sort_kvs(ason_t *obj)
+{
+	struct kv_pair *kvs = obj->kvs;
+	size_t count = obj->count;
+
+	kv_pair_quicksort(kvs, count);
+}
+
+/**
+ * Initialize an ASON coiterator.
+ **/
+static void
+ason_coiterator_init(struct ason_coiterator *iter, ason_t *a, ason_t *b)
+{
+	iter->a_i = 0;
+	iter->b_i = 0;
+	iter->a = ason_copy(a);
+	iter->b = ason_copy(b);
+
+	ason_object_sort_kvs(a);
+	ason_object_sort_kvs(b);
+}
+
+/**
+ * Get the next values for an ASON coiterator.
+ **/
+static const char *
+ason_coiterator_next(struct ason_coiterator *iter, const ason_t **a,
+		     const ason_t **b)
+{
+	const char *ret;
+	int cmp;
+	*a = *b = VALUE_NULL;
+
+	if (iter->a->type == ASON_UOBJECT)
+		*a = VALUE_UNIVERSE;
+
+	if (iter->b->type == ASON_UOBJECT)
+		*b = VALUE_UNIVERSE;
+
+	if (iter->a_i >= iter->a->count && iter->b_i >= iter->b->count)
+		return NULL;
+
+	if (iter->a_i > iter->a->count) {
+		*b = iter->b->kvs[iter->b_i].value;
+		return iter->b->kvs[iter->b_i++].key;
+	}
+
+	if (iter->b_i > iter->b->count) {
+		*a = iter->a->kvs[iter->a_i].value;
+		return iter->a->kvs[iter->a_i++].key;
+	}
+
+	cmp = strcmp(iter->a->kvs[iter->a_i].key,
+		     iter->b->kvs[iter->b_i].key);
+
+	if (cmp <= 0) {
+		ret = iter->a->kvs[iter->a_i].key;
+		*a = iter->a->kvs[iter->a_i].value;
+		iter->a_i++;
+	}
+
+	if (cmp >= 0) {
+		ret = iter->b->kvs[iter->b_i].key;
+		*b = iter->b->kvs[iter->b_i].value;
+		iter->b_i++;
+	}
+
+	return ret;
+}
+
+/**
+ * Release the resources of a coiterator.
+ **/
+static void
+ason_coiterator_release(struct ason_coiterator *iter)
+{
+	ason_destroy(iter->a);
+	ason_destroy(iter->b);
+}
 
 /**
  * Create a new ASON value struct.
@@ -286,47 +409,6 @@ ason_check_lists_equal(ason_t *a, ason_t *b)
 			return 0;
 
 	return 1;
-}
-
-/**
- * Quicksort an array of KV pairs.
- **/
-static void
-kv_pair_quicksort(struct kv_pair *kvs, size_t count)
-{
-	size_t pivot;
-	size_t i;
-	struct kv_pair tmp;
-
-	if (count <= 1)
-		return;
-
-	pivot = 0;
-
-	for (i = 1; i < count; i++) {
-		if (strcmp(kvs[i].key, kvs[pivot].key) >= 0)
-			continue;
-
-		tmp = kvs[pivot + 1];
-		kvs[pivot + 1] = kvs[pivot];
-		kvs[pivot++] = kvs[i];
-		kvs[i] = tmp;
-	}
-
-	kv_pair_quicksort(kvs, pivot);
-	kv_pair_quicksort(kvs + pivot + 1, count - pivot - 1);
-}
-
-/**
- * Sort the KV pairs in an object.
- **/
-static void
-ason_object_sort_kvs(ason_t *obj)
-{
-	struct kv_pair *kvs = obj->kvs;
-	size_t count = obj->count;
-
-	kv_pair_quicksort(kvs, count);
 }
 
 /**
