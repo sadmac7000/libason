@@ -133,8 +133,7 @@ ason_coiterator_init(struct ason_coiterator *iter, ason_t *a, ason_t *b)
  * Get the next values for an ASON coiterator.
  **/
 static const char *
-ason_coiterator_next(struct ason_coiterator *iter, const ason_t **a,
-		     const ason_t **b)
+ason_coiterator_next(struct ason_coiterator *iter, ason_t **a, ason_t **b)
 {
 	const char *ret;
 	int cmp;
@@ -485,38 +484,21 @@ ason_reduce_object_intersect(ason_t *a, ason_t *b)
 	size_t ret_i = 0;
 	int cmp;
 	ason_t *ret;
+	struct ason_coiterator iter;
 
 	ason_object_sort_kvs(a);
 	ason_object_sort_kvs(b);
+
+	ason_coiterator_init(&iter, a, b);
+	ason_destroy(a);
+	ason_destroy(b);
 
 	if (a->type == ASON_UOBJECT && b->type == ASON_UOBJECT)
 		ret = ason_create(ASON_UOBJECT, a->count + b->count);
 	else
 		ret = ason_create(ASON_OBJECT, a->count + b->count);
 
-	while (a_i < a->count && b_i < b->count) {
-		cmp = strcmp(a->kvs[a_i].key, b->kvs[b_i].key);
-
-		if (! cmp) {
-			ret->kvs[ret_i].key = xstrdup(a->kvs[a_i].key);
-			ret->kvs[ret_i].value = ason_intersect(
-			       a->kvs[a_i].value, b->kvs[b_i].value);
-			ret_i++;
-		} else if (cmp < 0 && b->type == ASON_UOBJECT) {
-			ret->kvs[ret_i].key = xstrdup(a->kvs[a_i].key);
-			ret->kvs[ret_i].value = ason_copy(a->kvs[a_i].value);
-			ret_i++;
-		} else if (cmp > 0 && a->type == ASON_UOBJECT) {
-			ret->kvs[ret_i].key = xstrdup(b->kvs[b_i].key);
-			ret->kvs[ret_i].value = ason_copy(b->kvs[b_i].value);
-			ret_i++;
-		}
-
-		if (cmp <= 0)
-			a_i++;
-
-		if (cmp >= 0)
-			b_i++;
+	while () {
 	}
 
 	for (; a_i < a->count; a_i++) {
