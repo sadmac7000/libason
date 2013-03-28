@@ -505,7 +505,6 @@ ason_reduce_object_intersect(ason_t *a, ason_t *b)
 	}
 
 	ason_coiterator_release(&iter);
-
 	return ret;
 }
 
@@ -618,14 +617,19 @@ ason_reduce_list_append(ason_t *a, ason_t *b)
 static ason_t *
 ason_reduce_object_append(ason_t *a, ason_t *b)
 {
-	size_t a_i = 0;
-	size_t b_i = 0;
-	size_t ret_i = 0;
-	int cmp;
+	size_t i;
+	const char *key;
+	ason_t *value;
 	ason_t *ret;
+	struct ason_coiterator iter;
 
 	ason_object_sort_kvs(a);
 	ason_object_sort_kvs(b);
+
+	ason_coiterator_init(&iter, a, b);
+
+	ason_destroy(a);
+	ason_destroy(b);
 
 
 	if (a->type == ASON_UOBJECT || b->type == ASON_UOBJECT)
@@ -633,45 +637,22 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 	else
 		ret = ason_create(ASON_OBJECT, a->count + b->count);
 
-	while (a_i < a->count && b_i < b->count) {
-		cmp = strcmp(a->kvs[a_i].key, b->kvs[b_i].key);
+	ret->count = 0;
 
-		if (! cmp) {
-			ret->kvs[ret_i].key = xstrdup(a->kvs[a_i].key);
-			ret->kvs[ret_i].value = ason_coquery(
-			       a->kvs[a_i].value, b->kvs[b_i].value);
-			ret_i++;
-		} else if (cmp < 0) {
-			ret->kvs[ret_i].key = xstrdup(a->kvs[a_i].key);
-			ret->kvs[ret_i].value = ason_copy(a->kvs[a_i].value);
-			ret_i++;
-		} else if (cmp > 0) {
-			ret->kvs[ret_i].key = xstrdup(b->kvs[a_i].key);
-			ret->kvs[ret_i].value = ason_copy(b->kvs[b_i].value);
-			ret_i++;
-		}
+	for (i = 0; (key = ason_coiterator_next(&iter, &a, &b)); i++) {
+		if (a->type == ASON_NULL)
+			value = ason_copy(b);
+		else if (b->type == ASON_NULL)
+			value = ason_copy(a);
+		else
+			value = ason_coquery(a, b);
 
-		if (cmp <= 0)
-			a_i++;
-
-		if (cmp >= 0)
-			b_i++;
+		ret->kvs[i].key = xstrdup(key);
+		ret->kvs[i].value = value;
+		ret->count++;
 	}
 
-	for (; a_i < a->count; a_i++) {
-		ret->kvs[ret_i].key = xstrdup(a->kvs[a_i].key);
-		ret->kvs[ret_i].value = ason_copy(a->kvs[a_i].value);
-		ret_i++;
-	}
-
-	for (; b_i < b->count; b_i++) {
-		ret->kvs[ret_i].key = xstrdup(b->kvs[b_i].key);
-		ret->kvs[ret_i].value = ason_copy(b->kvs[b_i].value);
-		ret_i++;
-	}
-
-	ret->count = ret_i;
-
+	ason_coiterator_release(&iter);
 	return ret;
 }
 
