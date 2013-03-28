@@ -479,11 +479,9 @@ ason_distribute_right(ason_t *operand, ason_t *un, ason_type_t operator)
 static ason_t *
 ason_reduce_object_intersect(ason_t *a, ason_t *b)
 {
-	size_t a_i = 0;
-	size_t b_i = 0;
-	size_t ret_i = 0;
-	int cmp;
+	size_t i;
 	ason_t *ret;
+	const char *key;
 	struct ason_coiterator iter;
 
 	ason_object_sort_kvs(a);
@@ -498,26 +496,15 @@ ason_reduce_object_intersect(ason_t *a, ason_t *b)
 	else
 		ret = ason_create(ASON_OBJECT, a->count + b->count);
 
-	while () {
+	ret->count = 0;
+
+	for (i = 0; (key = ason_coiterator_next(&iter, &a, &b)); i++) {
+		ret->kvs[i].key = xstrdup(key);
+		ret->kvs[i].value = ason_intersect(a, b);
+		ret->count++;
 	}
 
-	for (; a_i < a->count; a_i++) {
-		if (b->type != ASON_UOBJECT)
-			continue;
-
-		ret->kvs[ret_i].key = xstrdup(a->kvs[a_i].key);
-		ret->kvs[ret_i].value = ason_copy(a->kvs[a_i].value);
-		ret_i++;
-	}
-
-	for (; b_i < b->count; b_i++) {
-		if (a->type != ASON_UOBJECT)
-			continue;
-
-		ret->kvs[ret_i].key = xstrdup(b->kvs[b_i].key);
-		ret->kvs[ret_i].value = ason_copy(b->kvs[b_i].value);
-		ret_i++;
-	}
+	ason_coiterator_release(&iter);
 
 	return ret;
 }
