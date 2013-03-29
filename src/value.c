@@ -137,7 +137,7 @@ ason_coiterator_next(struct ason_coiterator *iter, ason_t **a, ason_t **b)
 {
 	const char *ret;
 	int cmp;
-	*a = *b = VALUE_NULL;
+	*a = *b = VALUE_STRONG_NULL;
 
 	if (iter->a->type == ASON_UOBJECT)
 		*a = VALUE_UNIVERSE;
@@ -299,6 +299,9 @@ ason_create_object(const char *key, ason_t *value)
 
 	if (! value)
 		return ason_create(ASON_OBJECT, 0);
+
+	if (value->type == ASON_NULL)
+		return VALUE_NULL;
 
 	ret = ason_create(ASON_OBJECT, 1);
 
@@ -623,9 +626,9 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 	ret->count = 0;
 
 	for (i = 0; (key = ason_coiterator_next(&iter, &a, &b)); i++) {
-		if (a->type == ASON_NULL)
+		if (a->type == ASON_STRONG_NULL)
 			value = ason_copy(b);
-		else if (b->type == ASON_NULL)
+		else if (b->type == ASON_STRONG_NULL)
 			value = ason_copy(a);
 		else
 			value = ason_coquery(a, b);
