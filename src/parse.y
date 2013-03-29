@@ -71,8 +71,8 @@ append(A) ::= value(B) APPEND append(C).	{
 	A = ason_append_d(B, C);
 }
 
-value(A) ::= NIL.		{ A = VALUE_NULL; }
-value(A) ::= NIL_STRONG.	{ A = VALUE_STRONG_NULL; }
+value(A) ::= EMPTY.		{ A = VALUE_EMPTY; }
+value(A) ::= NULL.		{ A = VALUE_NULL; }
 value(A) ::= UNIVERSE.		{ A = VALUE_UNIVERSE; }
 value(A) ::= WILD.		{ A = VALUE_WILD; }
 

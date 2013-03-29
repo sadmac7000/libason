@@ -213,12 +213,12 @@ ason_do_asprint(ason_t *value, int use_unicode)
 	switch (value->type) {
 	case ASON_NUMERIC:
 		return xasprintf("%lld", value->n);
-	case ASON_NULL:
+	case ASON_EMPTY:
 		if (use_unicode)
 			return xasprintf("∘");
 		else
 			return xasprintf("nil");
-	case ASON_STRONG_NULL:
+	case ASON_NULL:
 		if (use_unicode)
 			return xasprintf("∅");
 		else

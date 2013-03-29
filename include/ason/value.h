@@ -23,8 +23,8 @@
  **/
 typedef enum {
 	ASON_NUMERIC,
+	ASON_EMPTY,
 	ASON_NULL,
-	ASON_STRONG_NULL,
 	ASON_UNIVERSE,
 	ASON_WILD,
 	ASON_UNION,
@@ -42,8 +42,8 @@ typedef enum {
  **/
 typedef struct ason ason_t;
 
+extern ason_t * const VALUE_EMPTY;
 extern ason_t * const VALUE_NULL;
-extern ason_t * const VALUE_STRONG_NULL;
 extern ason_t * const VALUE_UNIVERSE;
 extern ason_t * const VALUE_WILD;
 extern ason_t * const VALUE_OBJ_ANY;

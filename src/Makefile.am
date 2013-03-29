@@ -10,9 +10,7 @@ libason_la_SOURCES = \
 	parse.whole.c
 MOSTLYCLEANFILES = parse.whole.c parse.c parse.h parse.out
 
-read.c: parse.h
-
-parse.whole.c: parse.c parse.append.c
+parse.whole.c: parse.c parse.append.c parse.h
 	$(AM_V_GEN)cat parse.c parse.append.c > parse.whole.c
 
 .y.h:

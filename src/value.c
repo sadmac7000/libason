@@ -38,19 +38,19 @@ struct ason_coiterator {
 /**
  * Handy value constants.
  **/
+static struct ason VALUE_EMPTY_DATA = {
+	.type = ASON_EMPTY,
+	.items = NULL,
+	.count = 0,
+};
+ason_t * const VALUE_EMPTY = &VALUE_EMPTY_DATA;
+
 static struct ason VALUE_NULL_DATA = {
 	.type = ASON_NULL,
 	.items = NULL,
 	.count = 0,
 };
 ason_t * const VALUE_NULL = &VALUE_NULL_DATA;
-
-static struct ason VALUE_STRONG_NULL_DATA = {
-	.type = ASON_STRONG_NULL,
-	.items = NULL,
-	.count = 0,
-};
-ason_t * const VALUE_STRONG_NULL = &VALUE_STRONG_NULL_DATA;
 
 static struct ason VALUE_UNIVERSE_DATA = {
 	.type = ASON_UNIVERSE,
@@ -137,7 +137,7 @@ ason_coiterator_next(struct ason_coiterator *iter, ason_t **a, ason_t **b)
 {
 	const char *ret;
 	int cmp;
-	*a = *b = VALUE_STRONG_NULL;
+	*a = *b = VALUE_NULL;
 
 	if (iter->a->type == ASON_UOBJECT)
 		*a = VALUE_UNIVERSE;
@@ -215,8 +215,8 @@ ason_create(ason_type_t type, size_t count)
 ason_t *
 ason_copy(ason_t *a)
 {
-	if (a == VALUE_NULL		||
-	    a == VALUE_STRONG_NULL	||
+	if (a == VALUE_EMPTY		||
+	    a == VALUE_NULL	||
 	    a == VALUE_UNIVERSE		||
 	    a == VALUE_WILD		||
 	    a == VALUE_OBJ_ANY)
@@ -234,8 +234,8 @@ ason_destroy(ason_t *a)
 {
 	size_t i;
 
-	if (a == VALUE_NULL		||
-	    a == VALUE_STRONG_NULL	||
+	if (a == VALUE_EMPTY		||
+	    a == VALUE_NULL	||
 	    a == VALUE_UNIVERSE		||
 	    a == VALUE_WILD		||
 	    a == VALUE_OBJ_ANY		||
@@ -300,8 +300,8 @@ ason_create_object(const char *key, ason_t *value)
 	if (! value)
 		return ason_create(ASON_OBJECT, 0);
 
-	if (value->type == ASON_NULL)
-		return VALUE_NULL;
+	if (value->type == ASON_EMPTY)
+		return VALUE_EMPTY;
 
 	ret = ason_create(ASON_OBJECT, 1);
 
@@ -519,7 +519,7 @@ ason_reduce_list_intersect(ason_t *a, ason_t *b)
 	ret = ason_create(ASON_LIST, count);
 
 	for (; i < count; i++) {
-		a_sub = b_sub = VALUE_NULL;
+		a_sub = b_sub = VALUE_EMPTY;
 
 		if (i < a->count)
 			a_sub = a->items[i];
@@ -548,7 +548,7 @@ ason_reduce_intersect(ason_t *a, ason_t *b)
 	if (ason_check_congruent(a, b))
 		return ason_copy(a);
 
-	return VALUE_NULL;
+	return VALUE_EMPTY;
 }
 
 /**
@@ -564,7 +564,7 @@ ason_reduce_query(ason_t *a, ason_t *b)
 
 	ason_destroy(ret);
 
-	return VALUE_NULL;
+	return VALUE_EMPTY;
 }
 
 /**
@@ -580,7 +580,7 @@ ason_reduce_coquery(ason_t *a, ason_t *b)
 
 	ason_destroy(ret);
 
-	return VALUE_NULL;
+	return VALUE_EMPTY;
 }
 
 /**
@@ -626,9 +626,9 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 	ret->count = 0;
 
 	for (i = 0; (key = ason_coiterator_next(&iter, &a, &b)); i++) {
-		if (a->type == ASON_STRONG_NULL)
+		if (a->type == ASON_NULL)
 			value = ason_copy(b);
-		else if (b->type == ASON_STRONG_NULL)
+		else if (b->type == ASON_NULL)
 			value = ason_copy(a);
 		else
 			value = ason_coquery(a, b);
@@ -651,7 +651,7 @@ static ason_t *ason_simplify_transform(ason_t *in);
 static ason_t *
 ason_reduce_append(ason_t *a, ason_t *b)
 {
-	ason_t *ret = VALUE_NULL;
+	ason_t *ret = VALUE_EMPTY;
 
 	a = ason_simplify_transform(a);
 	b = ason_simplify_transform(b);
@@ -744,9 +744,9 @@ ason_do_check_congruent(ason_t *a, ason_t *b, int null_eq)
 		ret = ason_check_union_congruent_to(b, a);
 	else if (IS_OBJECT(a) && IS_OBJECT(b))
 		ret = ason_check_objects_congruent(a, b);
-	else if (IS_NULL(a) && b->type == ASON_STRONG_NULL)
+	else if (IS_NULL(a) && b->type == ASON_NULL)
 		ret = 1;
-	else if (IS_NULL(b) && a->type == ASON_STRONG_NULL)
+	else if (IS_NULL(b) && a->type == ASON_NULL)
 		ret = 1;
 	else if (a->type != b->type)
 		ret = 0;
@@ -887,8 +887,8 @@ ason_flatten(ason_t *value)
 
 	switch (value->type) {
 	case ASON_NUMERIC:
+	case ASON_EMPTY:
 	case ASON_NULL:
-	case ASON_STRONG_NULL:
 	case ASON_WILD:
 	case ASON_UNIVERSE:
 		return value;
@@ -925,7 +925,7 @@ ason_flatten(ason_t *value)
 
 	k = 0;
 	for (i = 0; i < value->count; i++) {
-		if (value->items[i]->type == ASON_NULL)
+		if (value->items[i]->type == ASON_EMPTY)
 			continue;
 
 		if (value->items[i]->type != ASON_UNION) {
@@ -957,7 +957,7 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 	a = ason_flatten(a);
 	b = ason_simplify_transform(b);
 
-	if (a->type == ASON_NULL) {
+	if (a->type == ASON_EMPTY) {
 		ret = 1; 
 	} else if (b->type == ASON_UNIVERSE) {
 		ret = 1;
@@ -972,13 +972,13 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 			if (ason_check_represented_in(a, b->items[i]))
 				ret = 1;
 	} else if (b->type == ASON_WILD) {
-		ret = a->type != ASON_STRONG_NULL;
+		ret = a->type != ASON_NULL;
 	} else if (a->type == ASON_LIST && b->type == ASON_LIST) {
 		ret = 1;
 
 		for (i = a->count; ret && i < b->count; i++)
 			ret = ason_check_represented_in(b->items[i],
-							VALUE_NULL);
+							VALUE_EMPTY);
 
 		for (i = 0; ret && i < a->count && i < b->count; i++)
 			ret = ason_check_represented_in(a->items[i],
