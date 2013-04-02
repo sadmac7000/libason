@@ -166,11 +166,12 @@ string_escape(const char *in)
 	iconv_close(ic);
 
 	/* Again, max expansion, for a different reason. We can represent a
-	 * single byte character as '\xb33f'. */
+	 * single byte character as '\ub33f'. */
 	ret = xmalloc(6 * chars + 1);
 	pos = ret;
 
-	for (i = 0; i < chars; i++) {
+	/* i = 1 due to UTF-32 BOM */
+	for (i = 1; i < chars + 1; i++) {
 		if ((expanded_buf[i] & 0xffffff80) ||
 		    iscntrl(expanded_buf[i])) {
 			pos += sprintf(pos, "\\u%04x", expanded_buf[i]);
@@ -229,6 +230,11 @@ string_unescape(const char *in)
 	size_t i;
 
 	iconv_close(ic);
+
+	/* Copy over UTF-32 BOM */
+	*out_pos = *in_pos;
+	out_pos++;
+	in_pos++;
 
 	for(; *in_pos; out_pos++, in_pos++) {
 		if (*in_pos != '\\') {
