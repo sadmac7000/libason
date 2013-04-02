@@ -48,6 +48,16 @@ static inline void *xcalloc(size_t memb, size_t sz)
 	return ret;
 }
 
+static inline void *xrealloc(void *pt, size_t sz)
+{
+	void *ret = realloc(pt, sz);
+
+	if (! ret)
+		errx(1, "Malloc failed");
+
+	return ret;
+}
+
 static inline void *xstrdup(const char *str)
 {
 	void *ret = strdup(str);
