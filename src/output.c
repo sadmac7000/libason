@@ -148,6 +148,7 @@ ason_asprint_object(ason_t *value, int use_unicode)
 	char *out = NULL;
 	char *tmp;
 	char *next;
+	char *key;
 	size_t i;
 
 	/* FIXME: Escaping for keys. */
@@ -155,8 +156,10 @@ ason_asprint_object(ason_t *value, int use_unicode)
 		next = ason_do_asprint(value->kvs[i].value, use_unicode);
 
 		tmp = next;
-		next = xasprintf("\"%s\": %s", value->kvs[i].key, next);
+		key = string_escape(value->kvs[i].key);
+		next = xasprintf("\"%s\": %s", key, next);
 		free(tmp);
+		free(key);
 
 		if (out) {
 			tmp = out;
