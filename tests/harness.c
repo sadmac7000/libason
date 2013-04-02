@@ -133,8 +133,6 @@ main(int argc, char **argv)
 		err(EXIT_HARNESS_FAIL,
 		    "FATAL: Could not set stderr");
 
-	printf("TEST: %s", test_name_field);
-	fflush(stdout);
 	pid = fork();
 
 	if (pid < 0)
@@ -160,26 +158,30 @@ main(int argc, char **argv)
 		err(1, "FATAL: Could not gather child");
 
 	if (info.si_code != CLD_EXITED && enable_hard) {
-		printf("ERROR (sig: %d)\n", info.si_status);
+		printf("TEST: %sERROR (sig: %d)\n", test_name_field,
+		       info.si_status);
 		fprintf(trs_fp, ":test-result: ERROR %s (signal %d)\n",
 			test_name, info.si_status);
 	} else if (info.si_code == CLD_EXITED && !info.si_status) {
-		printf("PASS%s\n", xfail ? " (unexpected!!)" : "");
+		printf("TEST: %sPASS%s\n", test_name_field,
+		       xfail ? " (unexpected!!)" : "");
 		fprintf(trs_fp, ":test-result: %sPASS %s\n",
 			xfail ? "X" : "", test_name);
 	} else if (info.si_code == CLD_EXITED &&
 		   info.si_status == EXIT_HARNESS_FAIL) {
-		printf("FAULT\n");
+		printf("TEST: %sFAULT\n", test_name_field);
 		fprintf(trs_fp,
 			":test-result: ERROR !!! Broken Harness !!! %s\n",
 			test_name);
 	} else if (enable_hard && info.si_code == CLD_EXITED &&
 		   info.si_status != EXIT_TEST_FAIL) {
-		printf("ERROR (code: %d)\n", info.si_status);
+		printf("TEST: %sERROR (code: %d)\n", test_name_field,
+		       info.si_status);
 		fprintf(trs_fp, ":test-result: ERROR %s (return code %d)\n",
 			test_name, info.si_status);
 	} else {
-		printf("FAIL%s\n", xfail ? " (expected)" : "");
+		printf("TEST: %sFAIL%s\n", test_name_field,
+		       xfail ? " (expected)" : "");
 		fprintf(trs_fp, ":test-result: %sFAIL %s\n",
 			xfail ? "X" : "", test_name);
 	}
