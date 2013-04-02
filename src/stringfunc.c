@@ -88,17 +88,20 @@ get_output_iconv(void)
  * Run iconv and convert a string of known length.
  **/
 static char *
-string_do_convert_length(const char *in, iconv_t ic, size_t in_sz)
+string_do_convert_length(const char *in, iconv_t ic, size_t in_bytes)
 {
-	char *my_in = xstrdup(in);
+	char *my_in = xmalloc(in_bytes);
 	char *my_in_mem = my_in;
-	char *out = xmalloc(6 * in_sz); /* Max UTF-8 expansion */
+
+	char *out = xmalloc(6 * in_bytes); /* Max UTF-8 expansion */
 	char *ret = out;
-	size_t in_bytes = in_sz;
-	size_t out_bytes_start = 6 * in_sz + 1;
-	size_t out_bytes = out_bytes_start;
+
+	size_t out_bytes = 6 * in_bytes + 1;
+	size_t out_bytes_start = out_bytes;
+
 	size_t got;
 
+	memcpy(my_in, in, in_bytes);
 	got = iconv(ic, &my_in, &in_bytes, &out, &out_bytes);
 
 	if (in_bytes)
@@ -222,7 +225,7 @@ string_unescape(const char *in)
 	size_t len = strlen(in) + 1;
 	iconv_t ic = xiconv_open("UTF-32", "UTF-8");
 	uint32_t *in_exp = (uint32_t *)string_do_convert(in, ic);
-	uint32_t *out_exp = xcalloc(len, sizeof(uint32_t));
+	uint32_t *out_exp = xcalloc(len + 1, sizeof(uint32_t));
 	uint32_t *in_pos = in_exp;
 	uint32_t *out_pos = out_exp;
 	char tmp_str[5];
@@ -282,7 +285,8 @@ string_unescape(const char *in)
 
 	ic = xiconv_open("UTF-8", "UTF-32");
 
-	ret = string_do_convert_length((char *)out_exp, ic, len);
+	ret = string_do_convert_length((char *)out_exp, ic,
+				       (len + 1) * sizeof(uint32_t));
 
 	iconv_close(ic);
 
