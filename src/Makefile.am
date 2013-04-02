@@ -7,6 +7,7 @@ lib_LTLIBRARIES = libason.la
 libason_la_SOURCES = \
 	value.c \
 	output.c \
+	stringfunc.c \
 	parse.whole.c
 MOSTLYCLEANFILES = parse.whole.c parse.c parse.h parse.out
 

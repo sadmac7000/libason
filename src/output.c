@@ -26,6 +26,7 @@
 
 #include "value.h"
 #include "util.h"
+#include "stringfunc.h"
 
 /* Predeclaration */
 static char *ason_do_asprint(ason_t *value, int use_unicode);
@@ -250,7 +251,11 @@ ason_do_asprint(ason_t *value, int use_unicode)
 char *
 ason_asprint(ason_t *value)
 {
-	return ason_do_asprint(value, 0);
+	char *str = ason_do_asprint(value, 0);
+	char *ret = string_from_utf8(str);
+
+	free(str);
+	return ret;
 }
 
 /**

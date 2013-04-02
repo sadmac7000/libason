@@ -24,6 +24,7 @@
 
 #include "value.h"
 #include "util.h"
+#include "stringfunc.h"
 
 /**
  * An iterator to iterate the keys in two objects at once.
@@ -305,7 +306,7 @@ ason_create_object(const char *key, ason_t *value)
 
 	ret = ason_create(ASON_OBJECT, 1);
 
-	ret->kvs[0].key = xstrdup(key);
+	ret->kvs[0].key = string_to_utf8(key);
 	ret->kvs[0].value = ason_copy(value);
 
 	return ret;

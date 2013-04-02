@@ -24,6 +24,7 @@
 
 #include "parse.h"
 #include "util.h"
+#include "stringfunc.h"
 
 /**
  * Read an ASON value from a string.
@@ -132,6 +133,11 @@ ason_readn(const char *text, size_t length)
 	int type;
 	void *parser = asonLemonAlloc(xmalloc);
 	ason_t *ret = NULL;
+	char *tmp = xstrndup(text, length);
+	char *text_unicode = string_to_utf8(tmp);
+
+	free(tmp);
+	text = text_unicode;
 
 	while ((len = ason_get_token(text, length, &type, &data))) {
 		text += len;
@@ -141,6 +147,8 @@ ason_readn(const char *text, size_t length)
 
 	asonLemon(parser, 0, data, &ret);
 	asonLemonFree(parser, free);
+
+	free(text_unicode);
 	
 	return ret;
 }
