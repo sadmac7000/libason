@@ -272,7 +272,7 @@ string_unescape(const char *in)
 			*out_pos = '\t';
 			break;
 		case 'v':
-			*out_pos = '\t';
+			*out_pos = '\v';
 			break;
 		case 'u':
 			for (i = 0; i < 4; i++)
