@@ -175,8 +175,7 @@ string_escape(const char *in)
 
 	/* i = 1 due to UTF-32 BOM */
 	for (i = 1; i < chars + 1; i++) {
-		if ((expanded_buf[i] & 0xffffff80) ||
-		    iscntrl(expanded_buf[i])) {
+		if (expanded_buf[i] & 0xffffff80) {
 			pos += sprintf(pos, "\\u%04x", expanded_buf[i]);
 			continue;
 		}
@@ -210,7 +209,12 @@ string_escape(const char *in)
 			pos += sprintf(pos, "\\v");
 			break;
 		default:
-			pos += sprintf(pos, "%c", (char)expanded_buf[i]);
+			if (iscntrl(expanded_buf[i]))
+				pos += sprintf(pos, "\\u%04x",
+					       expanded_buf[i]);
+			else
+				pos += sprintf(pos, "%c",
+					       (char)expanded_buf[i]);
 		};
 	}
 
