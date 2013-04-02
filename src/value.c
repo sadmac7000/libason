@@ -814,7 +814,7 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 		ret = 1; 
 	} else if (b->type == ASON_UNIVERSE) {
 		ret = 1;
-	} if (a->type == ASON_UNION) {
+	} else if (a->type == ASON_UNION) {
 		ret = 1;
 
 		for (i = 0; i < a->count; i++)
