@@ -15,26 +15,30 @@
  * along with libason. If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#ifndef TEST_HARNESS_H
-#define TEST_HARNESS_H
+#include <stdio.h>
+#include <stdlib.h>
 
 #include <ason/value.h>
+#include <ason/output.h>
+#include <ason/read.h>
 
-#define TEST_MAIN(name) \
-	const char *test_name = (name); \
-	int test_main(void)
+#include "harness.h"
 
-#define EXIT_TEST_FAIL 88
-#define REQUIRE(x) if (! (x)) { fprintf(stderr, "FAILED: %s\n", #x); \
-	return EXIT_TEST_FAIL; }
+/**
+ * Basic exercise of the parser.
+ **/
+TEST_MAIN("Parse a value with string escapes")
+{
+	ason_t *test_value = ason_read("{ \"\\u2122\\t\\v\\r\": 6 }");
+	ason_t *check_value = ason_create_object_d("™\t\v\r",
+						   ason_create_number(6));
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+	REQUIRE(test_value);
+	REQUIRE(ason_check_equal(check_value, test_value));
 
+	ason_destroy(test_value);
+	ason_destroy(check_value);
 
-#ifdef __cplusplus
+	return 0;
 }
-#endif
 
-#endif /* ASON_OUTPUT_H */
