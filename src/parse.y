@@ -19,9 +19,7 @@ typedef union {
 %extra_argument {ason_t **ret}
 
 %left UNION.
-%left COQUERY.
 %left INTERSECT.
-%left QUERY.
 %left APPEND.
 %left COMMA.
 
@@ -31,9 +29,7 @@ typedef union {
 %type kv_list   {ason_t *}
 %type kv_pair   {ason_t *}
 %type append    {ason_t *}
-%type query     {ason_t *}
 %type intersect {ason_t *}
-%type coquery   {ason_t *}
 %type union     {ason_t *}
 
 %destructor value { ason_destroy($$); }
@@ -46,24 +42,14 @@ typedef union {
 
 result ::= union(A). { *ret = A; }
 
-union(A) ::= coquery(B).				{ A = B; }
-union(A) ::= union(B) UNION coquery(C).	{
+union(A) ::= intersect(B).				{ A = B; }
+union(A) ::= union(B) UNION intersect(C).	{
 	A = ason_union_d(B, C);
 }
 
-coquery(A) ::= intersect(B).				{ A = B; }
-coquery(A) ::= coquery(B) COQUERY intersect(C). {
-	A = ason_coquery_d(B, C);
-}
-
-intersect(A) ::= query(B).				{ A = B; }
-intersect(A) ::= intersect(B) INTERSECT query(C).	{
+intersect(A) ::= append(B).				{ A = B; }
+intersect(A) ::= intersect(B) INTERSECT append(C).	{
 	A = ason_intersect_d(B, C);
-}
-
-query(A) ::= append(B).				{ A = B; }
-query(A) ::= query(B) QUERY append(C).	{
-	A = ason_query_d(B, C);
 }
 
 append(A) ::= value(B).				{ A = B; }

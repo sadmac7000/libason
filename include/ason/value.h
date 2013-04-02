@@ -29,8 +29,6 @@ typedef enum {
 	ASON_WILD,
 	ASON_UNION,
 	ASON_INTERSECT,
-	ASON_QUERY,
-	ASON_COQUERY,
 	ASON_OBJECT,
 	ASON_UOBJECT,
 	ASON_LIST,
@@ -57,14 +55,12 @@ ason_t *ason_create_list(ason_t *content);
 ason_t *ason_create_object(const char *key, ason_t *value); 
 ason_t *ason_union(ason_t *a, ason_t *b);
 ason_t *ason_intersect(ason_t *a, ason_t *b);
-ason_t *ason_query(ason_t *a, ason_t *b);
-ason_t *ason_coquery(ason_t *a, ason_t *b);
 ason_t *ason_append(ason_t *a, ason_t *b);
 
 ason_t *ason_copy(ason_t *a);
 void ason_destroy(ason_t *a);
 
-int ason_check_congruent(ason_t *a, ason_t *b);
+int ason_check_intersects(ason_t *a, ason_t *b);
 int ason_check_represented_in(ason_t *a, ason_t *b);
 int ason_check_equal(ason_t *a, ason_t *b);
 
@@ -103,26 +99,6 @@ ason_intersect_d(ason_t *a, ason_t *b)
 {
 	ason_t *ret;
 	ret = ason_intersect(a, b);
-	ason_destroy(a);
-	ason_destroy(b);
-	return ret;
-}
-
-static inline ason_t *
-ason_query_d(ason_t *a, ason_t *b)
-{
-	ason_t *ret;
-	ret = ason_query(a, b);
-	ason_destroy(a);
-	ason_destroy(b);
-	return ret;
-}
-
-static inline ason_t *
-ason_coquery_d(ason_t *a, ason_t *b)
-{
-	ason_t *ret;
-	ret = ason_coquery(a, b);
 	ason_destroy(a);
 	ason_destroy(b);
 	return ret;

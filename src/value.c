@@ -347,93 +347,12 @@ ason_intersect(ason_t *a, ason_t *b)
 }
 
 /**
- * Query ASON value a by b.
- **/
-ason_t *
-ason_query(ason_t *a, ason_t *b)
-{
-	return ason_operate(a, b, ASON_QUERY);
-}
-
-/**
- * Coquery ASON values a and b.
- **/
-ason_t *
-ason_coquery(ason_t *a, ason_t *b)
-{
-	return ason_operate(a, b, ASON_COQUERY);
-}
-
-/**
  * Appent ASON value b to a.
  **/
 ason_t *
 ason_append(ason_t *a, ason_t *b)
 {
 	return ason_operate(a, b, ASON_APPEND);
-}
-
-/* Predeclaration */
-static int ason_do_check_congruent(ason_t *a, ason_t *b, int null_eq);
-
-/**
- * See if a union is congruent to another value.
- **/
-static int
-ason_check_union_congruent_to(ason_t *un, ason_t *other)
-{
-	size_t i;
-
-	for (i = 0; i < un->count; i++)
-		if (ason_do_check_congruent(un->items[i], other, 0))
-			return 1;
-
-	return 0;
-}
-
-/**
- * Check if two lists are congruent.
- **/
-static int
-ason_check_lists_congruent(ason_t *a, ason_t *b)
-{
-	size_t i;
-
-	for (i = 0; i < a->count && i < b->count; i++)
-		if (! ason_check_congruent(a->items[i], b->items[i]))
-			return 0;
-
-	for (; i < a->count; i++)
-		if (! IS_NULL(a))
-			return 0;
-
-	for (; i < b->count; i++)
-		if (! IS_NULL(b))
-			return 0;
-
-	return 1;
-}
-
-/**
- * Check if two ASON objects are congruent.
- **/
-static int
-ason_check_objects_congruent(ason_t *a, ason_t *b)
-{
-	struct ason_coiterator iter;
-
-	ason_coiterator_init(&iter, a, b);
-
-	while (ason_coiterator_next(&iter, &a, &b)) {
-		if (ason_check_congruent(a, b))
-		       continue;
-
-		ason_coiterator_release(&iter);
-		return 0;
-	}
-
-	ason_coiterator_release(&iter);
-	return 1;
 }
 
 /**
@@ -546,40 +465,8 @@ ason_reduce_intersect(ason_t *a, ason_t *b)
 	if (a->type == ASON_LIST && b->type == ASON_LIST)
 		return ason_reduce_list_intersect(a, b);
 
-	if (ason_check_congruent(a, b))
+	if (ason_check_equal(a, b))
 		return ason_copy(a);
-
-	return VALUE_EMPTY;
-}
-
-/**
- * Reduce a query of two non-union values.
- **/
-static ason_t *
-ason_reduce_query(ason_t *a, ason_t *b)
-{
-	ason_t *ret = ason_reduce_intersect(a, b);
-
-	if (ason_check_represented_in(ret, b))
-		return ret;
-
-	ason_destroy(ret);
-
-	return VALUE_EMPTY;
-}
-
-/**
- * Reduce a coquery of two non-union values.
- **/
-static ason_t *
-ason_reduce_coquery(ason_t *a, ason_t *b)
-{
-	ason_t *ret = ason_reduce_query(a, b);
-
-	if (ason_check_represented_in(ret, a))
-		return ret;
-
-	ason_destroy(ret);
 
 	return VALUE_EMPTY;
 }
@@ -632,7 +519,7 @@ ason_reduce_object_append(ason_t *a, ason_t *b)
 		else if (b->type == ASON_NULL)
 			value = ason_copy(a);
 		else
-			value = ason_coquery(a, b);
+			value = ason_intersect(a, b);
 
 		ret->kvs[i].key = xstrdup(key);
 		ret->kvs[i].value = value;
@@ -670,8 +557,8 @@ ason_reduce_append(ason_t *a, ason_t *b)
 }
 
 /**
- * Reduce an ASON value so it is not expressed, at the top level, as a query,
- * coquery, intersect, or append.
+ * Reduce an ASON value so it is not expressed, at the top level, as an
+ * intersect, or append.
  **/
 static ason_t *
 ason_simplify_transform(ason_t *in)
@@ -681,8 +568,6 @@ ason_simplify_transform(ason_t *in)
 
 	switch (in->type) {
 	case ASON_INTERSECT:
-	case ASON_QUERY:
-	case ASON_COQUERY:
 	case ASON_APPEND:
 		break;
 	default:
@@ -709,10 +594,6 @@ ason_simplify_transform(ason_t *in)
 	switch (in->type) {
 	case ASON_INTERSECT:
 		return ason_reduce_intersect(in->items[0], in->items[1]);
-	case ASON_QUERY:
-		return ason_reduce_query(in->items[0], in->items[1]);
-	case ASON_COQUERY:
-		return ason_reduce_coquery(in->items[0], in->items[1]);
 	case ASON_APPEND:
 		return ason_reduce_append(in->items[0], in->items[1]);
 	default:
@@ -721,56 +602,16 @@ ason_simplify_transform(ason_t *in)
 }
 
 /**
- * Check congruent of two ASON values. If null_eq is 0, NULL != STRONG_NULL
+ * Check intersectionality of two ASON values.
  **/
 int
-ason_do_check_congruent(ason_t *a, ason_t *b, int null_eq)
+ason_check_intersects(ason_t *a, ason_t *b)
 {
-	int ret;
+	ason_t *inter = ason_intersect(a, b);
+	int ret = !ason_check_equal(inter, VALUE_EMPTY);
 
-	a = ason_simplify_transform(a);
-	b = ason_simplify_transform(b);
-
-	if (a->type == ASON_UNIVERSE || b->type == ASON_UNIVERSE)
-		ret = 1;
-	else if (a->type == ASON_WILD && ! IS_NULL(b))
-		ret = 1;
-	else if (b->type == ASON_WILD && ! IS_NULL(a))
-		ret = 1;
-	else if (a->type == ASON_WILD || b->type == ASON_WILD)
-		ret = 0;
-	else if (a->type == ASON_UNION)
-		ret = ason_check_union_congruent_to(a, b);
-	else if (b->type == ASON_UNION)
-		ret = ason_check_union_congruent_to(b, a);
-	else if (IS_OBJECT(a) && IS_OBJECT(b))
-		ret = ason_check_objects_congruent(a, b);
-	else if (IS_NULL(a) && b->type == ASON_NULL)
-		ret = 1;
-	else if (IS_NULL(b) && a->type == ASON_NULL)
-		ret = 1;
-	else if (a->type != b->type)
-		ret = 0;
-	else if (IS_NULL(a))
-		ret = null_eq;
-	else if (a->type == ASON_LIST)
-		ret = ason_check_lists_congruent(a, b);
-	else
-		ret = (a->n == b->n);
-
-	ason_destroy(a);
-	ason_destroy(b);
-
+	ason_destroy(inter);
 	return ret;
-}
-
-/**
- * Check congruent of two ASON values.
- **/
-int
-ason_check_congruent(ason_t *a, ason_t *b)
-{
-	return ason_do_check_congruent(a, b, 1);
 }
 
 /* Predeclaration */

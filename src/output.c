@@ -38,14 +38,10 @@ static int
 ason_get_precedence(ason_type_t operator)
 {
 	switch (operator) {
-	case ASON_COQUERY:
-		return 0;
 	case ASON_INTERSECT:
 		return 1;
-	case ASON_QUERY:
-		return 2;
 	case ASON_APPEND:
-		return 3;
+		return 2;
 	default:
 		return INT_MAX;
 	}
@@ -58,21 +54,11 @@ static const char *
 ason_get_opchar(ason_type_t operator, int use_unicode)
 {
 	switch (operator) {
-	case ASON_COQUERY:
-		if (use_unicode)
-			return "⋈";
-		else
-			return "~~";
 	case ASON_INTERSECT:
 		if (use_unicode)
 			return "∩";
 		else
 			return "&";
-	case ASON_QUERY:
-		if (use_unicode)
-			return "⊳";
-		else
-			return "~";
 	case ASON_APPEND:
 		return ".";
 	default:
@@ -232,8 +218,6 @@ ason_do_asprint(ason_t *value, int use_unicode)
 	case ASON_WILD:
 		return xasprintf("*");
 	case ASON_INTERSECT:
-	case ASON_QUERY:
-	case ASON_COQUERY:
 	case ASON_APPEND:
 		return ason_asprint_operator(value, use_unicode);
 	case ASON_UNION:
