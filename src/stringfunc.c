@@ -206,6 +206,9 @@ string_escape(const char *in)
 		case '\t':
 			pos += sprintf(pos, "\\t");
 			break;
+		case '\v':
+			pos += sprintf(pos, "\\v");
+			break;
 		default:
 			pos += sprintf(pos, "%c", (char)expanded_buf[i]);
 		};
@@ -266,6 +269,9 @@ string_unescape(const char *in)
 			*out_pos = '\r';
 			break;
 		case 't':
+			*out_pos = '\t';
+			break;
+		case 'v':
 			*out_pos = '\t';
 			break;
 		case 'u':
