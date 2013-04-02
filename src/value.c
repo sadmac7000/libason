@@ -565,11 +565,22 @@ ason_simplify_transform(ason_t *in)
 {
 	ason_t *a;
 	ason_t *b;
+	size_t i;
 
 	switch (in->type) {
 	case ASON_INTERSECT:
 	case ASON_APPEND:
 		break;
+	case ASON_OBJECT:
+	case ASON_UOBJECT:
+		for (i = 0; i < in->count; i++)
+			if (ason_check_equal(in->kvs[i].value, VALUE_EMPTY))
+				return VALUE_EMPTY;
+		return ason_copy(in);
+	case ASON_LIST:
+		for (i = 0; i < in->count; i++)
+			if (ason_check_equal(in->items[i], VALUE_EMPTY))
+				return VALUE_EMPTY;
 	default:
 		return ason_copy(in);
 	};
