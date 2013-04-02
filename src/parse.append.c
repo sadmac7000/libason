@@ -108,7 +108,7 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data)
 
 	tok_start = ++text;
 
-	while (length && *text != '"' && *(text - 1) != '\\') {
+	while (length && (*text != '"' || *(text - 1) == '\\')) {
 		length--;
 		text++;
 	}
