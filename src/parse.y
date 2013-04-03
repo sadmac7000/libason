@@ -31,6 +31,7 @@ typedef union {
 %type append    {ason_t *}
 %type intersect {ason_t *}
 %type union     {ason_t *}
+%type comp      {ason_t *}
 
 %destructor value { ason_destroy($$); }
 %destructor list { ason_destroy($$); }
@@ -47,10 +48,13 @@ union(A) ::= union(B) UNION intersect(C).	{
 	A = ason_union_d(B, C);
 }
 
-intersect(A) ::= append(B).				{ A = B; }
-intersect(A) ::= intersect(B) INTERSECT append(C).	{
+intersect(A) ::= comp(B).				{ A = B; }
+intersect(A) ::= intersect(B) INTERSECT comp(C).	{
 	A = ason_intersect_d(B, C);
 }
+
+comp(A) ::= append(B). { A = B; }
+comp(A) ::= NOT comp(B). { A = ason_complement_d(B); }
 
 append(A) ::= value(B).				{ A = B; }
 append(A) ::= value(B) APPEND append(C).	{
