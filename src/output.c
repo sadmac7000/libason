@@ -200,6 +200,9 @@ ason_asprint_list(ason_t *value, int use_unicode)
 static char *
 ason_do_asprint(ason_t *value, int use_unicode)
 {
+	char *tmp;
+	char *ret;
+
 	switch (value->type) {
 	case ASON_NUMERIC:
 		return xasprintf("%lld", value->n);
@@ -227,6 +230,11 @@ ason_do_asprint(ason_t *value, int use_unicode)
 		return ason_asprint_object(value, use_unicode);
 	case ASON_LIST:
 		return ason_asprint_list(value, use_unicode);
+	case ASON_COMP:
+		tmp = ason_do_asprint(value->items[0], use_unicode);
+		ret = xasprintf("!%s", tmp);
+		free(tmp);
+		return ret;
 	default:
 		errx(1, "Unreachable statement at %s:%d", __FILE__, __LINE__);
 	};
