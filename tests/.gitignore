@@ -1,5 +1,6 @@
 print_object
 parser_test
 esc_parser_test
+complement_test
 *.log
 *.trs
