@@ -765,6 +765,8 @@ ason_flatten(ason_t *value)
 		ret = ason_flatten_object(value);
 		ason_destroy(value);
 		return ret;
+	case ASON_COMP:
+		return ason_complement_d(ason_flatten(value->items[0]));
 	case ASON_UNION:
 		break;
 	default:
