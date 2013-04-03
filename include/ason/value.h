@@ -33,6 +33,7 @@ typedef enum {
 	ASON_UOBJECT,
 	ASON_LIST,
 	ASON_APPEND,
+	ASON_COMP,
 } ason_type_t;
 
 /**
@@ -56,6 +57,7 @@ ason_t *ason_create_object(const char *key, ason_t *value);
 ason_t *ason_union(ason_t *a, ason_t *b);
 ason_t *ason_intersect(ason_t *a, ason_t *b);
 ason_t *ason_append(ason_t *a, ason_t *b);
+ason_t *ason_complement(ason_t *a);
 
 ason_t *ason_copy(ason_t *a);
 void ason_destroy(ason_t *a);

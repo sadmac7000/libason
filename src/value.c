@@ -356,6 +356,17 @@ ason_append(ason_t *a, ason_t *b)
 }
 
 /**
+ * Complement an ASON value a.
+ **/
+ason_t *
+ason_complement(ason_t *a)
+{
+	ason_t *ret = ason_create(ASON_COMP, 1);
+	ret->items[0] = ason_copy(a);
+	return ret;
+}
+
+/**
  * Distribute an operator through a union on the left-hand side.
  **/
 static ason_t *
@@ -824,6 +835,12 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 		for (i = 0; i < b->count; i++)
 			if (ason_check_represented_in(a, b->items[i]))
 				ret = 1;
+	} else if (a->type == ASON_COMP && b->type == ASON_COMP) {
+		ret = ason_check_represented_in(b->items[0], a->items[0]);
+	} else if (b->type == ASON_COMP) {
+		ret = !ason_check_intersects(a, b->items[0]);
+	} else if (a->type == ASON_COMP) {
+		ret = !ason_check_represented_in(a->items[0], b);
 	} else if (b->type == ASON_WILD) {
 		ret = a->type != ASON_NULL;
 	} else if (a->type == ASON_LIST && b->type == ASON_LIST) {
