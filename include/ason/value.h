@@ -116,6 +116,15 @@ ason_append_d(ason_t *a, ason_t *b)
 	return ret;
 }
 
+static inline ason_t *
+ason_complement_d(ason_t *a)
+{
+	ason_t *ret;
+	ret = ason_complement(a);
+	ason_destroy(a);
+	return ret;
+}
+
 #ifdef __cplusplus
 }
 #endif
