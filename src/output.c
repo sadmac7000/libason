@@ -240,7 +240,7 @@ ason_do_asprint(ason_t *value, int use_unicode)
 /**
  * Print an ASON value as an ASCII string.
  **/
-char *
+API_EXPORT char *
 ason_asprint(ason_t *value)
 {
 	char *str = ason_do_asprint(value, 0);
@@ -253,7 +253,7 @@ ason_asprint(ason_t *value)
 /**
  * Print an ASON value as a unicode string.
  **/
-char *
+API_EXPORT char *
 ason_asprint_unicode(ason_t *value)
 {
 	return ason_do_asprint(value, 1);

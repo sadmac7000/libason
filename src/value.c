@@ -213,7 +213,7 @@ ason_create(ason_type_t type, size_t count)
 /**
  * Copy an ASON value.
  **/
-ason_t *
+API_EXPORT ason_t *
 ason_copy(ason_t *a)
 {
 	if (a == VALUE_EMPTY	||
@@ -230,7 +230,7 @@ ason_copy(ason_t *a)
 /**
  * Destroy an ASON value.
  **/
-void
+API_EXPORT void
 ason_destroy(ason_t *a)
 {
 	size_t i;
@@ -263,7 +263,7 @@ ason_destroy(ason_t *a)
 /**
  * Create an ASON numeric value.
  **/
-ason_t *
+API_EXPORT ason_t *
 ason_create_number(int number)
 {
 	ason_t *ret = ason_create(ASON_NUMERIC, 0);
@@ -276,7 +276,7 @@ ason_create_number(int number)
 /**
  * Create an ASON list value.
  **/
-ason_t *
+API_EXPORT ason_t *
 ason_create_list(ason_t *content)
 {
 	ason_t *ret;
@@ -293,7 +293,7 @@ ason_create_list(ason_t *content)
 /**
  * Create an ASON value.
  **/
-ason_t *
+API_EXPORT ason_t *
 ason_create_object(const char *key, ason_t *value) 
 {
 	ason_t *ret;
@@ -331,7 +331,7 @@ ason_operate(ason_t *a, ason_t *b, ason_type_t type)
 /**
  * Disjoin two ASON values.
  **/
-ason_t *
+API_EXPORT ason_t *
 ason_union(ason_t *a, ason_t *b)
 {
 	return ason_operate(a, b, ASON_UNION);
@@ -340,7 +340,7 @@ ason_union(ason_t *a, ason_t *b)
 /**
  * Intersect two ASON values.
  **/
-ason_t *
+API_EXPORT ason_t *
 ason_intersect(ason_t *a, ason_t *b)
 {
 	return ason_operate(a, b, ASON_INTERSECT);
@@ -349,7 +349,7 @@ ason_intersect(ason_t *a, ason_t *b)
 /**
  * Appent ASON value b to a.
  **/
-ason_t *
+API_EXPORT ason_t *
 ason_append(ason_t *a, ason_t *b)
 {
 	return ason_operate(a, b, ASON_APPEND);
@@ -358,7 +358,7 @@ ason_append(ason_t *a, ason_t *b)
 /**
  * Complement an ASON value a.
  **/
-ason_t *
+API_EXPORT ason_t *
 ason_complement(ason_t *a)
 {
 	ason_t *ret = ason_create(ASON_COMP, 1);
@@ -855,7 +855,7 @@ ason_reduce(ason_t *a)
 /**
  * Check intersectionality of two ASON values.
  **/
-int
+API_EXPORT int
 ason_check_intersects(ason_t *a, ason_t *b)
 {
 	ason_t *inter = ason_intersect(a, b);
@@ -868,7 +868,7 @@ ason_check_intersects(ason_t *a, ason_t *b)
 /**
  * Check whether ASON value a is represented in b.
  **/
-int
+API_EXPORT int
 ason_check_represented_in(ason_t *a, ason_t *b)
 {
 	ason_t *comp = ason_complement(b);
@@ -881,7 +881,7 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 /**
  * Check whether a and b are equal.
  **/
-int
+API_EXPORT int
 ason_check_equal(ason_t *a, ason_t *b)
 {
 	/* FIXME: It's possible this can be made quicker */

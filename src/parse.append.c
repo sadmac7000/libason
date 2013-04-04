@@ -29,7 +29,7 @@
 /**
  * Read an ASON value from a string.
  **/
-ason_t *
+API_EXPORT ason_t *
 ason_read(const char *text)
 {
 	return ason_readn(text, strlen(text));
@@ -124,7 +124,7 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data)
 /**
  * Read an ASON value from a string. Stop after `length` bytes.
  **/
-ason_t *
+API_EXPORT ason_t *
 ason_readn(const char *text, size_t length)
 {
 	token_t data;
