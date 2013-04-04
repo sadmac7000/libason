@@ -72,6 +72,7 @@ TEST_MAIN("Object printing")
 	out = ason_asprint(object);
 	test = ason_read(out);
 
+	REQUIRE(test);
 	REQUIRE(ason_check_equal(object, test));
 
 	free(out);
@@ -80,6 +81,7 @@ TEST_MAIN("Object printing")
 	out = ason_asprint_unicode(object);
 	test = ason_read(out);
 
+	REQUIRE(test);
 	REQUIRE(ason_check_equal(object, test));
 
 	free(out);
