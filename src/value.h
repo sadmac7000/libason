@@ -24,6 +24,24 @@
 #include <ason/value.h>
 
 /**
+ * An ASON type.
+ **/
+typedef enum {
+	ASON_NUMERIC,
+	ASON_EMPTY,
+	ASON_NULL,
+	ASON_UNIVERSE,
+	ASON_WILD,
+	ASON_UNION,
+	ASON_INTERSECT,
+	ASON_OBJECT,
+	ASON_UOBJECT,
+	ASON_LIST,
+	ASON_APPEND,
+	ASON_COMP,
+} ason_type_t;
+
+/**
  * A Key-value pair.
  **/
 struct kv_pair {

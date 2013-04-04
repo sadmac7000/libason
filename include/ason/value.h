@@ -19,24 +19,6 @@
 #define ASON_VALUE_H
 
 /**
- * An ASON type.
- **/
-typedef enum {
-	ASON_NUMERIC,
-	ASON_EMPTY,
-	ASON_NULL,
-	ASON_UNIVERSE,
-	ASON_WILD,
-	ASON_UNION,
-	ASON_INTERSECT,
-	ASON_OBJECT,
-	ASON_UOBJECT,
-	ASON_LIST,
-	ASON_APPEND,
-	ASON_COMP,
-} ason_type_t;
-
-/**
  * An ASON value
  **/
 typedef struct ason ason_t;
