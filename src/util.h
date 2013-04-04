@@ -78,6 +78,14 @@ static inline void *xstrndup(const char *str, size_t n)
 	return ret;
 }
 
+static inline void *xmemdup(const void *str, size_t n)
+{
+	void *ret = xmalloc(n);
+
+	memcpy(ret, str, n);
+	return ret;
+}
+
 static inline char *xasprintf(const char *fmt, ...)
 {
 	char *ret;
