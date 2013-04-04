@@ -208,14 +208,11 @@ ason_do_asprint(ason_t *value, int use_unicode)
 		return xasprintf("%lld", value->n);
 	case ASON_EMPTY:
 		if (use_unicode)
-			return xasprintf("∘");
-		else
-			return xasprintf("nil");
-	case ASON_NULL:
-		if (use_unicode)
 			return xasprintf("∅");
 		else
-			return xasprintf("Nil");
+			return xasprintf("_");
+	case ASON_NULL:
+		return xasprintf("null");
 	case ASON_UNIVERSE:
 		return xasprintf("U");
 	case ASON_WILD:
