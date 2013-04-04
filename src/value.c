@@ -891,12 +891,3 @@ ason_check_equal(ason_t *a, ason_t *b)
 		return 0;
 	return 1;
 }
-
-/**
- * Get the type of an ASON value.
- **/
-ason_type_t
-ason_type(ason_t *value)
-{
-	return value->type;
-}
