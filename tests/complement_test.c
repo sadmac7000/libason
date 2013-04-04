@@ -24,18 +24,29 @@
 
 #include "harness.h"
 
+TESTS(2, "Comparison", "Parsing");
+
 /**
  * Basic exercise of the parser.
  **/
-TEST_MAIN("Compare double-inverse values")
+TEST_MAIN("Complementation")
 {
-	ason_t *a = ason_create_number(6);
-	ason_t *b = ason_complement_d(ason_complement(a));
-	ason_t *c = ason_read("!!6");
+	TEST_INIT();
+	ason_t *a;
+	ason_t *b;
+	ason_t *c;
 
-	REQUIRE(ason_check_equal(a, b));
-	REQUIRE(ason_check_equal(b, c));
-	REQUIRE(ason_check_equal(a, c));
+	TEST("Comparison/Identity") {
+		a = ason_create_number(6);
+		b = ason_complement_d(ason_complement(a));
+		REQUIRE(ason_check_equal(a, b));
+	}
+
+	TEST("Parsing") {
+		c = ason_read("!!6");
+		REQUIRE(ason_check_equal(b, c));
+		REQUIRE(ason_check_equal(a, c));
+	}
 
 	ason_destroy(a);
 	ason_destroy(b);

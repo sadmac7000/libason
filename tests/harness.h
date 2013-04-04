@@ -20,13 +20,41 @@
 
 #include <ason/value.h>
 
+typedef enum {
+	TEST_PASSED,
+	TEST_FAILED,
+	TEST_PENDING,
+	TEST_SKIPPED,
+} test_state_t;
+
+struct test_info {
+	test_state_t state[2048];
+	size_t current;
+};
+
+extern struct test_info *test_info;
+
+#define TESTS(_count, ...) \
+	const char *test_list[] = { __VA_ARGS__ }; \
+	const size_t test_count = (_count)
+
+#define TEST_INIT() ({ size_t i; test_info->current = 0; \
+	for (i = 0; i < test_count; i++) \
+		test_info->state[i] = TEST_SKIPPED; })
+
+#define TEST(_ignore) \
+	for (test_info->state[test_info->current] = TEST_PENDING; \
+	     test_info->state[test_info->current] == TEST_PENDING; \
+	     test_info->state[test_info->current++] = TEST_PASSED)
+
 #define TEST_MAIN(name) \
 	const char *test_name = (name); \
 	int test_main(void)
 
 #define EXIT_TEST_FAIL 88
-#define REQUIRE(x) if (! (x)) { fprintf(stderr, "FAILED: %s\n", #x); \
-	return EXIT_TEST_FAIL; }
+#define REQUIRE(x) if (! (x)) { \
+	test_info->state[test_info->current] = TEST_FAILED; \
+	break; }
 
 #ifdef __cplusplus
 extern "C" {

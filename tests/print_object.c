@@ -24,11 +24,14 @@
 
 #include "harness.h"
 
+TESTS(2, "ASCII printing", "Unicode printing");
+
 /**
  * A test which does nothing.
  **/
 TEST_MAIN("Object printing")
 {
+	TEST_INIT();
 	ason_t *six = ason_create_number(6);
 	ason_t *seven = ason_create_number(7);
 	ason_t *eight = ason_create_number(8);
@@ -69,20 +72,24 @@ TEST_MAIN("Object printing")
 	ason_destroy(list);
 	object = b;
 
-	out = ason_asprint(object);
-	test = ason_read(out);
+	TEST("ASCII printing") {
+		out = ason_asprint(object);
+		test = ason_read(out);
 
-	REQUIRE(test);
-	REQUIRE(ason_check_equal(object, test));
+		REQUIRE(test);
+		REQUIRE(ason_check_equal(object, test));
+	}
 
 	free(out);
 	ason_destroy(test);
 
-	out = ason_asprint_unicode(object);
-	test = ason_read(out);
+	TEST("Unicode printing") {
+		out = ason_asprint_unicode(object);
+		test = ason_read(out);
 
-	REQUIRE(test);
-	REQUIRE(ason_check_equal(object, test));
+		REQUIRE(test);
+		REQUIRE(ason_check_equal(object, test));
+	}
 
 	free(out);
 	ason_destroy(test);

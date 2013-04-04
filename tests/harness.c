@@ -27,6 +27,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/mman.h>
 
 #include "harness.h"
 
@@ -35,10 +36,16 @@
  **/
 #define EXIT_HARNESS_FAIL 122
 
+struct test_info *test_info;
+
 /**
- * Global where we store the test name.
+ * Globals where we store the test parameters.
  **/
 extern const char *test_name;
+extern const size_t test_count;
+extern test_state_t test_state[];
+extern size_t test_current;
+extern const char *test_list[];
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,6 +74,36 @@ struct option options[] = {
 };
 
 /**
+ * Return test results.
+ **/
+void
+record_test(const char *name, FILE *trs_fp, int code,
+	    int status, test_state_t state, int xfail)
+{
+	if (state == TEST_PASSED) {
+		fprintf(trs_fp, ":test-result: %sPASS %s\n",
+			xfail ? "X" : "", name);
+	} else if (state == TEST_FAILED) {
+		fprintf(trs_fp, ":test-result: %sFAIL %s\n",
+			xfail ? "X" : "", name);
+	} else if (state == TEST_SKIPPED) {
+		fprintf(trs_fp, ":test-result: SKIP %s\n", name);
+	} else if (code == CLD_EXITED) {
+		fprintf(trs_fp, ":test-result: ERROR %s (signal %d)\n",
+			name, status);
+	} else {
+		fprintf(trs_fp, ":test-result: ERROR %s (return code %d)\n",
+			name, status);
+	}
+}
+
+void
+cleanup_mapping(void)
+{
+	munmap(test_info, sizeof(struct test_info));
+}
+
+/**
  * Main unit tester.
  **/
 int
@@ -83,9 +120,19 @@ main(int argc, char **argv)
 	int xfail = 0;
 	int color = 0;
 	int enable_hard = 1;
+	int pass = 1;
+	size_t i;
 
 	if (strlen(test_name) > 40)
 		errx(1, "FATAL: Really long test name in %s", argv[0]);
+
+	test_info = mmap(NULL, sizeof(struct test_info), PROT_READ | PROT_WRITE,
+			 MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+
+	if (! test_info)
+		err(1, "FATAL: Could not map shared segment");
+
+	atexit(cleanup_mapping);
 
 	while (getopt_long(argc, argv, "+", options, &idx) >= 0) {
 		if (idx == 1) {
@@ -157,33 +204,29 @@ main(int argc, char **argv)
 	if (ret)
 		err(1, "FATAL: Could not gather child");
 
-	if (info.si_code != CLD_EXITED && enable_hard) {
-		printf("TEST: %sERROR (sig: %d)\n", test_name_field,
-		       info.si_status);
-		fprintf(trs_fp, ":test-result: ERROR %s (signal %d)\n",
-			test_name, info.si_status);
-	} else if (info.si_code == CLD_EXITED && !info.si_status) {
-		printf("TEST: %sPASS%s\n", test_name_field,
-		       xfail ? " (unexpected!!)" : "");
-		fprintf(trs_fp, ":test-result: %sPASS %s\n",
-			xfail ? "X" : "", test_name);
-	} else if (info.si_code == CLD_EXITED &&
-		   info.si_status == EXIT_HARNESS_FAIL) {
-		printf("TEST: %sFAULT\n", test_name_field);
-		fprintf(trs_fp,
-			":test-result: ERROR !!! Broken Harness !!! %s\n",
-			test_name);
-	} else if (enable_hard && info.si_code == CLD_EXITED &&
-		   info.si_status != EXIT_TEST_FAIL) {
-		printf("TEST: %sERROR (code: %d)\n", test_name_field,
-		       info.si_status);
-		fprintf(trs_fp, ":test-result: ERROR %s (return code %d)\n",
-			test_name, info.si_status);
+	if (test_info->current == test_count) {
+		for (i = 0; i < test_count; i++) {
+			if (test_info->state[test_info->current] != TEST_PASSED)
+				pass = 0;
+
+			record_test(test_list[i], trs_fp, info.si_code,
+				    info.si_status, test_info->state[i],
+				    xfail);
+		}
+
+		if (pass) {
+			fprintf(trs_fp, ":test-global-result: PASS %s\n", test_name);
+			printf("TEST: %sPASS\n", test_name_field);
+		} else {
+			fprintf(trs_fp, ":test-global-result: FAIL %s\n", test_name);
+			printf("TEST: %sFAIL\n", test_name_field);
+		}
+	} else if (test_info->state[test_info->current] != TEST_PENDING) {
+		fprintf(trs_fp, ":test-global-result: SETUP-ERROR %s\n", test_name);
+		printf("TEST: %sSETUP-ERROR\n", test_name_field);
 	} else {
-		printf("TEST: %sFAIL%s\n", test_name_field,
-		       xfail ? " (expected)" : "");
-		fprintf(trs_fp, ":test-result: %sFAIL %s\n",
-			xfail ? "X" : "", test_name);
+		fprintf(trs_fp, ":test-global-result: ERROR %s\n", test_name);
+		printf("TEST: %sERROR\n", test_name_field);
 	}
 
 	return 0;

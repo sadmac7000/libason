@@ -24,17 +24,22 @@
 
 #include "harness.h"
 
+TESTS(1, "Escape sequences");
+
 /**
  * Basic exercise of the parser.
  **/
 TEST_MAIN("Parse a value with string escapes")
 {
+	TEST_INIT();
 	ason_t *test_value = ason_read("{ \"\\u2122\\t\\v\\r\": 6 }");
 	ason_t *check_value = ason_create_object_d("™\t\v\r",
 						   ason_create_number(6));
 
-	REQUIRE(test_value);
-	REQUIRE(ason_check_equal(check_value, test_value));
+	TEST("Escape sequences") {
+		REQUIRE(test_value);
+		REQUIRE(ason_check_equal(check_value, test_value));
+	}
 
 	ason_destroy(test_value);
 	ason_destroy(check_value);

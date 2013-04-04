@@ -24,12 +24,16 @@
 
 #include "harness.h"
 
+TESTS(1, "Simple parse");
+
 /**
  * Basic exercise of the parser.
  **/
 TEST_MAIN("Parse a simple value")
 {
-	ason_t *test_value = ason_read("{ \"foo\": 6, \"bar\": 8 } | (98 | [1,2,3] & [1,2])");
+	TEST_INIT();
+
+	ason_t *test_value;
 	ason_t *a;
 	ason_t *b;
 	ason_t *c;
@@ -61,7 +65,12 @@ TEST_MAIN("Parse a simple value")
 	b = ason_intersect_d(b, d);
 	a = ason_union_d(a, b);
 	
-	REQUIRE(ason_check_equal(a, test_value));
+	TEST("Simple parse") {
+		test_value = ason_read("{ \"foo\": 6, \"bar\": 8 } | "
+				       "(98 | [1,2,3] & [1,2])");
+		REQUIRE(ason_check_equal(a, test_value));
+	}
+
 	ason_destroy(test_value);
 	ason_destroy(a);
 
