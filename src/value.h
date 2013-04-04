@@ -38,7 +38,6 @@ struct ason {
 	ason_type_t type;
 	union {
 		int64_t n;
-		uint64_t u;
 		ason_t **items;
 		struct kv_pair *kvs;
 	};
