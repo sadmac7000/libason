@@ -88,7 +88,7 @@ record_test(const char *name, FILE *trs_fp, int code,
 			xfail ? "X" : "", name);
 	} else if (state == TEST_SKIPPED) {
 		fprintf(trs_fp, ":test-result: SKIP %s\n", name);
-	} else if (code == CLD_EXITED) {
+	} else if (code != CLD_EXITED) {
 		fprintf(trs_fp, ":test-result: ERROR %s (signal %d)\n",
 			name, status);
 	} else {
