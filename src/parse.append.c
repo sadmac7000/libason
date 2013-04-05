@@ -54,7 +54,7 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data)
 		return 0;
 
 #define FIXED_TOKEN(s, u) do { \
-	if (strlen(s) < length && !strncmp(s, text, strlen(s))) { \
+	if (strlen(s) <= length && !strncmp(s, text, strlen(s))) { \
 		text += strlen(s); \
 		*type = u; \
 		return text - text_start; \
