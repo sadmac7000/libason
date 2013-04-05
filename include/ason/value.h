@@ -28,6 +28,8 @@ extern ason_t * const VALUE_NULL;
 extern ason_t * const VALUE_UNIVERSE;
 extern ason_t * const VALUE_WILD;
 extern ason_t * const VALUE_OBJ_ANY;
+extern ason_t * const VALUE_TRUE;
+extern ason_t * const VALUE_FALSE;
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +38,7 @@ extern "C" {
 ason_t *ason_create_number(int number);
 ason_t *ason_create_list(ason_t *content);
 ason_t *ason_create_object(const char *key, ason_t *value); 
+ason_t *ason_create_string(const char *str);
 ason_t *ason_union(ason_t *a, ason_t *b);
 ason_t *ason_intersect(ason_t *a, ason_t *b);
 ason_t *ason_append(ason_t *a, ason_t *b);

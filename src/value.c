@@ -60,6 +60,20 @@ static struct ason VALUE_UNIVERSE_DATA = {
 };
 API_EXPORT ason_t * const VALUE_UNIVERSE = &VALUE_UNIVERSE_DATA;
 
+static struct ason VALUE_TRUE_DATA = {
+	.type = ASON_TRUE,
+	.items = NULL,
+	.count = 0,
+};
+API_EXPORT ason_t * const VALUE_TRUE = &VALUE_TRUE_DATA;
+
+static struct ason VALUE_FALSE_DATA = {
+	.type = ASON_FALSE,
+	.items = NULL,
+	.count = 0,
+};
+API_EXPORT ason_t * const VALUE_FALSE = &VALUE_FALSE_DATA;
+
 static struct ason VALUE_WILD_DATA = {
 	.type = ASON_WILD,
 	.items = NULL,
@@ -211,6 +225,17 @@ ason_create(ason_type_t type, size_t count)
 }
 
 /**
+ * Create an ASON string value.
+ **/
+API_EXPORT ason_t *
+ason_create_string(const char *string)
+{
+	ason_t *ret = ason_create(ASON_STRING, 0);
+	ret->string = string_to_utf8(string);
+	return ret;
+}
+
+/**
  * Copy an ASON value.
  **/
 API_EXPORT ason_t *
@@ -220,6 +245,8 @@ ason_copy(ason_t *a)
 	    a == VALUE_NULL	||
 	    a == VALUE_UNIVERSE	||
 	    a == VALUE_WILD	||
+	    a == VALUE_TRUE	||
+	    a == VALUE_FALSE	||
 	    a == VALUE_OBJ_ANY)
 		return a;
 
@@ -240,6 +267,8 @@ ason_destroy(ason_t *a)
 	    a == VALUE_UNIVERSE	||
 	    a == VALUE_WILD	||
 	    a == VALUE_OBJ_ANY	||
+	    a == VALUE_TRUE	||
+	    a == VALUE_FALSE	||
 	    --a->refcount)
 		return;
 
@@ -623,6 +652,7 @@ ason_reduce_intersect(ason_t *a)
 {
 	ason_type_t other;
 	ason_t *tmp;
+	char *string;
 	int64_t n;
 
 	if (ason_reduce(a->items[0]) || ason_reduce(a->items[1])) {
@@ -644,6 +674,23 @@ ason_reduce_intersect(ason_t *a)
 		ason_clone_into_d(a, tmp);
 	} else if (a->items[0]->type != a->items[1]->type) {
 		ason_make_empty(a);
+	} else if (a->items[0]->type == ASON_TRUE ||
+		   a->items[0]->type == ASON_FALSE) {
+		other = a->items[0]->type;
+		ason_make_empty(a);
+		a->type = other;
+	} else if (a->items[0]->type == ASON_STRING) {
+		string = NULL;
+
+		if (! strcmp(a->items[0]->string, a->items[1]->string))
+			string = xstrdup(a->items[0]->string);
+
+		ason_make_empty(a);
+
+		if (string) {
+			a->string = string;
+			a->type = ASON_STRING;
+		}
 	} else if (a->items[0]->type == ASON_NUMERIC) {
 		n = a->items[1]->n;
 		tmp = ason_copy(a->items[0]);

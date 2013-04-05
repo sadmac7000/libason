@@ -69,9 +69,15 @@ value(A) ::= WILD.		{ A = VALUE_WILD; }
 value(A) ::= INTEGER(B).	{ A = ason_create_number(B.i); }
 
 value(A) ::= START_LIST list(B) END_LIST.		{ A = B; }
+value(A) ::= TRUE.					{ A = VALUE_TRUE; }
+value(A) ::= FALSE.					{ A = VALUE_FALSE; }
 value(A) ::= START_OBJ kv_list(B) END_OBJ.		{ A = B; }
 value(A) ::= START_OBJ kv_list(B) COMMA WILD END_OBJ.	{
 	A = ason_append_d(B, VALUE_OBJ_ANY);
+}
+value(A) ::= STRING(B). {
+	A = ason_create_string(B.c);
+	free(B.c);
 }
 
 value(A) ::= O_PAREN union(B) C_PAREN. { A = B; }

@@ -213,6 +213,15 @@ ason_do_asprint(ason_t *value, int use_unicode)
 			return xasprintf("_");
 	case ASON_NULL:
 		return xasprintf("null");
+	case ASON_TRUE:
+		return xasprintf("true");
+	case ASON_FALSE:
+		return xasprintf("false");
+	case ASON_STRING:
+		tmp = string_escape(value->string);
+		ret = xasprintf("\"%s\"", tmp);
+		free(tmp);
+		return ret;
 	case ASON_UNIVERSE:
 		return xasprintf("U");
 	case ASON_WILD:

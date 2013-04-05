@@ -24,12 +24,17 @@
 
 #include "harness.h"
 
-TESTS(1, "Simple parse");
+TESTS(4,
+      "Disjoin expression",
+      "Truth",
+      "Falsehood",
+      "String"
+      );
 
 /**
  * Basic exercise of the parser.
  **/
-TEST_MAIN("Parse a simple value")
+TEST_MAIN("Parse values")
 {
 	TEST_INIT();
 
@@ -65,9 +70,38 @@ TEST_MAIN("Parse a simple value")
 	b = ason_intersect_d(b, d);
 	a = ason_union_d(a, b);
 	
-	TEST("Simple parse") {
+	TEST("Disjoin value") {
 		test_value = ason_read("{ \"foo\": 6, \"bar\": 8 } | "
 				       "(98 | [1,2,3] & [1,2])");
+		REQUIRE(ason_check_equal(a, test_value));
+	}
+
+	ason_destroy(test_value);
+	ason_destroy(a);
+
+	TEST("Truth") {
+		test_value = ason_read("true");
+
+		REQUIRE(test_value);
+		REQUIRE(ason_check_equal(VALUE_TRUE, test_value));
+	}
+
+	ason_destroy(test_value);
+
+	TEST("Falsehood") {
+		test_value = ason_read("false");
+
+		REQUIRE(test_value);
+		REQUIRE(ason_check_equal(VALUE_FALSE, test_value));
+	}
+
+	ason_destroy(test_value);
+
+	TEST("String") {
+		test_value = ason_read("\"\tstring \\\"☺\\\"\"");
+		a = ason_create_string("\tstring \"☺\"");
+
+		REQUIRE(test_value);
 		REQUIRE(ason_check_equal(a, test_value));
 	}
 

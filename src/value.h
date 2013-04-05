@@ -39,6 +39,9 @@ typedef enum {
 	ASON_LIST,
 	ASON_APPEND,
 	ASON_COMP,
+	ASON_STRING,
+	ASON_TRUE,
+	ASON_FALSE,
 } ason_type_t;
 
 /**
@@ -58,6 +61,7 @@ struct ason {
 		int64_t n;
 		ason_t **items;
 		struct kv_pair *kvs;
+		char *string;
 	};
 
 	size_t count;
