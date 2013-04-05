@@ -44,35 +44,35 @@ static struct ason VALUE_EMPTY_DATA = {
 	.items = NULL,
 	.count = 0,
 };
-ason_t * const VALUE_EMPTY = &VALUE_EMPTY_DATA;
+API_EXPORT ason_t * const VALUE_EMPTY = &VALUE_EMPTY_DATA;
 
 static struct ason VALUE_NULL_DATA = {
 	.type = ASON_NULL,
 	.items = NULL,
 	.count = 0,
 };
-ason_t * const VALUE_NULL = &VALUE_NULL_DATA;
+API_EXPORT ason_t * const VALUE_NULL = &VALUE_NULL_DATA;
 
 static struct ason VALUE_UNIVERSE_DATA = {
 	.type = ASON_UNIVERSE,
 	.items = NULL,
 	.count = 0,
 };
-ason_t * const VALUE_UNIVERSE = &VALUE_UNIVERSE_DATA;
+API_EXPORT ason_t * const VALUE_UNIVERSE = &VALUE_UNIVERSE_DATA;
 
 static struct ason VALUE_WILD_DATA = {
 	.type = ASON_WILD,
 	.items = NULL,
 	.count = 0,
 };
-ason_t * const VALUE_WILD = &VALUE_WILD_DATA;
+API_EXPORT ason_t * const VALUE_WILD = &VALUE_WILD_DATA;
 
 static struct ason VALUE_OBJ_ANY_DATA = {
 	.type = ASON_UOBJECT,
 	.items = NULL,
 	.count = 0,
 };
-ason_t * const VALUE_OBJ_ANY = &VALUE_OBJ_ANY_DATA;
+API_EXPORT ason_t * const VALUE_OBJ_ANY = &VALUE_OBJ_ANY_DATA;
 
 /**
  * Quicksort an array of KV pairs.
