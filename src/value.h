@@ -68,7 +68,6 @@ struct ason {
  * Test if an ASON value is an object.
  **/
 #define IS_OBJECT(_x) (_x->type == ASON_OBJECT || _x->type == ASON_UOBJECT)
-#define IS_NULL(_x) (_x->type == ASON_EMPTY || _x->type == ASON_NULL)
 
 #ifdef __cplusplus
 extern "C" {
