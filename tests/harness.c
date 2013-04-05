@@ -204,16 +204,16 @@ main(int argc, char **argv)
 	if (ret)
 		err(1, "FATAL: Could not gather child");
 
+	for (i = 0; i < test_count; i++) {
+		if (test_info->state[test_info->current] != TEST_PASSED)
+			pass = 0;
+
+		record_test(test_list[i], trs_fp, info.si_code,
+			    info.si_status, test_info->state[i],
+			    xfail);
+	}
+
 	if (test_info->current == test_count) {
-		for (i = 0; i < test_count; i++) {
-			if (test_info->state[test_info->current] != TEST_PASSED)
-				pass = 0;
-
-			record_test(test_list[i], trs_fp, info.si_code,
-				    info.si_status, test_info->state[i],
-				    xfail);
-		}
-
 		if (pass) {
 			fprintf(trs_fp, ":test-global-result: PASS %s\n", test_name);
 			printf("TEST: %sPASS\n", test_name_field);
