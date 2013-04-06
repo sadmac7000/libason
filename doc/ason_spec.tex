@@ -1,9 +1,523 @@
-\documentclass{article}
-\title{ASON: An algebraic superset and semantic of JSON}
+\documentclass[letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsthm,amssymb,amsmath}
+\title{ASON: A semantically complete superset of JSON}
 \author{Casey Dahlin}
 \begin{document}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0em}
+\newtheorem{prule}{Rule}
+\newcommand{\kvpair}[2]{``#1":\quad#2,\quad}
+\newcommand{\kvpaire}[2]{``#1":\quad#2}
 
 \maketitle
-Fill this out later...
+
+\section{Introduction}
+JSON\footnote{RFC 4627 - http://www.ietf.org/rfc/rfc4627.txt?number=4627} has
+become an increasingly popular data interchange format for a wide variety of
+applications, from web services and RPC interfaces, to databases. Yet the JSON
+spec has never specified a semantic for JSON values.
+
+Meanwhile, NoSQL databases, some of which use JSON for data presentation or
+more, are rising in popularity, yet there are no agreed upon semantics for
+querying such a database.
+
+ASON is a superset of JSON syntax, as well as a semantic. The acronym stands
+for \textbf{A}lgebraic \textbf{S}erialized \textbf{O}bject \textbf{N}otation.
+It is designed to represent not only JSON values, but families of values. It
+includes a series of transforms which can allow a large, complex value or
+composition of values, such as might represent an entire table in a database,
+to be queried or made to conform to a schema.
+
+It is hoped that ASON will serve not only these practical purposes, but also
+open the door to a formalization for the transformation of unstructured data,
+similar to what relational algebra has been for relational databases.
+
+\section{Additional Syntax}
+\begin{samepage}
+We will assume a general familiarity with JSON syntax already. To JSON's
+syntax, ASON adds three new invariant values, much like \(true\), \(false\),
+and \(null\):
+
+\begin{itemize}
+	\item The Universe value (\(U\))
+	\item The Wild value (\(*\))
+	\item The Empty value (\(\emptyset\), also rendered as \(\_\))
+\end{itemize}
+\end{samepage}
+
+These can appear anywhere that a JSON value could appear; as list items, values
+in an object, or by themselves.
+
+\subsection{Operators}
+In addition to the new constants, ASON introduces four new operators; three
+binary infix operators and one unary prefix operator.
+
+Operators appear, as you
+
+Operators and parenthesis behave as structural characters do in the JSON
+syntax\footnote{RFC 4267, section 2}.
+
+\begin{samepage}
+The operators, in order of descending precedence, are:
+
+\begin{itemize}
+\item Complement (\(!\)) A prefix operator.
+\item Append (\(.\))
+\item Intersect (\(\cup\) or \(\&\))
+\item Union (\(\cap\) or \(|\))
+\end{itemize}
+\end{samepage}
+
+\begin{samepage}
+\subsection{Universal Object Syntax}
+ASON introduces a subtype of object called a "universal object." It is
+represented identically to a normal object, except that after the list of
+key-value pairs is one \(,\) and one \(*\). An example:
+%
+\begin{equation}
+\{ \kvpair{num}{6} \kvpair{string}{"hello"} *\}
+\end{equation}
+\end{samepage}
+
+Please note that we will typically use the term "object" to refer to either
+normal or universal objects.
+
+\section{ASON Intuitively}
+The purpose of this section is to give an intuitive grasp of ASON. The next
+section will endeavor to rigorously formalize it. For this reason, this section
+may gloss over or ignore several issues. Those implementing the specification
+should have a thorough understanding of the formal transformations in ASON.
+
+ASON relies on a bijection between ASON values and sets. All ASON values which
+reflect typical singular JSON values map to sets of cardinality 1. We state
+that two ASON values are equal \em if and only if \em their mapped sets are
+equal.
+
+\subsection{Operations in ASON}
+We can think of ASON values as collections of JSON values, so the ASON value
+\(\{\kvpaire{foo}{8}\}\) is a set containing only the identical JSON value.
+
+The purpose of the \(\cup\) and \(\cap\) operators is thus apparent: they
+combine and manipulate these singleton collections to form collections
+containing multiple values. Their specific function is upon the underlying
+sets, and analogous to the equivalent set theory operations: the union of two
+ASON values is an ASON value whose underlying set is the union of each of the
+values' underlying set. So the ASON value \(6\) is a collection containing
+\(6\), and the ASON value \(6\cup7\) is a collection containing \(6\) and
+\(7\).
+
+\subsection{The Universe, Wild, and Empty Values}
+The additional values we have added over JSON can all be explained in these
+terms: \(\emptyset\) is a value underlied by the empty set, and represents a
+collection containing nothing. \(U\) is the ASON universe, and is a collection
+of all possible ASON values. \(*\) is similar to \(U\), except it does not
+contain the value \(null\).
+
+\begin{samepage}
+\subsection{Universal Objects}
+Universal objects are used to refer to collections of objects which all have
+certain keys in common. For example, the collection of all objects which have a
+key \(``foo"\) with value \(6\) would be:
+%
+\begin{equation}
+\{\kvpair{foo}{6} *\}
+\end{equation}
+\end{samepage}
+
+\subsection{Complementation}
+The \(!\) operator also specifies a union of several values. Specifically it
+specifies a union of all values not equal to the value it is applied to.
+
+It is intuitive to say the collection of all values which are not \(6\) is
+\(!6\). It is possibly more subtle to point out \(U = !\emptyset\), or \(* =
+!null\), but these equalities should hold given our definition.
+
+\subsection{Append}
+The append operator only makes sense when it is between two lists, or two
+objects. It can be distributed over collections of objects, however.
+
+For lists, the behavior of append is intuitive from its name. It combines two
+lists into a single list, with the elements of the first list followed by the
+elements of the second. This makes append non-commutative, and also the only
+operator whose behavior can't be modeled as elementary set operations.
+
+For objects, the behavior is similar. An object is yielded with the combined
+set of key-value pairs from either operand. If either operand was a universal
+object, the result is as well. The only unusual case is when both operands
+specify the same key. In cases where one operand specifies a key \(``foo"\) to
+the value \(a\), and the other operand specifies the key \(``foo"\) to the
+value \(b\), the result will have the key \(``foo"\) with the value \(a\cap b\).
+
+We're papering over some subtlety here, but we'll allow the unusual cases to be
+worked out in the formalization.
+
+\section{Formalization}
+\begin{samepage}
+We will allow for numbers in JSON/ASON form to be transformed in ways that
+mathematics implies yield identical results, for example \(6.0 = 6\) and \(+3 =
+3\). We will also assume that characters in strings may be replaced with their
+equivalent unicode escape sequences as specified by JSON, and vice versa.
+Given this and the transformations on other values we will outline below, we
+will define equality thus:
+%
+\begin{prule}
+Two ASON values are equal \em if and only if \em they can each be transformed
+into an identical representation.
+\end{prule}
+\end{samepage}
+
+\begin{samepage}
+Reflexively, this specification shall describe a series of transformations on
+ASON objects which do not alter their semantic value. We will also state that:
+%
+\begin{prule}
+\label{sec:commute}
+If a value \(A\) can be transformed into a value \(B\), then the value \(B\)
+may be transformed into the value \(A\).
+\end{prule}
+\end{samepage}
+
+And lastly:
+%
+\begin{prule}
+All operators are associative.
+\end{prule}
+
+\subsection{Basic Transforms}
+These are intuitive rules understood by most existing JSON users and
+implementations. We will formalize them here.
+
+\begin{prule}
+The order of two key-value pairs in an object may be exchanged.
+\end{prule}
+
+\begin{prule}
+Values within objects or lists may be transformed.
+\end{prule}
+
+\subsection{Key Expansion}
+\begin{prule}
+\begin{equation}
+\begin{split}
+& \{\kvpaire{foo}{6} \}\\
+= \quad& \{\kvpair{foo}{6} \kvpaire{bar}{null}\}
+\end{split}
+\end{equation}
+
+A non-universal object may have a key-value pair with any key and value
+\(null\) inserted in to it.
+\end{prule}
+
+\begin{prule}
+\begin{equation}
+\begin{split}
+& \{\kvpair{foo}{6} *\}\\
+= \quad& \{\kvpair{foo}{6} \kvpair{bar}{U} *\}
+\end{split}
+\end{equation}
+
+A universal object may have a key-value pair with any key and value \(U\)
+inserted in to it.
+\end{prule}
+
+Key expansion dramatically simplifies the definition of other operations.
+Performing key expansion is often a crucial step in computing reduced ASON
+values. Do however note that key expansion implies that there is no difference
+between a key being set to \(null\) and a key not being present, at least
+within non-universal objects. This is a logical, but not necessarily expected
+semantic for JSON's \(null\) value.
+
+Reversal of this transformation via rule \ref{sec:commute} is typically
+referred to as \em key contraction \em .
+
+\subsection{Obliteration}
+\begin{prule}
+\begin{equation}
+\begin{split}
+{[}7,\quad8,\quad9,\quad\emptyset,\quad10] & = \emptyset \\
+\{\kvpair{foo}{6}\kvpaire{bar}{\emptyset}\} & = \emptyset
+\end{split}
+\end{equation}
+Any object or list containing a value which is equal to \(\emptyset\) may be
+replaced with \(\emptyset\)
+\end{prule}
+
+Obliteration is somewhat counterintuitive, but is required to simplify other
+operations. Without this transformation it might be provable that the
+underlying set of a non-universal object has a cardinality greater than 1.
+Consider our coming definition of intersection.
+
+\subsection{Append Reduction}
+
+\begin{prule}
+\begin{equation}
+\begin{split}
+& \Bigg( \{\kvpaire{foo}{6}\} \cup \{\kvpaire{bar}{7}\} \Bigg) \quad . \quad
+\{\kvpaire{baz}{8}\} \\
+= \quad& \{\kvpaire{foo}{6}\} . \{\kvpaire{baz}{8}\} \quad \cup \quad \{\kvpaire{bar}{7}\}
+ . \{\kvpaire{baz}{8}\}
+\end{split}
+\end{equation}
+
+The append operator may be distributed across the union operator.
+\end{prule}
+
+This is a logical rule, but its implications are significant. Because of the
+obliteration rule, append can behave much like relational algebra's inner join,
+crossing two unioned collections of values.
+
+\begin{prule}
+\begin{equation}
+\begin{array}{rclcl}
+6 \quad&.&\quad 7 & = & \emptyset \\
+6 \quad&.&\quad 6 & = & \emptyset \\
+\{\kvpaire{foo}{"bar"}\} \quad&.&\quad 7 & = & \emptyset \\
+{[}4,\quad5,\quad6] \quad&.&\quad 7 & = & \emptyset \\
+{[}4,\quad5,\quad6] \quad&.&\quad \{\kvpaire{foo}{"bar"}\} & = & \emptyset \\
+\end{array}
+\end{equation}
+
+If either operand of an append is \(true\), \(false\), \(null\), \(\emptyset\),
+a string, or a number, or if one operand is a list and the other an object, the
+append may be reduced to \(\emptyset\)
+\end{prule}
+
+Less formally, things which do not make sense to append to oneanother become
+\(\emptyset\) when appended. Because, \(\emptyset\) tends to reduce out
+of ASON values due to the obliteration rule and properties of unions which we
+will see later, this is a rather clean way to handle these cases, particularly
+as opposed to simply declaring them badly formed.
+
+\begin{prule}
+\begin{equation}
+\begin{split}
+& {[}4,\quad5,\quad6] \quad.\quad {[}7,\quad8,\quad9] \\
+=\quad & {[}4,\quad5,\quad6,\quad7,\quad8,\quad9]
+\end{split}
+\end{equation}
+
+An append of two lists can be reduced to a single list, with the items within
+the first list followed by the items within the second list.
+\end{prule}
+
+This more or less matches our intuitive understanding of "appending" for lists
+in other contexts.
+
+\begin{prule}
+\begin{equation}
+\begin{array}{rlllll}
+& \{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpaire{baz}{c}&&\}\quad.\\
+& \{&\kvpair{bar}{d}&\kvpair{baz}{null}&\kvpaire{bam}{e}&\} \\
+\\
+=&\{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpair{baz}{c}&\kvpaire{bam}{null}&\}\quad.\\
+ &\{\kvpair{foo}{null}&\kvpair{bar}{d}&\kvpair{baz}{null}&\kvpaire{bam}{e}&\} \\
+\\
+=&\Bigg\{\kvpair{foo}{a}&\kvpair{bar}{b\cap
+d}&\kvpair{baz}{c}&\kvpaire{bam}{e}&\Bigg\}\\
+\end{array}
+\end{equation}
+
+An append of two or more objects, universal or otherwise, can be replaced with
+a single object, where that object is universal if and only if either of the
+two operands were universal.
+\begin{enumerate}
+\item Use key expansion so both original objects have the same set of keys. The
+result object will also have that set of keys
+\item If either operand has \(null\) as the value for a given key, the result
+object will have the value from the other operand. If both objects have
+\(null\) the result object will have \(null\).
+\item If neither operand has \(null\) for a given key, then the result object
+will have the intersection of the two values in the operands for that key.
+\end{enumerate}
+\end{prule}
+
+Consider for a moment the implication that this has for objects with duplicate
+keys. JSON does not specify a semantic, and thus does not expressly prohibit
+duplicate keys, although this is incompatible with most programmers' intuitive
+understanding of what a JSON object represents. ASON offers a solution, where:
+
+\begin{equation}
+\{\kvpair{foo}{a}\kvpaire{foo}{b}\}
+\end{equation}
+
+Is interpreted as:
+
+\begin{equation}
+\{\kvpaire{foo}{a}\}.\{\kvpaire{foo}{b}\}
+\end{equation}
+
+And thus reduces, by the above transform, to:
+
+\begin{equation}
+\{\kvpaire{foo}{a\cap b}\}
+\end{equation}
+
+\subsection{Intersection Reduction}
+
+\begin{prule}
+\begin{equation}
+\begin{split}
+& \Bigg( \{\kvpaire{foo}{6}\} \cup \{\kvpaire{bar}{7}\} \Bigg) \quad \cap \quad
+\{\kvpaire{baz}{8}\} \\
+= \quad& \{\kvpaire{foo}{6}\} \cap \{\kvpaire{baz}{8}\} \quad \cup \quad \{\kvpaire{bar}{7}\}
+ \cap \{\kvpaire{baz}{8}\}
+\end{split}
+\end{equation}
+
+The intersect operator may be distributed over the union operator.
+\end{prule}
+
+This isn't at all surprising, and if we've begun to intuit the analogy between
+ASON union and intersection and set theory's implementations of the same, it
+becomes obvious.
+
+\begin{prule}
+\label{sec:interelim}
+\begin{equation}
+\begin{array}{rclcl}
+6 \quad&\cap&\quad 7 & = & \emptyset \\
+\{\kvpaire{foo}{"bar"}\} \quad&\cap&\quad 7 & = & \emptyset \\
+{[}4,\quad5,\quad6] \quad&\cap&\quad 7 & = & \emptyset \\
+{[}4,\quad5,\quad6] \quad&\cap&\quad {[}7,\quad8] & = & \emptyset \\
+{[}4,\quad5,\quad6] \quad&\cap&\quad \{\kvpaire{foo}{"bar"}\} & = & \emptyset \\
+\end{array}
+\end{equation}
+
+The intersection of any two values which are not equal, and of which neither
+can be expressed as a union of two or more non-equal, non-empty values, is
+\(\emptyset\).
+\end{prule}
+
+This is a necessarily complex way of specifying what is ultimately a simple
+concept: intersecting unequal values which are not collections of multiple
+values yields an empty value. It becomes muddled when we attempt to express it
+as purely transformation over syntax, as this specification aims to do.
+
+\begin{prule}
+\label{sec:interident}
+\begin{equation}
+\begin{array}{rclcl}
+6 \quad&\cap&\quad 6 & = & 6 \\
+\{\kvpaire{foo}{"bar"}\} \quad&\cap&\quad \{\kvpaire{foo}{"bar"}\}  & = & \{\kvpaire{foo}{"bar"}\} \\
+{[}4,\quad5,\quad6] \quad&\cap&\quad {[}4,\quad5,\quad6] & = & {[}4,\quad5,\quad6] \\
+\end{array}
+\end{equation}
+
+The intersection of any two values which are equal is equal to those values.
+\end{prule}
+
+The counterpart to the previous rule is much more cleanly specified. A value
+intersected with itself is itself.
+
+\begin{prule}
+\begin{equation}
+{[}a,\quad b,\quad c] \quad\cap\quad {[}d,\quad e,\quad f]  =  {[}a\cap d,\quad
+b\cap e,\quad c\cap f] \\
+\end{equation}
+
+The intersection of any two lists of the same length can be reduced to a list
+which is also that length and where each element is the intersection of the
+corresponding two elements in the operand lists.
+\end{prule}
+
+This can almost be inferred from the previous rules and some of the properties
+of unions discussed later. In fact you can prove rules \ref{sec:interident} and
+\ref{sec:interelim} for the specific case of lists of the same length with this
+rule. Nonetheless this rule does clarify the details of intersection.
+
+\begin{prule}
+\begin{equation}
+\begin{array}{rlllll}
+& \{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpaire{baz}{c}&&\}\quad\cap\\
+& \{&\kvpair{bar}{d}&\kvpair{baz}{null}&\kvpaire{bam}{e}&\} \\
+\\
+=&\{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpair{baz}{c}&\kvpaire{bam}{null}&\}\quad\cap\\
+ &\{\kvpair{foo}{null}&\kvpair{bar}{d}&\kvpair{baz}{null}&\kvpaire{bam}{e}&\} \\
+\\
+=&\Bigg\{\kvpair{foo}{a\cap null}&\kvpair{bar}{b\cap
+d}&\kvpair{baz}{c\cap null}&\kvpaire{bam}{e\cap null}&\Bigg\}\\
+\end{array}
+\end{equation}
+
+An intersection of two or more objects, universal or otherwise, can be replaced
+with a single object, where that object is universal if and only if both of
+the two operands were universal.
+\begin{enumerate}
+\item Use key expansion so both original objects have the same set of keys. The
+result object will also have that set of keys
+\item For each key, the result object will have the intersection of the two
+values for that key in the operands.
+\end{enumerate}
+\end{prule}
+
+This complements the previous rule, and rounds out our definition of
+intersection. Again, it nicely parallels rule \ref{sec:interelim}, but does
+resolve real ambiguity in the system.
+
+\subsection{Union Reduction}
+\begin{prule}
+\begin{equation}
+a\cup\emptyset = a
+\end{equation}
+
+Any value unioned with \(\emptyset\) can be reduced to that value singly.
+\end{prule}
+
+This more or less defines \(\emptyset\). Combined with obliteration, it means
+that \(\emptyset\) should almost always be able to be removed from an ASON
+value by transformation.
+
+\begin{prule}
+\begin{equation}
+a\cup a = a
+\end{equation}
+
+Any value unioned with itself can be reduced to that value singly.
+\end{prule}
+
+Interestingly, this parallels intersection.
+
+\begin{prule}
+\begin{equation}
+\begin{array}{rcl}
+
+{[}a,\quad b,\quad c] \cup {[}a,\quad b,\quad d] &=& {[}a,\quad b,\quad c \cup d] \\
+\\
+\{\kvpair{foo}{a}\kvpaire{bar}{b}\} \cup \{\kvpair{foo}{a}\kvpaire{bar}{c}\}
+&=& \{\kvpair{foo}{a}\kvpaire{bar}{b \cup c}\}
+
+\end{array}
+\end{equation}
+Any union of lists or objects where the operands  differ in only one value may
+be reduced to a version of that list or object where the differing value is a
+union of the values within the two operands.
+\end{prule}
+
+This rule is key, but it is more often used in reverse. Unions can be
+propagated upward such that there is only one top-level sequence of unions by
+repeatedly exchanging values containing unions for unions of values.
+
+\subsection{Complementation}
+\begin{prule}
+Given a value \(a\), if one takes the set of all values \(x\) such that \(a
+\cap x = \emptyset\) and joins them with the union operator, one arrives at a
+form equivalent to \(!a\)
+\end{prule}
+
+This rule is difficult, as it describes a transformation to and from a form
+which would be uncoutably infinite in length. Nonetheless it is the simplest
+definition of complementation.
+
+\subsection{Constants}
+\begin{equation}
+\begin{split}
+U = &!\emptyset \\
+* = &!null
+\end{split}
+\end{equation}
+
+With complementation defined, the two constant values are easily expressed. In
+fact they are revealed as syntactic sugar.
 
 \end{document}
