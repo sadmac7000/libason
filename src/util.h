@@ -31,6 +31,11 @@
 #define API_EXPORT
 #endif
 
+/* Fixed point constant */
+#define FP_BITS (1 << 16)
+#define TO_FP(x) ( (int64_t)((x) * FP_BITS) )
+#define FP_WHOLE(x) ( (x) / FP_BITS )
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -195,6 +195,38 @@ ason_asprint_list(ason_t *value, int use_unicode)
 }
 
 /**
+ * Print a fixed-point number as a string.
+ **/
+static char *
+ason_asprint_number(int64_t num)
+{
+	char *ret = xasprintf("%lld", FP_WHOLE(num));
+	char *tmp;
+
+	if (num < 0)
+		num = -num;
+
+	num -= TO_FP(FP_WHOLE(num));
+
+	if (! num)
+		return ret;
+
+	tmp = ret;
+	ret = xasprintf("%s.", tmp);
+	free(tmp);
+
+	while (num) {
+		num *= 10;
+		tmp = ret;
+		ret = xasprintf("%s%lld", tmp, FP_WHOLE(num));
+		free(tmp);
+		num -= TO_FP(FP_WHOLE(num));
+	}
+
+	return ret;
+}
+
+/**
  * Print an ASON value as a string.
  **/
 static char *
@@ -205,7 +237,7 @@ ason_do_asprint(ason_t *value, int use_unicode)
 
 	switch (value->type) {
 	case ASON_NUMERIC:
-		return xasprintf("%lld", value->n);
+		return ason_asprint_number(value->n);
 	case ASON_EMPTY:
 		if (use_unicode)
 			return xasprintf("∅");

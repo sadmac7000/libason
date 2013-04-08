@@ -293,7 +293,16 @@ ason_destroy(ason_t *a)
  * Create an ASON numeric value.
  **/
 API_EXPORT ason_t *
-ason_create_number(int number)
+ason_create_number(int64_t number)
+{
+	return ason_create_fixnum(TO_FP(number));
+}
+
+/**
+ * Create an ASON numeric value from a fixed point number.
+ **/
+ason_t *
+ason_create_fixnum(int64_t number)
 {
 	ason_t *ret = ason_create(ASON_NUMERIC, 0);
 

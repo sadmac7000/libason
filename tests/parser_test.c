@@ -24,11 +24,12 @@
 
 #include "harness.h"
 
-TESTS(4,
-      "Disjoin expression",
+TESTS(5,
+      "Union value",
       "Truth",
       "Falsehood",
-      "String"
+      "String",
+      "Number"
       );
 
 /**
@@ -43,6 +44,7 @@ TEST_MAIN("Parse values")
 	ason_t *b;
 	ason_t *c;
 	ason_t *d;
+	char *str;
 
 	a = ason_create_number(6);
 	a = ason_create_object_d("foo", a);
@@ -70,7 +72,7 @@ TEST_MAIN("Parse values")
 	b = ason_intersect_d(b, d);
 	a = ason_union_d(a, b);
 	
-	TEST("Disjoin value") {
+	TEST("Union value") {
 		test_value = ason_read("{ \"foo\": 6, \"bar\": 8 } | "
 				       "(98 | [1,2,3] & [1,2])");
 		REQUIRE(ason_check_equal(a, test_value));
@@ -107,6 +109,16 @@ TEST_MAIN("Parse values")
 
 	ason_destroy(test_value);
 	ason_destroy(a);
+
+	TEST("Number") {
+		test_value = ason_read("-6.25");
+		str = ason_asprint(test_value);
+
+		REQUIRE(!strcmp(str, "-6.25"));
+	}
+
+	ason_destroy(test_value);
+	free(str);
 
 	return 0;
 }

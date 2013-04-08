@@ -18,6 +18,8 @@
 #ifndef ASON_VALUE_H
 #define ASON_VALUE_H
 
+#include <stdint.h>
+
 /**
  * An ASON value
  **/
@@ -35,7 +37,7 @@ extern ason_t * const VALUE_FALSE;
 extern "C" {
 #endif
 
-ason_t *ason_create_number(int number);
+ason_t *ason_create_number(int64_t number);
 ason_t *ason_create_list(ason_t *content);
 ason_t *ason_create_object(const char *key, ason_t *value); 
 ason_t *ason_create_string(const char *str);

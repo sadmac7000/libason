@@ -3,8 +3,10 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "value.h"
+
 typedef union {
-	int i;
+	int64_t n;
 	char *c;
 } token_t;
 
@@ -66,7 +68,7 @@ value(A) ::= NULL.		{ A = VALUE_NULL; }
 value(A) ::= UNIVERSE.		{ A = VALUE_UNIVERSE; }
 value(A) ::= WILD.		{ A = VALUE_WILD; }
 
-value(A) ::= INTEGER(B).	{ A = ason_create_number(B.i); }
+value(A) ::= NUMBER(B).		{ A = ason_create_fixnum(B.n); }
 
 value(A) ::= START_LIST list(B) END_LIST.		{ A = B; }
 value(A) ::= TRUE.					{ A = VALUE_TRUE; }

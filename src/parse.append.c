@@ -43,27 +43,62 @@ ason_get_token_number(const char *text, size_t length, int *type,
 		      token_t *data)
 {
 	const char *text_start;
-	char *tmp;
+	int negator = 1;
+	size_t decimal_places = 0;
+	size_t decimal_inc = 0;
+	size_t digits = 0;
+	int64_t accum = 0;
+
+	if (! length)
+		return 0;
 
 	text_start = text;
 
-	while (length && isdigit(*text)) {
+	if (*text == '-') {
+		negator = -1;
 		text++;
 		length--;
 	}
 
-	if (text_start != text) {
-		tmp = xmalloc(text - text_start + 1);
-		tmp[text - text_start] = '\0';
-		memcpy(tmp, text_start, text - text_start);
-		sscanf(tmp, "%d", &data->i);
-		free(tmp);
+	if (! length)
+		return 0;
 
-		*type = ASON_LEX_INTEGER;
-		return text - text_start;
+	if (length < 2 && *text == 0)
+		return 0;
+
+	if (text[0] == '0' && text[1] != '.')
+		return 0;
+
+	for (; length; length--, text++) {
+		if (*text == '.') {
+			if (decimal_inc)
+				return 0;
+			decimal_inc = 1;
+			continue;
+		} else if (! isdigit(*text)) {
+			break;
+		}
+
+		digits++;
+		decimal_places += decimal_inc;
+		accum *= 10;
+		accum += (*text) - '0';
 	}
 
-	return 0;
+	if (decimal_inc && !decimal_places)
+		return 0;
+
+	accum *= negator;
+
+	/* Technically << can be undefined for negative numbers in C */
+	accum = TO_FP(accum);
+
+	while (decimal_places--)
+		accum /= 10;
+
+	*type = ASON_LEX_NUMBER;
+	data->n = accum;
+	return text - text_start;
 }
 
 /**

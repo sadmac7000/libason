@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 #include <ason/value.h>
 
@@ -76,6 +77,8 @@ struct ason {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+ason_t * ason_create_fixnum(int64_t number);
 
 #ifdef __cplusplus
 }
