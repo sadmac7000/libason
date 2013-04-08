@@ -36,6 +36,37 @@ ason_read(const char *text)
 }
 
 /**
+ * Get a number token.
+ **/
+static size_t
+ason_get_token_number(const char *text, size_t length, int *type,
+		      token_t *data)
+{
+	const char *text_start;
+	char *tmp;
+
+	text_start = text;
+
+	while (length && isdigit(*text)) {
+		text++;
+		length--;
+	}
+
+	if (text_start != text) {
+		tmp = xmalloc(text - text_start + 1);
+		tmp[text - text_start] = '\0';
+		memcpy(tmp, text_start, text - text_start);
+		sscanf(tmp, "%d", &data->i);
+		free(tmp);
+
+		*type = ASON_LEX_INTEGER;
+		return text - text_start;
+	}
+
+	return 0;
+}
+
+/**
  * Tokenize a string for ASON parsing.
  **/
 static size_t
@@ -44,6 +75,7 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data)
 	const char *text_start = text;
 	const char *tok_start;
 	char *tmp;
+	size_t got;
 
 	while (length && isspace(*text)) {
 		length--;
@@ -84,23 +116,10 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data)
 
 #undef FIXED_TOKEN
 
-	tok_start = text;
+	got = ason_get_token_number(text, length, type, data);
 
-	while (length && isdigit(*text)) {
-		text++;
-		length--;
-	}
-
-	if (tok_start != text) {
-		tmp = xmalloc(text - tok_start + 1);
-		tmp[text - tok_start] = '\0';
-		memcpy(tmp, tok_start, text - tok_start);
-		sscanf(tmp, "%d", &data->i);
-		free(tmp);
-
-		*type = ASON_LEX_INTEGER;
-		return text - text_start;
-	}
+	if (got)
+		return got;
 
 	if (*text != '"')
 		return 0;
