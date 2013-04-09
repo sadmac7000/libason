@@ -8,6 +8,8 @@ libason_la_SOURCES = \
 	value.c \
 	output.c \
 	stringfunc.c \
+	namespace.c \
+	namespace_ram.c \
 	parse.whole.c
 MOSTLYCLEANFILES = parse.whole.c parse.c parse.h parse.out
 
