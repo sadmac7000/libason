@@ -60,7 +60,7 @@ ason_get_opchar(ason_type_t operator, int use_unicode)
 		else
 			return "&";
 	case TYPE_APPEND:
-		return ".";
+		return ":";
 	default:
 		errx(1, "Unreachable statement at %s:%d", __FILE__, __LINE__);
 	}

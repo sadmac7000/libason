@@ -22,7 +22,7 @@ typedef union {
 
 %left UNION.
 %left INTERSECT.
-%left APPEND.
+%left COLON.
 %left COMMA.
 
 %type file      {ason_t *}
@@ -59,7 +59,7 @@ comp(A) ::= append(B). { A = B; }
 comp(A) ::= NOT comp(B). { A = ason_complement_d(B); }
 
 append(A) ::= value(B).				{ A = B; }
-append(A) ::= value(B) APPEND append(C).	{
+append(A) ::= value(B) COLON append(C).		{
 	A = ason_append_d(B, C);
 }
 

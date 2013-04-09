@@ -131,7 +131,6 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data)
 	FIXED_TOKEN("∪", ASON_LEX_UNION);
 	FIXED_TOKEN("&", ASON_LEX_INTERSECT);
 	FIXED_TOKEN("∩", ASON_LEX_INTERSECT);
-	FIXED_TOKEN(".", ASON_LEX_APPEND);
 	FIXED_TOKEN(",", ASON_LEX_COMMA);
 	FIXED_TOKEN("null", ASON_LEX_NULL);
 	FIXED_TOKEN("∅", ASON_LEX_EMPTY);

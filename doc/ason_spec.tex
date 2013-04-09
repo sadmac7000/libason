@@ -63,7 +63,7 @@ The operators, in order of descending precedence, are:
 
 \begin{itemize}
 \item Complement (\(!\)) A prefix operator.
-\item Append (\(.\))
+\item Append (\(:\))
 \item Intersect (\(\cup\) or \(\&\))
 \item Union (\(\cap\) or \(|\))
 \end{itemize}
@@ -253,9 +253,9 @@ Consider our coming definition of intersection.
 \begin{prule}
 \begin{equation}
 \begin{split}
-& \Bigg( \{\kvpaire{foo}{6}\} \cup \{\kvpaire{bar}{7}\} \Bigg) \quad . \quad
+& \Bigg( \{\kvpaire{foo}{6}\} \cup \{\kvpaire{bar}{7}\} \Bigg) \quad : \quad
 \{\kvpaire{baz}{8}\} \\
-= \quad& \{\kvpaire{foo}{6}\} . \{\kvpaire{baz}{8}\} \quad \cup \quad \{\kvpaire{bar}{7}\}
+= \quad& \{\kvpaire{foo}{6}\} : \{\kvpaire{baz}{8}\} \quad \cup \quad \{\kvpaire{bar}{7}\}
  . \{\kvpaire{baz}{8}\}
 \end{split}
 \end{equation}
@@ -270,11 +270,11 @@ crossing two unioned collections of values.
 \begin{prule}
 \begin{equation}
 \begin{array}{rclcl}
-6 \quad&.&\quad 7 & = & \emptyset \\
-6 \quad&.&\quad 6 & = & \emptyset \\
+6 \quad&:&\quad 7 & = & \emptyset \\
+6 \quad&:&\quad 6 & = & \emptyset \\
 \{\kvpaire{foo}{"bar"}\} \quad&.&\quad 7 & = & \emptyset \\
-{[}4,\quad5,\quad6] \quad&.&\quad 7 & = & \emptyset \\
-{[}4,\quad5,\quad6] \quad&.&\quad \{\kvpaire{foo}{"bar"}\} & = & \emptyset \\
+{[}4,\quad5,\quad6] \quad&:&\quad 7 & = & \emptyset \\
+{[}4,\quad5,\quad6] \quad&:&\quad \{\kvpaire{foo}{"bar"}\} & = & \emptyset \\
 \end{array}
 \end{equation}
 
@@ -292,7 +292,7 @@ as opposed to simply declaring them badly formed.
 \begin{prule}
 \begin{equation}
 \begin{split}
-& {[}4,\quad5,\quad6] \quad.\quad {[}7,\quad8,\quad9] \\
+& {[}4,\quad5,\quad6] \quad:\quad {[}7,\quad8,\quad9] \\
 =\quad & {[}4,\quad5,\quad6,\quad7,\quad8,\quad9]
 \end{split}
 \end{equation}
@@ -307,10 +307,10 @@ in other contexts.
 \begin{prule}
 \begin{equation}
 \begin{array}{rlllll}
-& \{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpaire{baz}{c}&&\}\quad.\\
+& \{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpaire{baz}{c}&&\}\quad:\\
 & \{&\kvpair{bar}{d}&\kvpair{baz}{null}&\kvpaire{bam}{e}&\} \\
 \\
-=&\{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpair{baz}{c}&\kvpaire{bam}{null}&\}\quad.\\
+=&\{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpair{baz}{c}&\kvpaire{bam}{null}&\}\quad:\\
  &\{\kvpair{foo}{null}&\kvpair{bar}{d}&\kvpair{baz}{null}&\kvpaire{bam}{e}&\} \\
 \\
 =&\Bigg\{\kvpair{foo}{a}&\kvpair{bar}{b\cap
@@ -344,7 +344,7 @@ understanding of what a JSON object represents. ASON offers a solution, where:
 Is interpreted as:
 
 \begin{equation}
-\{\kvpaire{foo}{a}\}.\{\kvpaire{foo}{b}\}
+\{\kvpaire{foo}{a}\}:\{\kvpaire{foo}{b}\}
 \end{equation}
 
 And thus reduces, by the above transform, to:
