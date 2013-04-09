@@ -28,21 +28,21 @@
  * An ASON type.
  **/
 typedef enum {
-	ASON_NUMERIC,
-	ASON_EMPTY,
-	ASON_NULL,
-	ASON_UNIVERSE,
-	ASON_WILD,
-	ASON_UNION,
-	ASON_INTERSECT,
-	ASON_OBJECT,
-	ASON_UOBJECT,
-	ASON_LIST,
-	ASON_APPEND,
-	ASON_COMP,
-	ASON_STRING,
-	ASON_TRUE,
-	ASON_FALSE,
+	TYPE_NUMERIC,
+	TYPE_EMPTY,
+	TYPE_NULL,
+	TYPE_UNIVERSE,
+	TYPE_WILD,
+	TYPE_UNION,
+	TYPE_INTERSECT,
+	TYPE_OBJECT,
+	TYPE_UOBJECT,
+	TYPE_LIST,
+	TYPE_APPEND,
+	TYPE_COMP,
+	TYPE_STRING,
+	TYPE_TRUE,
+	TYPE_FALSE,
 } ason_type_t;
 
 /**
@@ -72,7 +72,7 @@ struct ason {
 /**
  * Test if an ASON value is an object.
  **/
-#define IS_OBJECT(_x) (_x->type == ASON_OBJECT || _x->type == ASON_UOBJECT)
+#define IS_OBJECT(_x) (_x->type == TYPE_OBJECT || _x->type == TYPE_UOBJECT)
 
 #ifdef __cplusplus
 extern "C" {

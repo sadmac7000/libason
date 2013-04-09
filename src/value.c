@@ -40,49 +40,49 @@ struct ason_coiterator {
  * Handy value constants.
  **/
 static struct ason VALUE_EMPTY_DATA = {
-	.type = ASON_EMPTY,
+	.type = TYPE_EMPTY,
 	.items = NULL,
 	.count = 0,
 };
 API_EXPORT ason_t * const VALUE_EMPTY = &VALUE_EMPTY_DATA;
 
 static struct ason VALUE_NULL_DATA = {
-	.type = ASON_NULL,
+	.type = TYPE_NULL,
 	.items = NULL,
 	.count = 0,
 };
 API_EXPORT ason_t * const VALUE_NULL = &VALUE_NULL_DATA;
 
 static struct ason VALUE_UNIVERSE_DATA = {
-	.type = ASON_UNIVERSE,
+	.type = TYPE_UNIVERSE,
 	.items = NULL,
 	.count = 0,
 };
 API_EXPORT ason_t * const VALUE_UNIVERSE = &VALUE_UNIVERSE_DATA;
 
 static struct ason VALUE_TRUE_DATA = {
-	.type = ASON_TRUE,
+	.type = TYPE_TRUE,
 	.items = NULL,
 	.count = 0,
 };
 API_EXPORT ason_t * const VALUE_TRUE = &VALUE_TRUE_DATA;
 
 static struct ason VALUE_FALSE_DATA = {
-	.type = ASON_FALSE,
+	.type = TYPE_FALSE,
 	.items = NULL,
 	.count = 0,
 };
 API_EXPORT ason_t * const VALUE_FALSE = &VALUE_FALSE_DATA;
 
 static struct ason VALUE_WILD_DATA = {
-	.type = ASON_WILD,
+	.type = TYPE_WILD,
 	.items = NULL,
 	.count = 0,
 };
 API_EXPORT ason_t * const VALUE_WILD = &VALUE_WILD_DATA;
 
 static struct ason VALUE_OBJ_ANY_DATA = {
-	.type = ASON_UOBJECT,
+	.type = TYPE_UOBJECT,
 	.items = NULL,
 	.count = 0,
 };
@@ -154,10 +154,10 @@ ason_coiterator_next(struct ason_coiterator *iter, ason_t **a, ason_t **b)
 	int cmp;
 	*a = *b = VALUE_NULL;
 
-	if (iter->a->type == ASON_UOBJECT)
+	if (iter->a->type == TYPE_UOBJECT)
 		*a = VALUE_UNIVERSE;
 
-	if (iter->b->type == ASON_UOBJECT)
+	if (iter->b->type == TYPE_UOBJECT)
 		*b = VALUE_UNIVERSE;
 
 	if (iter->a_i >= iter->a->count && iter->b_i >= iter->b->count)
@@ -216,7 +216,7 @@ ason_create(ason_type_t type, size_t count)
 	if (! ret->count)
 		return ret;
 
-	if (type == ASON_OBJECT || type == ASON_UOBJECT)
+	if (type == TYPE_OBJECT || type == TYPE_UOBJECT)
 		ret->kvs = xcalloc(count, sizeof(struct kv_pair));
 	else
 		ret->items = xcalloc(count, sizeof(ason_t *));
@@ -230,7 +230,7 @@ ason_create(ason_type_t type, size_t count)
 API_EXPORT ason_t *
 ason_create_string(const char *string)
 {
-	ason_t *ret = ason_create(ASON_STRING, 0);
+	ason_t *ret = ason_create(TYPE_STRING, 0);
 	ret->string = string_to_utf8(string);
 	return ret;
 }
@@ -304,7 +304,7 @@ ason_create_number(int64_t number)
 ason_t *
 ason_create_fixnum(int64_t number)
 {
-	ason_t *ret = ason_create(ASON_NUMERIC, 0);
+	ason_t *ret = ason_create(TYPE_NUMERIC, 0);
 
 	ret->n = number;
 
@@ -320,9 +320,9 @@ ason_create_list(ason_t *content)
 	ason_t *ret;
 
 	if (! content)
-		return ason_create(ASON_LIST, 0);
+		return ason_create(TYPE_LIST, 0);
 
-	ret = ason_create(ASON_LIST, 1);
+	ret = ason_create(TYPE_LIST, 1);
 	ret->items[0] = ason_copy(content);
 
 	return ret;
@@ -337,12 +337,12 @@ ason_create_object(const char *key, ason_t *value)
 	ason_t *ret;
 
 	if (! value)
-		return ason_create(ASON_OBJECT, 0);
+		return ason_create(TYPE_OBJECT, 0);
 
-	if (value->type == ASON_EMPTY)
+	if (value->type == TYPE_EMPTY)
 		return VALUE_EMPTY;
 
-	ret = ason_create(ASON_OBJECT, 1);
+	ret = ason_create(TYPE_OBJECT, 1);
 
 	ret->kvs[0].key = string_to_utf8(key);
 	ret->kvs[0].value = ason_copy(value);
@@ -372,7 +372,7 @@ ason_operate(ason_t *a, ason_t *b, ason_type_t type)
 API_EXPORT ason_t *
 ason_union(ason_t *a, ason_t *b)
 {
-	return ason_operate(a, b, ASON_UNION);
+	return ason_operate(a, b, TYPE_UNION);
 }
 
 /**
@@ -381,7 +381,7 @@ ason_union(ason_t *a, ason_t *b)
 API_EXPORT ason_t *
 ason_intersect(ason_t *a, ason_t *b)
 {
-	return ason_operate(a, b, ASON_INTERSECT);
+	return ason_operate(a, b, TYPE_INTERSECT);
 }
 
 /**
@@ -390,7 +390,7 @@ ason_intersect(ason_t *a, ason_t *b)
 API_EXPORT ason_t *
 ason_append(ason_t *a, ason_t *b)
 {
-	return ason_operate(a, b, ASON_APPEND);
+	return ason_operate(a, b, TYPE_APPEND);
 }
 
 /**
@@ -399,7 +399,7 @@ ason_append(ason_t *a, ason_t *b)
 API_EXPORT ason_t *
 ason_complement(ason_t *a)
 {
-	ason_t *ret = ason_create(ASON_COMP, 1);
+	ason_t *ret = ason_create(TYPE_COMP, 1);
 	ret->items[0] = ason_copy(a);
 	return ret;
 }
@@ -419,7 +419,7 @@ ason_distribute_left(ason_t *operator)
 	operator->items = xmemdup(left->items,
 				  left->count * sizeof(ason_t *));
 	operator->count = left->count;
-	operator->type = ASON_UNION;
+	operator->type = TYPE_UNION;
 
 	ason_destroy(left);
 
@@ -445,7 +445,7 @@ ason_distribute_right(ason_t *operator)
 	operator->items = xmemdup(right->items,
 				  right->count * sizeof(ason_t *));
 	operator->count = right->count;
-	operator->type = ASON_UNION;
+	operator->type = TYPE_UNION;
 
 	ason_destroy(right);
 
@@ -481,7 +481,7 @@ ason_make_empty(ason_t *a)
 		free(a->items);
 
 	a->count = 0;
-	a->type = ASON_EMPTY;
+	a->type = TYPE_EMPTY;
 }
 
 /**
@@ -545,10 +545,10 @@ ason_reduce_complement(ason_t *a)
 		ason_destroy(a->items[0]);
 		free(a->items);
 		a->count = 0;
-		a->type = ASON_UNIVERSE;
-	} else if (a->items[0]->type == ASON_UNIVERSE) {
+		a->type = TYPE_UNIVERSE;
+	} else if (a->items[0]->type == TYPE_UNIVERSE) {
 		ason_make_empty(a);
-	} else if (a->items[0]->type == ASON_COMP) {
+	} else if (a->items[0]->type == TYPE_COMP) {
 		tmp = ason_copy(a->items[0]->items[0]);
 		ason_clone_into_d(a, tmp);
 	}
@@ -561,9 +561,9 @@ ason_reduce_complement(ason_t *a)
 static int
 ason_distribute(ason_t *a)
 {
-	if (a->items[0]->type == ASON_UNION) {
+	if (a->items[0]->type == TYPE_UNION) {
 		ason_distribute_left(a);
-	} else if (a->items[1]->type == ASON_UNION) {
+	} else if (a->items[1]->type == TYPE_UNION) {
 		ason_distribute_right(a);
 	} else {
 		return 0;
@@ -583,13 +583,13 @@ ason_reduce_object_intersect(ason_t *a)
 	ason_t *right;
 	ason_t *tmp;
 	const char *key;
-	ason_type_t type = ASON_OBJECT;
+	ason_type_t type = TYPE_OBJECT;
 	struct kv_pair *buf = xcalloc(a->items[0]->count + a->items[1]->count,
 				      sizeof(struct kv_pair));
 
-	if (a->items[0]->type == ASON_UOBJECT &&
-	    a->items[1]->type == ASON_UOBJECT)
-		type = ASON_UOBJECT;
+	if (a->items[0]->type == TYPE_UOBJECT &&
+	    a->items[1]->type == TYPE_UOBJECT)
+		type = TYPE_UOBJECT;
 
 	ason_coiterator_init(&iter, a->items[0], a->items[1]);
 	ason_make_empty(a);
@@ -636,7 +636,7 @@ ason_reduce_list_intersect(ason_t *a)
 	right = ason_copy(a->items[1]);
 	ason_make_empty(a);
 
-	a->type = ASON_LIST;
+	a->type = TYPE_LIST;
 	a->items = xcalloc(left->count, sizeof(ason_t *));
 
 	for (a->count = 0; a->count < left->count; a->count++) {
@@ -670,25 +670,25 @@ ason_reduce_intersect(ason_t *a)
 		ason_reduce(a);
 	} else if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1])) {
 		ason_reduce_object_intersect(a);
-	} else if (a->items[0]->type == ASON_NULL) {
+	} else if (a->items[0]->type == TYPE_NULL) {
 		other = a->items[1]->type;
 		ason_make_empty(a);
 
-		if (other == ASON_NULL || other == ASON_UNIVERSE)
-			a->type = ASON_NULL;
-	} else if (a->items[0]->type == ASON_UNIVERSE ||
-	    (a->items[0]->type == ASON_WILD &&
-	     a->items[1]->type != ASON_NULL)) {
+		if (other == TYPE_NULL || other == TYPE_UNIVERSE)
+			a->type = TYPE_NULL;
+	} else if (a->items[0]->type == TYPE_UNIVERSE ||
+	    (a->items[0]->type == TYPE_WILD &&
+	     a->items[1]->type != TYPE_NULL)) {
 		tmp = ason_copy(a->items[1]);
 		ason_clone_into_d(a, tmp);
 	} else if (a->items[0]->type != a->items[1]->type) {
 		ason_make_empty(a);
-	} else if (a->items[0]->type == ASON_TRUE ||
-		   a->items[0]->type == ASON_FALSE) {
+	} else if (a->items[0]->type == TYPE_TRUE ||
+		   a->items[0]->type == TYPE_FALSE) {
 		other = a->items[0]->type;
 		ason_make_empty(a);
 		a->type = other;
-	} else if (a->items[0]->type == ASON_STRING) {
+	} else if (a->items[0]->type == TYPE_STRING) {
 		string = NULL;
 
 		if (! strcmp(a->items[0]->string, a->items[1]->string))
@@ -698,9 +698,9 @@ ason_reduce_intersect(ason_t *a)
 
 		if (string) {
 			a->string = string;
-			a->type = ASON_STRING;
+			a->type = TYPE_STRING;
 		}
-	} else if (a->items[0]->type == ASON_NUMERIC) {
+	} else if (a->items[0]->type == TYPE_NUMERIC) {
 		n = a->items[1]->n;
 		tmp = ason_copy(a->items[0]);
 
@@ -709,12 +709,12 @@ ason_reduce_intersect(ason_t *a)
 
 		if (a->n != n)
 			ason_make_empty(a);
-	} else if (a->items[0]->type == ASON_LIST) {
+	} else if (a->items[0]->type == TYPE_LIST) {
 		ason_reduce_list_intersect(a);
-	} else if (a->items[0]->type == ASON_COMP) {
+	} else if (a->items[0]->type == TYPE_COMP) {
 		tmp = ason_union(a->items[0]->items[0], a->items[1]->items[1]);
 		ason_make_empty(a);
-		a->type = ASON_COMP;
+		a->type = TYPE_COMP;
 		a->count = 1;
 		a->items = xmalloc(sizeof(ason_t *));
 		a->items[0] = tmp;
@@ -733,13 +733,13 @@ ason_reduce_object_append(ason_t *a)
 	const char *key;
 	ason_t *left;
 	ason_t *right;
-	ason_type_t type = ASON_OBJECT;
+	ason_type_t type = TYPE_OBJECT;
 	struct kv_pair *buf = xcalloc(a->items[0]->count + a->items[1]->count,
 				      sizeof(struct kv_pair));
 
-	if (a->items[0]->type == ASON_UOBJECT ||
-	    a->items[1]->type == ASON_UOBJECT)
-		type = ASON_UOBJECT;
+	if (a->items[0]->type == TYPE_UOBJECT ||
+	    a->items[1]->type == TYPE_UOBJECT)
+		type = TYPE_UOBJECT;
 
 	ason_coiterator_init(&iter, a->items[0], a->items[1]);
 	ason_make_empty(a);
@@ -750,9 +750,9 @@ ason_reduce_object_append(ason_t *a)
 	while ((key = ason_coiterator_next(&iter, &left, &right))) {
 		a->kvs[a->count].key = xstrdup(key);
 
-		if (left->type == ASON_NULL) {
+		if (left->type == TYPE_NULL) {
 			a->kvs[a->count++].value = ason_copy(right);
-		} else if (right->type == ASON_NULL) {
+		} else if (right->type == TYPE_NULL) {
 			a->kvs[a->count++].value = ason_copy(left);
 		} else {
 			a->kvs[a->count++].value = ason_intersect(left, right);
@@ -798,7 +798,7 @@ ason_reduce_append(ason_t *a)
 
 	if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1]))
 		ason_reduce_object_append(a);
-	else if (a->items[0]->type == ASON_LIST && a->items[1]->type == ASON_LIST)
+	else if (a->items[0]->type == TYPE_LIST && a->items[1]->type == TYPE_LIST)
 		ason_reduce_list_append(a);
 	else
 		ason_make_empty(a);
@@ -860,11 +860,11 @@ ason_reduce_union(ason_t *a)
 	a->count = new_count;
 
 	for (pos = 0; pos < a->count; pos++) {
-		if (a->items[pos]->type == ASON_UNIVERSE) {
+		if (a->items[pos]->type == TYPE_UNIVERSE) {
 			found_uni = 1;
-		} else if (a->items[pos]->type == ASON_WILD) {
+		} else if (a->items[pos]->type == TYPE_WILD) {
 			found_wild = 1;
-		} else if (a->items[pos]->type == ASON_NULL) {
+		} else if (a->items[pos]->type == TYPE_NULL) {
 			found_null = 1;
 		}
 	}
@@ -873,7 +873,7 @@ ason_reduce_union(ason_t *a)
 
 	if (found_uni) {
 		ason_make_empty(a);
-		a->type = ASON_UNIVERSE;
+		a->type = TYPE_UNIVERSE;
 	} else if (! new_count) {
 		ason_make_empty(a);
 	}
@@ -889,23 +889,23 @@ static int
 ason_reduce(ason_t *a)
 {
 
-	if (a->type == ASON_EMPTY)
+	if (a->type == TYPE_EMPTY)
 		return 1;
 
 	if (IS_OBJECT(a))
 		ason_reduce_object(a);
-	else if (a->type == ASON_LIST)
+	else if (a->type == TYPE_LIST)
 		ason_reduce_list(a);
-	else if (a->type == ASON_UNION)
+	else if (a->type == TYPE_UNION)
 		ason_reduce_union(a);
-	else if (a->type == ASON_INTERSECT)
+	else if (a->type == TYPE_INTERSECT)
 		ason_reduce_intersect(a);
-	else if (a->type == ASON_APPEND)
+	else if (a->type == TYPE_APPEND)
 		ason_reduce_append(a);
-	else if (a->type == ASON_COMP)
+	else if (a->type == TYPE_COMP)
 		ason_reduce_complement(a);
 
-	return a->type == ASON_EMPTY;
+	return a->type == TYPE_EMPTY;
 }
 
 /**

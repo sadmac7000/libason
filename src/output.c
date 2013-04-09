@@ -38,9 +38,9 @@ static int
 ason_get_precedence(ason_type_t operator)
 {
 	switch (operator) {
-	case ASON_INTERSECT:
+	case TYPE_INTERSECT:
 		return 1;
-	case ASON_APPEND:
+	case TYPE_APPEND:
 		return 2;
 	default:
 		return INT_MAX;
@@ -54,12 +54,12 @@ static const char *
 ason_get_opchar(ason_type_t operator, int use_unicode)
 {
 	switch (operator) {
-	case ASON_INTERSECT:
+	case TYPE_INTERSECT:
 		if (use_unicode)
 			return "∩";
 		else
 			return "&";
-	case ASON_APPEND:
+	case TYPE_APPEND:
 		return ".";
 	default:
 		errx(1, "Unreachable statement at %s:%d", __FILE__, __LINE__);
@@ -157,7 +157,7 @@ ason_asprint_object(ason_t *value, int use_unicode)
 		}
 	}
 
-	if (value->type == ASON_UOBJECT)
+	if (value->type == TYPE_UOBJECT)
 		tmp = xasprintf("{ %s, *}", out);
 	else
 		tmp = xasprintf("{ %s }", out);
@@ -236,39 +236,39 @@ ason_do_asprint(ason_t *value, int use_unicode)
 	char *ret;
 
 	switch (value->type) {
-	case ASON_NUMERIC:
+	case TYPE_NUMERIC:
 		return ason_asprint_number(value->n);
-	case ASON_EMPTY:
+	case TYPE_EMPTY:
 		if (use_unicode)
 			return xasprintf("∅");
 		else
 			return xasprintf("_");
-	case ASON_NULL:
+	case TYPE_NULL:
 		return xasprintf("null");
-	case ASON_TRUE:
+	case TYPE_TRUE:
 		return xasprintf("true");
-	case ASON_FALSE:
+	case TYPE_FALSE:
 		return xasprintf("false");
-	case ASON_STRING:
+	case TYPE_STRING:
 		tmp = string_escape(value->string);
 		ret = xasprintf("\"%s\"", tmp);
 		free(tmp);
 		return ret;
-	case ASON_UNIVERSE:
+	case TYPE_UNIVERSE:
 		return xasprintf("U");
-	case ASON_WILD:
+	case TYPE_WILD:
 		return xasprintf("*");
-	case ASON_INTERSECT:
-	case ASON_APPEND:
+	case TYPE_INTERSECT:
+	case TYPE_APPEND:
 		return ason_asprint_operator(value, use_unicode);
-	case ASON_UNION:
+	case TYPE_UNION:
 		return ason_asprint_union(value, use_unicode);
-	case ASON_OBJECT:
-	case ASON_UOBJECT:
+	case TYPE_OBJECT:
+	case TYPE_UOBJECT:
 		return ason_asprint_object(value, use_unicode);
-	case ASON_LIST:
+	case TYPE_LIST:
 		return ason_asprint_list(value, use_unicode);
-	case ASON_COMP:
+	case TYPE_COMP:
 		tmp = ason_do_asprint(value->items[0], use_unicode);
 		ret = xasprintf("!%s", tmp);
 		free(tmp);
