@@ -25,13 +25,13 @@
  **/
 typedef struct ason ason_t;
 
-extern ason_t * const VALUE_EMPTY;
-extern ason_t * const VALUE_NULL;
-extern ason_t * const VALUE_UNIVERSE;
-extern ason_t * const VALUE_WILD;
-extern ason_t * const VALUE_OBJ_ANY;
-extern ason_t * const VALUE_TRUE;
-extern ason_t * const VALUE_FALSE;
+extern ason_t * const ASON_EMPTY;
+extern ason_t * const ASON_NULL;
+extern ason_t * const ASON_UNIVERSE;
+extern ason_t * const ASON_WILD;
+extern ason_t * const ASON_OBJ_ANY;
+extern ason_t * const ASON_TRUE;
+extern ason_t * const ASON_FALSE;
 
 #ifdef __cplusplus
 extern "C" {

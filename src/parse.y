@@ -63,19 +63,19 @@ append(A) ::= value(B) APPEND append(C).	{
 	A = ason_append_d(B, C);
 }
 
-value(A) ::= EMPTY.		{ A = VALUE_EMPTY; }
-value(A) ::= NULL.		{ A = VALUE_NULL; }
-value(A) ::= UNIVERSE.		{ A = VALUE_UNIVERSE; }
-value(A) ::= WILD.		{ A = VALUE_WILD; }
+value(A) ::= EMPTY.		{ A = ASON_EMPTY; }
+value(A) ::= NULL.		{ A = ASON_NULL; }
+value(A) ::= UNIVERSE.		{ A = ASON_UNIVERSE; }
+value(A) ::= WILD.		{ A = ASON_WILD; }
 
 value(A) ::= NUMBER(B).		{ A = ason_create_fixnum(B.n); }
 
 value(A) ::= START_LIST list(B) END_LIST.		{ A = B; }
-value(A) ::= TRUE.					{ A = VALUE_TRUE; }
-value(A) ::= FALSE.					{ A = VALUE_FALSE; }
+value(A) ::= TRUE.					{ A = ASON_TRUE; }
+value(A) ::= FALSE.					{ A = ASON_FALSE; }
 value(A) ::= START_OBJ kv_list(B) END_OBJ.		{ A = B; }
 value(A) ::= START_OBJ kv_list(B) COMMA WILD END_OBJ.	{
-	A = ason_append_d(B, VALUE_OBJ_ANY);
+	A = ason_append_d(B, ASON_OBJ_ANY);
 }
 value(A) ::= STRING(B). {
 	A = ason_create_string(B.c);

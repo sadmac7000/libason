@@ -85,7 +85,7 @@ TEST_MAIN("Parse values")
 		test_value = ason_read("true");
 
 		REQUIRE(test_value);
-		REQUIRE(ason_check_equal(VALUE_TRUE, test_value));
+		REQUIRE(ason_check_equal(ASON_TRUE, test_value));
 	}
 
 	ason_destroy(test_value);
@@ -94,7 +94,7 @@ TEST_MAIN("Parse values")
 		test_value = ason_read("false");
 
 		REQUIRE(test_value);
-		REQUIRE(ason_check_equal(VALUE_FALSE, test_value));
+		REQUIRE(ason_check_equal(ASON_FALSE, test_value));
 	}
 
 	ason_destroy(test_value);

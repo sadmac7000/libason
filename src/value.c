@@ -39,54 +39,54 @@ struct ason_coiterator {
 /**
  * Handy value constants.
  **/
-static struct ason VALUE_EMPTY_DATA = {
+static struct ason ASON_EMPTY_DATA = {
 	.type = TYPE_EMPTY,
 	.items = NULL,
 	.count = 0,
 };
-API_EXPORT ason_t * const VALUE_EMPTY = &VALUE_EMPTY_DATA;
+API_EXPORT ason_t * const ASON_EMPTY = &ASON_EMPTY_DATA;
 
-static struct ason VALUE_NULL_DATA = {
+static struct ason ASON_NULL_DATA = {
 	.type = TYPE_NULL,
 	.items = NULL,
 	.count = 0,
 };
-API_EXPORT ason_t * const VALUE_NULL = &VALUE_NULL_DATA;
+API_EXPORT ason_t * const ASON_NULL = &ASON_NULL_DATA;
 
-static struct ason VALUE_UNIVERSE_DATA = {
+static struct ason ASON_UNIVERSE_DATA = {
 	.type = TYPE_UNIVERSE,
 	.items = NULL,
 	.count = 0,
 };
-API_EXPORT ason_t * const VALUE_UNIVERSE = &VALUE_UNIVERSE_DATA;
+API_EXPORT ason_t * const ASON_UNIVERSE = &ASON_UNIVERSE_DATA;
 
-static struct ason VALUE_TRUE_DATA = {
+static struct ason ASON_TRUE_DATA = {
 	.type = TYPE_TRUE,
 	.items = NULL,
 	.count = 0,
 };
-API_EXPORT ason_t * const VALUE_TRUE = &VALUE_TRUE_DATA;
+API_EXPORT ason_t * const ASON_TRUE = &ASON_TRUE_DATA;
 
-static struct ason VALUE_FALSE_DATA = {
+static struct ason ASON_FALSE_DATA = {
 	.type = TYPE_FALSE,
 	.items = NULL,
 	.count = 0,
 };
-API_EXPORT ason_t * const VALUE_FALSE = &VALUE_FALSE_DATA;
+API_EXPORT ason_t * const ASON_FALSE = &ASON_FALSE_DATA;
 
-static struct ason VALUE_WILD_DATA = {
+static struct ason ASON_WILD_DATA = {
 	.type = TYPE_WILD,
 	.items = NULL,
 	.count = 0,
 };
-API_EXPORT ason_t * const VALUE_WILD = &VALUE_WILD_DATA;
+API_EXPORT ason_t * const ASON_WILD = &ASON_WILD_DATA;
 
-static struct ason VALUE_OBJ_ANY_DATA = {
+static struct ason ASON_OBJ_ANY_DATA = {
 	.type = TYPE_UOBJECT,
 	.items = NULL,
 	.count = 0,
 };
-API_EXPORT ason_t * const VALUE_OBJ_ANY = &VALUE_OBJ_ANY_DATA;
+API_EXPORT ason_t * const ASON_OBJ_ANY = &ASON_OBJ_ANY_DATA;
 
 /**
  * Quicksort an array of KV pairs.
@@ -152,13 +152,13 @@ ason_coiterator_next(struct ason_coiterator *iter, ason_t **a, ason_t **b)
 {
 	const char *ret;
 	int cmp;
-	*a = *b = VALUE_NULL;
+	*a = *b = ASON_NULL;
 
 	if (iter->a->type == TYPE_UOBJECT)
-		*a = VALUE_UNIVERSE;
+		*a = ASON_UNIVERSE;
 
 	if (iter->b->type == TYPE_UOBJECT)
-		*b = VALUE_UNIVERSE;
+		*b = ASON_UNIVERSE;
 
 	if (iter->a_i >= iter->a->count && iter->b_i >= iter->b->count)
 		return NULL;
@@ -241,13 +241,13 @@ ason_create_string(const char *string)
 API_EXPORT ason_t *
 ason_copy(ason_t *a)
 {
-	if (a == VALUE_EMPTY	||
-	    a == VALUE_NULL	||
-	    a == VALUE_UNIVERSE	||
-	    a == VALUE_WILD	||
-	    a == VALUE_TRUE	||
-	    a == VALUE_FALSE	||
-	    a == VALUE_OBJ_ANY)
+	if (a == ASON_EMPTY	||
+	    a == ASON_NULL	||
+	    a == ASON_UNIVERSE	||
+	    a == ASON_WILD	||
+	    a == ASON_TRUE	||
+	    a == ASON_FALSE	||
+	    a == ASON_OBJ_ANY)
 		return a;
 
 	a->refcount++;
@@ -262,13 +262,13 @@ ason_destroy(ason_t *a)
 {
 	size_t i;
 
-	if (a == VALUE_EMPTY	||
-	    a == VALUE_NULL	||
-	    a == VALUE_UNIVERSE	||
-	    a == VALUE_WILD	||
-	    a == VALUE_OBJ_ANY	||
-	    a == VALUE_TRUE	||
-	    a == VALUE_FALSE	||
+	if (a == ASON_EMPTY	||
+	    a == ASON_NULL	||
+	    a == ASON_UNIVERSE	||
+	    a == ASON_WILD	||
+	    a == ASON_OBJ_ANY	||
+	    a == ASON_TRUE	||
+	    a == ASON_FALSE	||
 	    --a->refcount)
 		return;
 
@@ -340,7 +340,7 @@ ason_create_object(const char *key, ason_t *value)
 		return ason_create(TYPE_OBJECT, 0);
 
 	if (value->type == TYPE_EMPTY)
-		return VALUE_EMPTY;
+		return ASON_EMPTY;
 
 	ret = ason_create(TYPE_OBJECT, 1);
 
