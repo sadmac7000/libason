@@ -50,6 +50,7 @@ TEST_MAIN("Complementation")
 
 	ason_destroy(a);
 	ason_destroy(b);
+	ason_destroy(c);
 
 	return 0;
 }
