@@ -24,8 +24,7 @@
 
 #include "harness.h"
 
-TESTS(5,
-      "Union value",
+TESTS("Union value",
       "Truth",
       "Falsehood",
       "String",

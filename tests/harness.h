@@ -34,9 +34,9 @@ struct test_info {
 
 extern struct test_info *test_info;
 
-#define TESTS(_count, ...) \
+#define TESTS(...) \
 	const char *test_list[] = { __VA_ARGS__ }; \
-	const size_t test_count = (_count)
+	const size_t test_count = sizeof(test_list) / sizeof(char *)
 
 #define TEST_INIT() ({ size_t i; test_info->current = 0; \
 	for (i = 0; i < test_count; i++) \

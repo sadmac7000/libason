@@ -24,7 +24,7 @@
 
 #include "harness.h"
 
-TESTS(2, "Comparison", "Parsing");
+TESTS("Comparison/Identity", "Parsing");
 
 /**
  * Basic exercise of the parser.
