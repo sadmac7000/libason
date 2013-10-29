@@ -17,6 +17,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include <ason/namespace.h>
 #include <ason/value.h>
@@ -117,6 +118,21 @@ ason_ram_ns_mkvar(void *data, const char *name)
 {
 	struct ram_ns *ns = data;
 	size_t i;
+	const char *iter;
+
+	if (!*name || isdigit(*name))
+		return -EINVAL;
+
+	for (iter = name; *iter; iter++) {
+		if (isalpha(*iter))
+			continue;
+		if (isdigit(*iter))
+			continue;
+		if (*iter == '_')
+			continue;
+
+		return -EINVAL;
+	}
 
 	for (i = 0; i < ns->count; i++)
 		if (! strcmp(ns->entries[i].name, name))
