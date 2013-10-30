@@ -879,7 +879,7 @@ ason_reduce_union(ason_t *a)
 	int found_null = 0;
 
 	for (pos = new_count = 0; pos < a->count; pos++) {
-		if (ason_reduce(a->items[pos])) {
+		if (!ason_reduce(a->items[pos])) {
 			a->items[new_count++] = a->items[pos];
 		} else {
 			ason_destroy(a->items[pos]);
