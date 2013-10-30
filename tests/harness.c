@@ -206,7 +206,7 @@ main(int argc, char **argv)
 		err(1, "FATAL: Could not gather child");
 
 	for (i = 0; i < test_count; i++) {
-		if (test_info->state[test_info->current] != TEST_PASSED)
+		if (test_info->state[i] != TEST_PASSED)
 			pass = 0;
 
 		record_test(test_list[i], trs_fp, info.si_code,
