@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <err.h>
 #include <string.h>
+#include <wordexp.h>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -54,9 +55,16 @@ main(void)
 	ason_ns_t *ns = ason_ns_create(ASON_NS_RAM, "");
 	char *line;
 	ason_t *value;
+	wordexp_t exp;
+
+	if (wordexp("~/.asonq", &exp, 0))
+		errx(1, "Could not perform shell expansion");
 
 	if (! ns)
 		errx(1, "Could not create namespace");
+
+	using_history();
+	read_history(exp.we_wordv[0]);
 
 	for (;;) {
 		line = readline("> ");
@@ -67,6 +75,7 @@ main(void)
 		}
 
 		add_history(line);
+		write_history(exp.we_wordv[0]);
 
 		if (command(line)) {
 			free(line);
