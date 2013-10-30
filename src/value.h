@@ -86,6 +86,7 @@ extern "C" {
 #endif
 
 ason_t * ason_create_fixnum(int64_t number);
+int ason_reduce(ason_t *value);
 
 #ifdef __cplusplus
 }

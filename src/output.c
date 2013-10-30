@@ -297,10 +297,15 @@ ason_do_asprint(ason_t *value, int use_unicode)
 API_EXPORT char *
 ason_asprint(ason_t *value)
 {
-	char *str = ason_do_asprint(value, 0);
-	char *ret = string_from_utf8(str);
+	char *str;
+	char *ret;
 
+	ason_reduce(value);
+
+	str = ason_do_asprint(value, 0);
+	ret = string_from_utf8(str);
 	free(str);
+
 	return ret;
 }
 
@@ -310,5 +315,6 @@ ason_asprint(ason_t *value)
 API_EXPORT char *
 ason_asprint_unicode(ason_t *value)
 {
+	ason_reduce(value);
 	return ason_do_asprint(value, 1);
 }

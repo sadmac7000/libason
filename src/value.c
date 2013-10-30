@@ -555,7 +555,7 @@ ason_clone_into_d(ason_t *target, ason_t *src)
 }
 
 /* Predeclaration */
-static int ason_reduce(ason_t *a);
+int ason_reduce(ason_t *a);
 
 /**
  * Reduce a complement.
@@ -914,7 +914,7 @@ ason_reduce_union(ason_t *a)
  *
  * Return whether the value is now empty.
  **/
-static int
+int
 ason_reduce(ason_t *a)
 {
 	ason_t *tmp;
