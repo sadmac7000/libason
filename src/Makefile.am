@@ -1,6 +1,6 @@
 lemon = $(lemon_$(V))$(LEMON)
 lemon_ = $(lemon_$(AM_DEFAULT_VERBOSITY))
-lemon_0 = @echo "  LEMON  " $@;
+lemon_0 = @echo "  LEMON   " $@;
 
 AM_CFLAGS = --std=gnu99 -Wall -Wextra -D_GNU_SOURCE -fvisibility=hidden
 lib_LTLIBRARIES = libason.la
@@ -16,8 +16,5 @@ MOSTLYCLEANFILES = parse.whole.c parse.c parse.h parse.out
 parse.whole.c: parse.c parse.append.c parse.h
 	$(AM_V_GEN)cat parse.c parse.append.c > parse.whole.c
 
-.y.h:
-	$(lemon) $<
-
-.y.c:
+%.h %.c: %.y
 	$(lemon) $<
