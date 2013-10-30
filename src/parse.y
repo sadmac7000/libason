@@ -268,6 +268,7 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data,
 	FIXED_TOKEN("]", ASON_LEX_END_LIST);
 	FIXED_TOKEN("{", ASON_LEX_START_OBJ);
 	FIXED_TOKEN("}", ASON_LEX_END_OBJ);
+	FIXED_TOKEN(":=", ASON_LEX_ASSIGN);
 	FIXED_TOKEN(":", ASON_LEX_COLON);
 	FIXED_TOKEN("(", ASON_LEX_O_PAREN);
 	FIXED_TOKEN(")", ASON_LEX_C_PAREN);
@@ -277,7 +278,6 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data,
 	FIXED_TOKEN("=", ASON_LEX_EQUAL);
 	FIXED_TOKEN("true", ASON_LEX_TRUE);
 	FIXED_TOKEN("false", ASON_LEX_FALSE);
-	FIXED_TOKEN(":=", ASON_LEX_ASSIGN);
 
 #undef FIXED_TOKEN
 
@@ -305,6 +305,8 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data,
 			return 0;
 
 		data->c = xstrndup(tok_start, text - tok_start);
+		*type = ASON_LEX_SYMBOL;
+		return text - text_start;
 	}
 
 	tok_start = ++text;
