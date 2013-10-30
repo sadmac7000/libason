@@ -13,5 +13,12 @@ libason_la_SOURCES = \
 	parse.c
 MOSTLYCLEANFILES = parse.c parse.h parse.out
 
+if BUILD_ASONQ
+bin_PROGRAMS = asonq
+asonq_SOURCES = asonq.c
+asonq_LDADD = libason.la
+asonq_LDFLAGS = $(readline_LIBS)
+endif
+
 %.h %.c: %.y
 	$(lemon) $<
