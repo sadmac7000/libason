@@ -23,7 +23,7 @@
  * An ASON namespace.
  **/
 struct ason_ns {
-	ason_ns_ops_t *ops;
+	const ason_ns_ops_t *ops;
 	void *data;
 };
 
@@ -31,7 +31,7 @@ struct ason_ns {
  * Create an ASON namespace.
  **/
 API_EXPORT ason_ns_t *
-ason_ns_create(ason_ns_ops_t *ops, const char *setup)
+ason_ns_create(const ason_ns_ops_t *ops, const char *setup)
 {
 	ason_ns_t *ns = xmalloc(sizeof(ason_ns_t));
 

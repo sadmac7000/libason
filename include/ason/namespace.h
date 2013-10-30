@@ -52,7 +52,7 @@ extern const ason_ns_ops_t *ASON_NS_RAM;
 extern "C" {
 #endif
 
-ason_ns_t *ason_ns_create(ason_ns_ops_t *ops, const char *setup);
+ason_ns_t *ason_ns_create(const ason_ns_ops_t *ops, const char *setup);
 void ason_ns_destroy(ason_ns_t *ns);
 ason_t *ason_ns_load(ason_ns_t *ns, const char *name);
 int ason_ns_store(ason_ns_t *ns, const char *name, ason_t *value);
