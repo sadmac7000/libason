@@ -10,11 +10,8 @@ libason_la_SOURCES = \
 	stringfunc.c \
 	namespace.c \
 	namespace_ram.c \
-	parse.whole.c
-MOSTLYCLEANFILES = parse.whole.c parse.c parse.h parse.out
-
-parse.whole.c: parse.c parse.append.c parse.h
-	$(AM_V_GEN)cat parse.c parse.append.c > parse.whole.c
+	parse.c
+MOSTLYCLEANFILES = parse.c parse.h parse.out
 
 %.h %.c: %.y
 	$(lemon) $<
