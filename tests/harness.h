@@ -30,6 +30,7 @@ typedef enum {
 struct test_info {
 	test_state_t state[2048];
 	size_t current;
+	size_t to_go;
 };
 
 extern struct test_info *test_info;
@@ -38,14 +39,25 @@ extern struct test_info *test_info;
 	const char *test_list[] = { __VA_ARGS__ }; \
 	const size_t test_count = sizeof(test_list) / sizeof(char *)
 
-#define TEST_INIT() ({ size_t i; test_info->current = 0; \
+#define TEST_INIT() ({ size_t i; test_info->to_go = test_count; \
 	for (i = 0; i < test_count; i++) \
 		test_info->state[i] = TEST_SKIPPED; })
 
-#define TEST(_ignore) \
+#define TEST_LOOKUP_NAME(_name) ({					\
+	const char *name = (_name);					\
+	size_t i;							\
+	for (i = 0; i < test_count && strcmp(test_list[i], name); i++); \
+	if (i == test_count)						\
+		errx(1, "No such test: %s", name);			\
+	i;								\
+})
+
+#define TEST(_name) \
+	test_info->to_go--; \
+	test_info->current = TEST_LOOKUP_NAME(_name); \
 	for (test_info->state[test_info->current] = TEST_PENDING; \
 	     test_info->state[test_info->current] == TEST_PENDING; \
-	     test_info->state[test_info->current++] = TEST_PASSED)
+	     test_info->state[test_info->current] = TEST_PASSED)
 
 #define TEST_MAIN(name) \
 	const char *test_name = (name); \

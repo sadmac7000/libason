@@ -214,7 +214,7 @@ main(int argc, char **argv)
 			    xfail);
 	}
 
-	if (test_info->current == test_count) {
+	if (! test_info->to_go) {
 		if (pass) {
 			fprintf(trs_fp, ":test-global-result: PASS %s\n", test_name);
 			printf("TEST: %sPASS\n", test_name_field);
