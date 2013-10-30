@@ -77,7 +77,7 @@ TEST_MAIN("Parse values")
 	
 	TEST("Union value") {
 		test_value = ason_read("{ \"foo\": 6, \"bar\": 8 } | "
-				       "(98 | [1,2,3] & [1,2])");
+				       "(98 | [1,2,3] & [1,2])", NULL);
 		REQUIRE(ason_check_equal(a, test_value));
 	}
 
@@ -85,7 +85,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(a);
 
 	TEST("Truth") {
-		test_value = ason_read("true");
+		test_value = ason_read("true", NULL);
 
 		REQUIRE(test_value);
 		REQUIRE(ason_check_equal(ASON_TRUE, test_value));
@@ -94,7 +94,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("Falsehood") {
-		test_value = ason_read("false");
+		test_value = ason_read("false", NULL);
 
 		REQUIRE(test_value);
 		REQUIRE(ason_check_equal(ASON_FALSE, test_value));
@@ -103,7 +103,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("String") {
-		test_value = ason_read("\"\tstring \\\"☺\\\"\"");
+		test_value = ason_read("\"\tstring \\\"☺\\\"\"", NULL);
 		a = ason_create_string("\tstring \"☺\"");
 
 		REQUIRE(test_value);
@@ -114,7 +114,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(a);
 
 	TEST("Number") {
-		test_value = ason_read("-6.25");
+		test_value = ason_read("-6.25", NULL);
 		str = ason_asprint(test_value);
 
 		REQUIRE(!strcmp(str, "-6.25"));
@@ -124,7 +124,7 @@ TEST_MAIN("Parse values")
 	free(str);
 
 	TEST("Equivalence (true)") {
-		test_value = ason_read("1 = 1");
+		test_value = ason_read("1 = 1", NULL);
 
 		REQUIRE(ason_check_equal(test_value, ASON_TRUE));
 	}
@@ -132,7 +132,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("Equivalence (false)") {
-		test_value = ason_read("2 = 1");
+		test_value = ason_read("2 = 1", NULL);
 
 		REQUIRE(ason_check_equal(test_value, ASON_FALSE));
 	}
@@ -140,7 +140,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("Representation (true)") {
-		test_value = ason_read("1 in 2 | 1");
+		test_value = ason_read("1 in 2 | 1", NULL);
 
 		REQUIRE(ason_check_equal(test_value, ASON_TRUE));
 	}
@@ -148,7 +148,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("Representation (false)") {
-		test_value = ason_read("(1 | 2) in 1");
+		test_value = ason_read("(1 | 2) in 1", NULL);
 
 		REQUIRE(ason_check_equal(test_value, ASON_FALSE));
 	}

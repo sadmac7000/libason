@@ -43,7 +43,7 @@ TEST_MAIN("Complementation")
 	}
 
 	TEST("Parsing") {
-		c = ason_read("!!6");
+		c = ason_read("!!6", NULL);
 		REQUIRE(ason_check_equal(b, c));
 		REQUIRE(ason_check_equal(a, c));
 	}

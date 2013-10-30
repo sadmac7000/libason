@@ -1,5 +1,7 @@
 %include {
 #include <ason/value.h>
+#include <ason/read.h>
+
 #include <assert.h>
 #include <stdlib.h>
 
@@ -10,6 +12,14 @@ typedef union {
 	char *c;
 } token_t;
 
+/**
+ * Output data.
+ **/
+struct parse_data {
+	ason_t *ret;
+	ason_ns_t *ns;
+};
+
 /* Lemon has a problem with these */
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -18,7 +28,7 @@ typedef union {
 
 %token_type {token_t}
 
-%extra_argument {ason_t **ret}
+%extra_argument {struct parse_data *data}
 
 %left UNION.
 %left INTERSECT.
@@ -27,6 +37,9 @@ typedef union {
 
 %right SUBSET.
 %right EQUAL.
+%right ASSIGN.
+
+%left SYMBOL.
 
 %type file      {ason_t *}
 %type value     {ason_t *}
@@ -48,7 +61,15 @@ typedef union {
 %name asonLemon
 %token_prefix ASON_LEX_
 
-result ::= equality(A). { *ret = A; }
+assignment ::= result.
+assignment ::= SYMBOL(A) ASSIGN result.			{
+	ason_ns_mkvar(data->ns, A.c);
+	ason_ns_store(data->ns, A.c, data->ret);
+
+	free(A.c);
+}
+
+result ::= equality(A). { data->ret = A; }
 
 equality(A) ::= repr(B).				{ A = B; }
 equality(A) ::= equality(B) EQUAL repr(C).		{
@@ -99,6 +120,12 @@ value(A) ::= STRING(B). {
 }
 
 value(A) ::= O_PAREN union(B) C_PAREN. { A = B; }
+value(A) ::= SYMBOL(B). {
+	if (data->ns)
+		A = ason_ns_load(data->ns, B.c);
+	else
+		A = ASON_EMPTY;
+}
 
 list(A) ::= union(B).				{ A = ason_create_list_d(B); }
 list(A) ::= union(B) COMMA list(C).		{

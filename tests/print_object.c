@@ -74,7 +74,7 @@ TEST_MAIN("Object printing")
 
 	TEST("ASCII printing") {
 		out = ason_asprint(object);
-		test = ason_read(out);
+		test = ason_read(out, NULL);
 
 		REQUIRE(test);
 		REQUIRE(ason_check_equal(object, test));
@@ -85,7 +85,7 @@ TEST_MAIN("Object printing")
 
 	TEST("Unicode printing") {
 		out = ason_asprint_unicode(object);
-		test = ason_read(out);
+		test = ason_read(out, NULL);
 
 		REQUIRE(test);
 		REQUIRE(ason_check_equal(object, test));

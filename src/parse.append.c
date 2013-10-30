@@ -20,8 +20,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include <ason/read.h>
-
 #include "parse.h"
 #include "util.h"
 #include "stringfunc.h"
@@ -30,9 +28,9 @@
  * Read an ASON value from a string.
  **/
 API_EXPORT ason_t *
-ason_read(const char *text)
+ason_read(const char *text, ason_ns_t *ns)
 {
-	return ason_readn(text, strlen(text));
+	return ason_readn(text, strlen(text), ns);
 }
 
 /**
@@ -105,7 +103,8 @@ ason_get_token_number(const char *text, size_t length, int *type,
  * Tokenize a string for ASON parsing.
  **/
 static size_t
-ason_get_token(const char *text, size_t length, int *type, token_t *data)
+ason_get_token(const char *text, size_t length, int *type, token_t *data,
+	       ason_ns_t *ns)
 {
 	const char *text_start = text;
 	const char *tok_start;
@@ -150,6 +149,7 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data)
 	FIXED_TOKEN("=", ASON_LEX_EQUAL);
 	FIXED_TOKEN("true", ASON_LEX_TRUE);
 	FIXED_TOKEN("false", ASON_LEX_FALSE);
+	FIXED_TOKEN(":=", ASON_LEX_ASSIGN);
 
 #undef FIXED_TOKEN
 
@@ -158,8 +158,26 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data)
 	if (got)
 		return got;
 
-	if (*text != '"')
-		return 0;
+	if (*text != '"') {
+		if (isdigit(*text))
+			return 0;
+
+		if (! ns)
+			return 0;
+
+		tok_start = text;
+
+		while (length && (isalpha(*text) || isdigit(*text) ||
+				  *text == '_')) {
+			length--;
+			text++;
+		}
+
+		if (text == tok_start)
+			return 0;
+
+		data->c = xstrndup(tok_start, text - tok_start);
+	}
 
 	tok_start = ++text;
 
@@ -180,32 +198,33 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data)
 }
 
 /**
- * Read an ASON value from a string. Stop after `length` bytes.
+ * Read an ASON value from a string. Stop after `length` bytes. Use `ns` to
+ * resolve and assign symbols.
  **/
 API_EXPORT ason_t *
-ason_readn(const char *text, size_t length)
+ason_readn(const char *text, size_t length, ason_ns_t *ns)
 {
 	token_t data;
 	size_t len;
 	int type;
 	void *parser = asonLemonAlloc(xmalloc);
-	ason_t *ret = NULL;
+	struct parse_data pdata = { .ret = NULL, .ns = ns };
 	char *tmp = xstrndup(text, length);
 	char *text_unicode = string_to_utf8(tmp);
 
 	free(tmp);
 	text = text_unicode;
 
-	while ((len = ason_get_token(text, length, &type, &data))) {
+	while ((len = ason_get_token(text, length, &type, &data, ns))) {
 		text += len;
 
-		asonLemon(parser, type, data, &ret);
+		asonLemon(parser, type, data, &pdata);
 	}
 
-	asonLemon(parser, 0, data, &ret);
+	asonLemon(parser, 0, data, &pdata);
 	asonLemonFree(parser, free);
 
 	free(text_unicode);
 	
-	return ret;
+	return pdata.ret;
 }
