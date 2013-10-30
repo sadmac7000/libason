@@ -919,7 +919,6 @@ ason_reduce(ason_t *a)
 {
 	ason_t *tmp;
 	ason_t *tmp_2;
-	ason_type_t type;
 
 	if (a->type == TYPE_EMPTY)
 		return 1;
@@ -940,12 +939,9 @@ ason_reduce(ason_t *a)
 		a->items[1] = ason_complement_d(a->items[1]);
 
 		if (ason_reduce(a))
-			type = TYPE_TRUE;
+			a->type = TYPE_TRUE;
 		else
-			type = TYPE_FALSE;
-
-		ason_make_empty(a);
-		a->type = type;
+			a->type = TYPE_FALSE;
 	}
 
 	if (IS_OBJECT(a))
