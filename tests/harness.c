@@ -36,6 +36,9 @@
  **/
 #define EXIT_HARNESS_FAIL 122
 
+/**
+ * Shared memory global for test state.
+ **/
 struct test_info *test_info;
 
 /**
@@ -43,8 +46,6 @@ struct test_info *test_info;
  **/
 extern const char *test_name;
 extern const size_t test_count;
-extern test_state_t test_state[];
-extern size_t test_current;
 extern const char *test_list[];
 
 #ifdef __cplusplus
