@@ -874,9 +874,9 @@ ason_reduce_union(ason_t *a)
 {
 	size_t new_count;
 	size_t pos;
-	int found_uni;
-	int found_wild;
-	int found_null;
+	int found_uni = 0;
+	int found_wild = 0;
+	int found_null = 0;
 
 	for (pos = new_count = 0; pos < a->count; pos++) {
 		if (ason_reduce(a->items[pos])) {
