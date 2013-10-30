@@ -45,6 +45,8 @@ ason_t *ason_union(ason_t *a, ason_t *b);
 ason_t *ason_intersect(ason_t *a, ason_t *b);
 ason_t *ason_append(ason_t *a, ason_t *b);
 ason_t *ason_complement(ason_t *a);
+ason_t *ason_representation_in(ason_t *a, ason_t *b);
+ason_t *ason_equality(ason_t *a, ason_t *b);
 
 ason_t *ason_copy(ason_t *a);
 void ason_destroy(ason_t *a);
@@ -107,6 +109,22 @@ ason_complement_d(ason_t *a)
 	ason_t *ret;
 	ret = ason_complement(a);
 	ason_destroy(a);
+	return ret;
+}
+
+static inline ason_t *
+ason_representation_in_d(ason_t *a, ason_t *b)
+{
+	ason_t *ret;
+	ret = ason_representation_in(a, b);
+	return ret;
+}
+
+static inline ason_t *
+ason_equality_d(ason_t *a, ason_t *b)
+{
+	ason_t *ret;
+	ret = ason_equality(a, b);
 	return ret;
 }
 

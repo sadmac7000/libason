@@ -28,7 +28,11 @@ TESTS("Union value",
       "Truth",
       "Falsehood",
       "String",
-      "Number"
+      "Number",
+      "Equivalence (true)",
+      "Equivalence (false)",
+      "Representation (true)",
+      "Representation (false)",
       );
 
 /**
@@ -118,6 +122,38 @@ TEST_MAIN("Parse values")
 
 	ason_destroy(test_value);
 	free(str);
+
+	TEST("Equivalence (true)") {
+		test_value = ason_read("1 = 1");
+
+		REQUIRE(ason_check_equal(test_value, ASON_TRUE));
+	}
+
+	ason_destroy(test_value);
+
+	TEST("Equivalence (false)") {
+		test_value = ason_read("2 = 1");
+
+		REQUIRE(ason_check_equal(test_value, ASON_FALSE));
+	}
+
+	ason_destroy(test_value);
+
+	TEST("Representation (true)") {
+		test_value = ason_read("1 in 2 | 1");
+
+		REQUIRE(ason_check_equal(test_value, ASON_TRUE));
+	}
+
+	ason_destroy(test_value);
+
+	TEST("Representation (false)") {
+		test_value = ason_read("(1 | 2) in 1");
+
+		REQUIRE(ason_check_equal(test_value, ASON_FALSE));
+	}
+
+	ason_destroy(test_value);
 
 	return 0;
 }

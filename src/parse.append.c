@@ -145,6 +145,9 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data)
 	FIXED_TOKEN("(", ASON_LEX_O_PAREN);
 	FIXED_TOKEN(")", ASON_LEX_C_PAREN);
 	FIXED_TOKEN("!", ASON_LEX_NOT);
+	FIXED_TOKEN("in", ASON_LEX_REPR);
+	FIXED_TOKEN("⊆", ASON_LEX_REPR);
+	FIXED_TOKEN("=", ASON_LEX_EQUAL);
 	FIXED_TOKEN("true", ASON_LEX_TRUE);
 	FIXED_TOKEN("false", ASON_LEX_FALSE);
 

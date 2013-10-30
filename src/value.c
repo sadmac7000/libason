@@ -405,6 +405,30 @@ ason_complement(ason_t *a)
 }
 
 /**
+ * A boolean ASON value indicating whether a is represented in b.
+ **/
+API_EXPORT ason_t *
+ason_representation_in(ason_t *a, ason_t *b)
+{
+	ason_t *ret = ason_create(TYPE_REPR, 2);
+	ret->items[0] = ason_copy(a);
+	ret->items[1] = ason_copy(b);
+	return ret;
+}
+
+/**
+ * A boolean ASON value indicating whether a is equal to b.
+ **/
+API_EXPORT ason_t *
+ason_equality(ason_t *a, ason_t *b)
+{
+	ason_t *ret = ason_create(TYPE_EQUAL, 2);
+	ret->items[0] = ason_copy(a);
+	ret->items[1] = ason_copy(b);
+	return ret;
+}
+
+/**
  * Distribute an operator through a union on the left-hand side.
  **/
 static void
@@ -682,7 +706,12 @@ ason_reduce_intersect(ason_t *a)
 		tmp = ason_copy(a->items[1]);
 		ason_clone_into_d(a, tmp);
 	} else if (a->items[0]->type != a->items[1]->type) {
+		if (IS_BOOL(a->items[0]) && IS_BOOL(a->items[1]))
+			other = TYPE_FALSE;
+		else
+			other = TYPE_EMPTY;
 		ason_make_empty(a);
+		a->type = other;
 	} else if (a->items[0]->type == TYPE_TRUE ||
 		   a->items[0]->type == TYPE_FALSE) {
 		other = a->items[0]->type;
@@ -712,7 +741,7 @@ ason_reduce_intersect(ason_t *a)
 	} else if (a->items[0]->type == TYPE_LIST) {
 		ason_reduce_list_intersect(a);
 	} else if (a->items[0]->type == TYPE_COMP) {
-		tmp = ason_union(a->items[0]->items[0], a->items[1]->items[1]);
+		tmp = ason_union(a->items[0]->items[0], a->items[1]->items[0]);
 		ason_make_empty(a);
 		a->type = TYPE_COMP;
 		a->count = 1;
@@ -888,9 +917,36 @@ ason_reduce_union(ason_t *a)
 static int
 ason_reduce(ason_t *a)
 {
+	ason_t *tmp;
+	ason_t *tmp_2;
+	ason_type_t type;
 
 	if (a->type == TYPE_EMPTY)
 		return 1;
+
+	if (a->type == TYPE_EQUAL) {
+		a->type = TYPE_INTERSECT;
+
+		tmp = ason_representation_in(a->items[0], a->items[1]);
+		tmp_2 = ason_representation_in(a->items[1], a->items[0]);
+		ason_destroy(a->items[0]);
+		ason_destroy(a->items[1]);
+		a->items[0] = tmp;
+		a->items[1] = tmp_2;
+	}
+
+	if (a->type == TYPE_REPR) {
+		a->type = TYPE_INTERSECT;
+		a->items[1] = ason_complement_d(a->items[1]);
+
+		if (ason_reduce(a))
+			type = TYPE_TRUE;
+		else
+			type = TYPE_FALSE;
+
+		ason_make_empty(a);
+		a->type = type;
+	}
 
 	if (IS_OBJECT(a))
 		ason_reduce_object(a);
@@ -927,10 +983,13 @@ ason_check_intersects(ason_t *a, ason_t *b)
 API_EXPORT int
 ason_check_represented_in(ason_t *a, ason_t *b)
 {
-	ason_t *comp = ason_complement(b);
-	int ret = !ason_check_intersects(a, comp);
+	ason_t *inter = ason_representation_in(a, b);
+	int ret;
 
-	ason_destroy(comp);
+	ason_reduce(inter);
+	ret = inter->type == TYPE_TRUE;
+
+	ason_destroy(inter);
 	return ret;
 }
 
@@ -940,10 +999,12 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 API_EXPORT int
 ason_check_equal(ason_t *a, ason_t *b)
 {
-	/* FIXME: It's possible this can be made quicker */
-	if (! ason_check_represented_in(a, b))
-		return 0;
-	if (! ason_check_represented_in(b, a))
-		return 0;
-	return 1;
+	ason_t *inter = ason_equality(a, b);
+	int ret;
+
+	ason_reduce(inter);
+	ret = inter->type == TYPE_TRUE;
+
+	ason_destroy(inter);
+	return ret;
 }

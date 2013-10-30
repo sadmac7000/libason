@@ -38,10 +38,14 @@ static int
 ason_get_precedence(ason_type_t operator)
 {
 	switch (operator) {
-	case TYPE_INTERSECT:
+	case TYPE_EQUAL:
 		return 1;
-	case TYPE_APPEND:
+	case TYPE_INTERSECT:
 		return 2;
+	case TYPE_APPEND:
+		return 3;
+	case TYPE_REPR:
+		return 4;
 	default:
 		return INT_MAX;
 	}
@@ -61,6 +65,13 @@ ason_get_opchar(ason_type_t operator, int use_unicode)
 			return "&";
 	case TYPE_APPEND:
 		return ":";
+	case TYPE_REPR:
+		if (use_unicode)
+			return "⊆";
+		else
+			return "in";
+	case TYPE_EQUAL:
+		return "=";
 	default:
 		errx(1, "Unreachable statement at %s:%d", __FILE__, __LINE__);
 	}
@@ -260,6 +271,8 @@ ason_do_asprint(ason_t *value, int use_unicode)
 		return xasprintf("*");
 	case TYPE_INTERSECT:
 	case TYPE_APPEND:
+	case TYPE_REPR:
+	case TYPE_EQUAL:
 		return ason_asprint_operator(value, use_unicode);
 	case TYPE_UNION:
 		return ason_asprint_union(value, use_unicode);

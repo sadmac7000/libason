@@ -43,6 +43,8 @@ typedef enum {
 	TYPE_STRING,
 	TYPE_TRUE,
 	TYPE_FALSE,
+	TYPE_REPR,
+	TYPE_EQUAL,
 } ason_type_t;
 
 /**
@@ -73,6 +75,11 @@ struct ason {
  * Test if an ASON value is an object.
  **/
 #define IS_OBJECT(_x) (_x->type == TYPE_OBJECT || _x->type == TYPE_UOBJECT)
+
+/**
+ * Test if an ASON value is a boolean.
+ **/
+#define IS_BOOL(_x) (_x->type == TYPE_TRUE || _x->type == TYPE_FALSE)
 
 #ifdef __cplusplus
 extern "C" {

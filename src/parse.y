@@ -25,6 +25,9 @@ typedef union {
 %left COLON.
 %left COMMA.
 
+%right SUBSET.
+%right EQUAL.
+
 %type file      {ason_t *}
 %type value     {ason_t *}
 %type list      {ason_t *}
@@ -34,6 +37,8 @@ typedef union {
 %type intersect {ason_t *}
 %type union     {ason_t *}
 %type comp      {ason_t *}
+%type equality  {ason_t *}
+%type repr      {ason_t *}
 
 %destructor value { ason_destroy($$); }
 %destructor list { ason_destroy($$); }
@@ -43,7 +48,18 @@ typedef union {
 %name asonLemon
 %token_prefix ASON_LEX_
 
-result ::= union(A). { *ret = A; }
+result ::= equality(A). { *ret = A; }
+
+equality(A) ::= repr(B).				{ A = B; }
+equality(A) ::= equality(B) EQUAL repr(C).		{
+	A = ason_equality_d(B, C);
+}
+
+repr(A) ::= union(B).					{ A = B; }
+repr(A) ::= repr(B) REPR union(C).		{
+	A = ason_representation_in_d(B, C);
+}
+
 
 union(A) ::= intersect(B).				{ A = B; }
 union(A) ::= union(B) UNION intersect(C).	{
