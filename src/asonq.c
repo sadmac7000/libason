@@ -91,7 +91,7 @@ main(void)
 			continue;
 		}
 
-		line = ason_asprint(value);
+		line = ason_asprint_unicode(value);
 
 		if (! line)
 			errx(1, "Could not serialize value");
