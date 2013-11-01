@@ -1,4 +1,8 @@
-TESTS = parser_test esc_parser_test print_object complement_test
+TESTS = parser_test	\
+	esc_parser_test	\
+	print_object	\
+	complement_test	\
+	intersection_test
 noinst_PROGRAMS = $(TESTS)
 
 MOSTLYCLEANFILES=*.gcda *.gcno *.gcov
@@ -14,3 +18,6 @@ print_object_LDADD = ../src/libason.la
 
 complement_test_SOURCES = complement_test.c harness.c
 complement_test_LDADD = ../src/libason.la
+
+intersection_test_SOURCES = intersection_test.c harness.c
+intersection_test_LDADD = ../src/libason.la
