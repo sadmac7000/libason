@@ -30,16 +30,14 @@ struct parse_data {
 
 %extra_argument {struct parse_data *data}
 
+%right ASSIGN.
+%right EQUAL.
+%right SUBSET.
+
 %left UNION.
 %left INTERSECT.
 %left COLON.
 %left COMMA.
-
-%right SUBSET.
-%right EQUAL.
-%right ASSIGN.
-
-%left SYMBOL.
 
 %type file      {ason_t *}
 %type value     {ason_t *}
