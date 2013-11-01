@@ -33,6 +33,10 @@ TESTS("Union value",
       "Equivalence (false)",
       "Representation (true)",
       "Representation (false)",
+      "Unexpected token",
+      "Unexpected token (trailing)",
+      "Non-token",
+      "Non-token (trailing)",
       );
 
 /**
@@ -154,6 +158,22 @@ TEST_MAIN("Parse values")
 	}
 
 	ason_destroy(test_value);
+
+	TEST("Unexpected token") {
+		REQUIRE(! ason_read("1 | | 2", NULL));
+	}
+
+	TEST("Unexpected token (trailing)") {
+		REQUIRE(! ason_read("1 | 2 &", NULL));
+	}
+
+	TEST("Non-token") {
+		REQUIRE(! ason_read("1 % 2", NULL))
+	}
+
+	TEST("Non-token (trailing)") {
+		REQUIRE(! ason_read("1 | 2 %", NULL))
+	}
 
 	return 0;
 }
