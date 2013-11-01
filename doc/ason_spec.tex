@@ -61,7 +61,7 @@ The operators, in order of descending precedence, are:
 
 \begin{itemize}
 \item Complement (\(!\)) A prefix operator.
-\item Append (\(:\))
+\item Join (\(:\))
 \item Intersect (\(\cup\) or \(\&\))
 \item Union (\(\cap\) or \(|\))
 \end{itemize}
@@ -131,24 +131,9 @@ It is intuitive to say the collection of all values which are not \(6\) is
 \(!6\). It is possibly more subtle to point out \(U = !\emptyset\), or \(* =
 !null\), but these equalities should hold given our definition.
 
-\subsection{Append}
-The append operator only makes sense when it is between two lists, or two
-objects. It can be distributed over collections of objects, however.
-
-For lists, the behavior of append is intuitive from its name. It combines two
-lists into a single list, with the elements of the first list followed by the
-elements of the second. This makes append non-commutative, and also the only
-operator whose behavior can't be modeled as elementary set operations.
-
-For objects, the behavior is similar. An object is yielded with the combined
-set of key-value pairs from either operand. If either operand was a universal
-object, the result is as well. The only unusual case is when both operands
-specify the same key. In cases where one operand specifies a key \(``foo"\) to
-the value \(a\), and the other operand specifies the key \(``foo"\) to the
-value \(b\), the result will have the key \(``foo"\) with the value \(a\cap b\).
-
-We're papering over some subtlety here, but we'll allow the unusual cases to be
-worked out in the formalization.
+\subsection{Join}
+Join operations can combine the keys of two objects, and also simulate the SQL
+join operation when applied to unions of objects.
 
 \section{Formalization}
 \begin{samepage}
@@ -231,6 +216,7 @@ referred to as \em key contraction \em .
 
 \subsection{Obliteration}
 \begin{prule}
+\label{sec:oblit}
 \begin{equation}
 \begin{split}
 {[}7,\quad8,\quad9,\quad\emptyset,\quad10] & = \emptyset \\
@@ -246,7 +232,7 @@ operations. Without this transformation it might be provable that the
 underlying set of a non-universal object has a cardinality greater than 1.
 Consider our coming definition of intersection.
 
-\subsection{Append Reduction}
+\subsection{Join Reduction}
 
 \begin{prule}
 \begin{equation}
@@ -258,49 +244,33 @@ Consider our coming definition of intersection.
 \end{split}
 \end{equation}
 
-The append operator may be distributed across the union operator.
+The join operator may be distributed across the union operator.
 \end{prule}
 
-This is a logical rule, but its implications are significant. Because of the
-obliteration rule, append can behave much like relational algebra's inner join,
+This is a logical rule, but its implications are significant. Because of
+rule \ref{sec:oblit}, join can behave much like relational algebra's inner join,
 crossing two unioned collections of values.
 
 \begin{prule}
 \begin{equation}
 \begin{array}{rclcl}
-6 \quad&:&\quad 7 & = & \emptyset \\
-6 \quad&:&\quad 6 & = & \emptyset \\
-\{\kvpaire{foo}{"bar"}\} \quad&.&\quad 7 & = & \emptyset \\
-{[}4,\quad5,\quad6] \quad&:&\quad 7 & = & \emptyset \\
-{[}4,\quad5,\quad6] \quad&:&\quad \{\kvpaire{foo}{"bar"}\} & = & \emptyset \\
+6 \quad&:&\quad null & = & 6 \\
+null \quad&:&\quad 6 & = & 6 \\
 \end{array}
 \end{equation}
-
-If either operand of an append is \(true\), \(false\), \(null\), \(\emptyset\),
-a string, or a number, or if one operand is a list and the other an object, the
-append may be reduced to \(\emptyset\)
 \end{prule}
 
-Less formally, things which do not make sense to append to oneanother become
-\(\emptyset\) when appended. Because, \(\emptyset\) tends to reduce out
-of ASON values due to the obliteration rule and properties of unions which we
-will see later, this is a rather clean way to handle these cases, particularly
-as opposed to simply declaring them badly formed.
+If either operand of a join can be represented as \(null\), the entire
+expression can be represented by the other operand.
 
 \begin{prule}
-\begin{equation}
-\begin{split}
-& {[}4,\quad5,\quad6] \quad:\quad {[}7,\quad8,\quad9] \\
-=\quad & {[}4,\quad5,\quad6,\quad7,\quad8,\quad9]
-\end{split}
-\end{equation}
-
-An append of two lists can be reduced to a single list, with the items within
-the first list followed by the items within the second list.
+All applications of join which cannot be transformed by one of the above rules
+are identical to intersection.
 \end{prule}
 
-This more or less matches our intuitive understanding of "appending" for lists
-in other contexts.
+This is all we need to specify join fully. Intersection will find common
+members in objects, and the \(null\) replacement will let us append objects to
+oneanother.
 
 \begin{prule}
 \begin{equation}
@@ -311,12 +281,12 @@ in other contexts.
 =&\{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpair{baz}{c}&\kvpaire{bam}{null}&\}\quad:\\
  &\{\kvpair{foo}{null}&\kvpair{bar}{d}&\kvpair{baz}{null}&\kvpaire{bam}{e}&\} \\
 \\
-=&\Bigg\{\kvpair{foo}{a}&\kvpair{bar}{b\cap
+=&\Bigg\{\kvpair{foo}{a}&\kvpair{bar}{b :
 d}&\kvpair{baz}{c}&\kvpaire{bam}{e}&\Bigg\}\\
 \end{array}
 \end{equation}
 
-An append of two or more objects, universal or otherwise, can be replaced with
+An join of two or more objects, universal or otherwise, can be replaced with
 a single object, where that object is universal if and only if either of the
 two operands were universal.
 \begin{enumerate}
@@ -348,7 +318,7 @@ Is interpreted as:
 And thus reduces, by the above transform, to:
 
 \begin{equation}
-\{\kvpaire{foo}{a\cap b}\}
+\{\kvpaire{foo}{a : b}\}
 \end{equation}
 
 \subsection{Intersection Reduction}
@@ -462,7 +432,7 @@ a\cup\emptyset = a
 Any value unioned with \(\emptyset\) can be reduced to that value singly.
 \end{prule}
 
-This more or less defines \(\emptyset\). Combined with obliteration, it means
+This more or less defines \(\emptyset\). Combined with rule \ref{sec:oblit}, it means
 that \(\emptyset\) should almost always be able to be removed from an ASON
 value by transformation.
 
