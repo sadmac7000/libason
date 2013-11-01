@@ -43,7 +43,7 @@ ason_t *ason_create_object(const char *key, ason_t *value);
 ason_t *ason_create_string(const char *str);
 ason_t *ason_union(ason_t *a, ason_t *b);
 ason_t *ason_intersect(ason_t *a, ason_t *b);
-ason_t *ason_append(ason_t *a, ason_t *b);
+ason_t *ason_join(ason_t *a, ason_t *b);
 ason_t *ason_complement(ason_t *a);
 ason_t *ason_representation_in(ason_t *a, ason_t *b);
 ason_t *ason_equality(ason_t *a, ason_t *b);
@@ -94,10 +94,10 @@ ason_intersect_d(ason_t *a, ason_t *b)
 }
 
 static inline ason_t *
-ason_append_d(ason_t *a, ason_t *b)
+ason_join_d(ason_t *a, ason_t *b)
 {
 	ason_t *ret;
-	ret = ason_append(a, b);
+	ret = ason_join(a, b);
 	ason_destroy(a);
 	ason_destroy(b);
 	return ret;

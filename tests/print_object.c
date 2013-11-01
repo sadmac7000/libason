@@ -42,31 +42,31 @@ TEST_MAIN("Object printing")
 	char *out;
 
 	a = ason_create_list(seven);
-	b = ason_append(list, a);
+	b = ason_join(list, a);
 	ason_destroy(list);
 	ason_destroy(a);
 	list = b;
 
 	a = ason_create_list(eight);
-	b = ason_append(list, a);
+	b = ason_join(list, a);
 	ason_destroy(list);
 	ason_destroy(a);
 	list = b;
 
 	a = ason_create_object("second", seven);
-	b = ason_append(object, a);
+	b = ason_join(object, a);
 	ason_destroy(object);
 	ason_destroy(a);
 	object = b;
 
 	a = ason_create_object("third", eight);
-	b = ason_append(object, a);
+	b = ason_join(object, a);
 	ason_destroy(object);
 	ason_destroy(a);
 	object = b;
 
 	a = ason_create_object("all", list);
-	b = ason_append(object, a);
+	b = ason_join(object, a);
 	ason_destroy(object);
 	ason_destroy(a);
 	ason_destroy(list);

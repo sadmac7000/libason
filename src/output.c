@@ -46,7 +46,7 @@ ason_get_precedence(ason_type_t operator)
 		return 3;
 	case TYPE_INTERSECT:
 		return 4;
-	case TYPE_APPEND:
+	case TYPE_JOIN:
 		return 5;
 	default:
 		return INT_MAX;
@@ -65,7 +65,7 @@ ason_get_opchar(ason_type_t operator, int use_unicode)
 			return "∩";
 		else
 			return "&";
-	case TYPE_APPEND:
+	case TYPE_JOIN:
 		return ":";
 	case TYPE_REPR:
 		if (use_unicode)
@@ -272,7 +272,7 @@ ason_do_asprint(ason_t *value, int use_unicode)
 	case TYPE_WILD:
 		return xasprintf("*");
 	case TYPE_INTERSECT:
-	case TYPE_APPEND:
+	case TYPE_JOIN:
 	case TYPE_REPR:
 	case TYPE_EQUAL:
 		return ason_asprint_operator(value, use_unicode);

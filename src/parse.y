@@ -47,7 +47,7 @@ struct parse_data {
 %type list      {ason_t *}
 %type kv_list   {ason_t *}
 %type kv_pair   {ason_t *}
-%type append    {ason_t *}
+%type join    {ason_t *}
 %type intersect {ason_t *}
 %type union     {ason_t *}
 %type comp      {ason_t *}
@@ -93,12 +93,12 @@ intersect(A) ::= intersect(B) INTERSECT comp(C).	{
 	A = ason_intersect_d(B, C);
 }
 
-comp(A) ::= append(B). { A = B; }
+comp(A) ::= join(B). { A = B; }
 comp(A) ::= NOT comp(B). { A = ason_complement_d(B); }
 
-append(A) ::= value(B).				{ A = B; }
-append(A) ::= value(B) COLON append(C).		{
-	A = ason_append_d(B, C);
+join(A) ::= value(B).				{ A = B; }
+join(A) ::= value(B) COLON join(C).		{
+	A = ason_join_d(B, C);
 }
 
 value(A) ::= EMPTY.		{ A = ASON_EMPTY; }
@@ -113,7 +113,7 @@ value(A) ::= TRUE.					{ A = ASON_TRUE; }
 value(A) ::= FALSE.					{ A = ASON_FALSE; }
 value(A) ::= START_OBJ kv_list(B) END_OBJ.		{ A = B; }
 value(A) ::= START_OBJ kv_list(B) COMMA WILD END_OBJ.	{
-	A = ason_append_d(B, ASON_OBJ_ANY);
+	A = ason_join_d(B, ASON_OBJ_ANY);
 }
 value(A) ::= STRING(B). {
 	A = ason_create_string(B.c);
@@ -130,7 +130,7 @@ value(A) ::= SYMBOL(B). {
 
 list(A) ::= union(B).				{ A = ason_create_list_d(B); }
 list(A) ::= union(B) COMMA list(C).		{
-	A = ason_append_d(ason_create_list_d(B), C);
+	A = ason_join_d(ason_create_list_d(B), C);
 }
 
 kv_pair(A) ::= STRING(B) COLON union(C).	{
@@ -140,7 +140,7 @@ kv_pair(A) ::= STRING(B) COLON union(C).	{
 
 kv_list(A) ::= kv_pair(B).			{ A = B; }
 kv_list(A) ::= kv_list(B) COMMA kv_pair(C).	{
-	A = ason_append_d(B, C);
+	A = ason_join_d(B, C);
 }
 
 %code {

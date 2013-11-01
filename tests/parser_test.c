@@ -59,7 +59,7 @@ TEST_MAIN("Parse values")
 	b = ason_create_number(8);
 	b = ason_create_object_d("bar", b);
 
-	a = ason_append_d(a, b);
+	a = ason_join_d(a, b);
 	b = ason_create_number(98);
 
 	a = ason_union_d(a, b);
@@ -69,11 +69,11 @@ TEST_MAIN("Parse values")
 	c = ason_create_number(2);
 	c = ason_create_list_d(c);
 
-	b = ason_append_d(b, c);
+	b = ason_join_d(b, c);
 	c = ason_create_number(3);
 	c = ason_create_list_d(c);
 
-	d = ason_append(b, c);
+	d = ason_join(b, c);
 	ason_destroy(c);
 
 	b = ason_intersect_d(b, d);

@@ -385,12 +385,12 @@ ason_intersect(ason_t *a, ason_t *b)
 }
 
 /**
- * Appent ASON value b to a.
+ * Join ASON value b to a.
  **/
 API_EXPORT ason_t *
-ason_append(ason_t *a, ason_t *b)
+ason_join(ason_t *a, ason_t *b)
 {
-	return ason_operate(a, b, TYPE_APPEND);
+	return ason_operate(a, b, TYPE_JOIN);
 }
 
 /**
@@ -750,10 +750,10 @@ ason_reduce_intersect(ason_t *a)
 }
 
 /**
- * Reduce an append of two objects.
+ * Reduce a join of two objects.
  **/
 static void
-ason_reduce_object_append(ason_t *a)
+ason_reduce_object_join(ason_t *a)
 {
 	struct ason_coiterator iter;
 	const char *key;
@@ -792,10 +792,10 @@ ason_reduce_object_append(ason_t *a)
 }
 
 /**
- * Reduce an append of two lists.
+ * Reduce a join of two lists.
  **/
 static void
-ason_reduce_list_append(ason_t *a)
+ason_reduce_list_join(ason_t *a)
 {
 	ason_t *b = ason_copy(a->items[1]);
 	ason_t *tmp = ason_copy(a->items[0]);
@@ -809,10 +809,10 @@ ason_reduce_list_append(ason_t *a)
 }
 
 /**
- * Reduce an append.
+ * Reduce a join.
  **/
 static void
-ason_reduce_append(ason_t *a)
+ason_reduce_join(ason_t *a)
 {
 	if (ason_distribute(a)) {
 		ason_reduce(a);
@@ -823,9 +823,9 @@ ason_reduce_append(ason_t *a)
 	ason_reduce(a->items[1]);
 
 	if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1]))
-		ason_reduce_object_append(a);
+		ason_reduce_object_join(a);
 	else if (a->items[0]->type == TYPE_LIST && a->items[1]->type == TYPE_LIST)
-		ason_reduce_list_append(a);
+		ason_reduce_list_join(a);
 	else
 		ason_make_empty(a);
 }
@@ -949,8 +949,8 @@ ason_reduce(ason_t *a)
 		ason_reduce_union(a);
 	else if (a->type == TYPE_INTERSECT)
 		ason_reduce_intersect(a);
-	else if (a->type == TYPE_APPEND)
-		ason_reduce_append(a);
+	else if (a->type == TYPE_JOIN)
+		ason_reduce_join(a);
 	else if (a->type == TYPE_COMP)
 		ason_reduce_complement(a);
 
