@@ -597,10 +597,10 @@ ason_distribute(ason_t *a)
 }
 
 /**
- * Reduce an intersect of two objects.
+ * Reduce an intersect or join of two objects.
  **/
 static void
-ason_reduce_object_intersect(ason_t *a)
+ason_reduce_object_intersect_join(ason_t *a, int is_join)
 {
 	struct ason_coiterator iter;
 	ason_t *left;
@@ -624,7 +624,10 @@ ason_reduce_object_intersect(ason_t *a)
 	a->count = 0;
 
 	while((key = ason_coiterator_next(&iter, &left, &right))) {
-		tmp = ason_intersect(left, right);
+		if (is_join)
+			tmp = ason_join(left, right);
+		else
+			tmp = ason_intersect(left, right);
 
 		if (ason_reduce(tmp)) {
 			ason_destroy(tmp);
@@ -693,7 +696,7 @@ ason_reduce_intersect(ason_t *a)
 	} else if (ason_distribute(a)) {
 		ason_reduce(a);
 	} else if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1])) {
-		ason_reduce_object_intersect(a);
+		ason_reduce_object_intersect_join(a, 0);
 	} else if (a->items[0]->type == TYPE_NULL) {
 		other = a->items[1]->type;
 		ason_make_empty(a);
@@ -750,65 +753,6 @@ ason_reduce_intersect(ason_t *a)
 }
 
 /**
- * Reduce a join of two objects.
- **/
-static void
-ason_reduce_object_join(ason_t *a)
-{
-	struct ason_coiterator iter;
-	const char *key;
-	ason_t *left;
-	ason_t *right;
-	ason_type_t type = TYPE_OBJECT;
-	struct kv_pair *buf = xcalloc(a->items[0]->count + a->items[1]->count,
-				      sizeof(struct kv_pair));
-
-	if (a->items[0]->type == TYPE_UOBJECT ||
-	    a->items[1]->type == TYPE_UOBJECT)
-		type = TYPE_UOBJECT;
-
-	ason_coiterator_init(&iter, a->items[0], a->items[1]);
-	ason_make_empty(a);
-	a->type = type;
-	a->kvs = buf;
-	a->count = 0;
-
-	while ((key = ason_coiterator_next(&iter, &left, &right))) {
-		a->kvs[a->count].key = xstrdup(key);
-
-		if (left->type == TYPE_NULL) {
-			a->kvs[a->count++].value = ason_copy(right);
-		} else if (right->type == TYPE_NULL) {
-			a->kvs[a->count++].value = ason_copy(left);
-		} else {
-			a->kvs[a->count++].value = ason_intersect(left, right);
-
-			if (ason_reduce(a->kvs[a->count - 1].value)) {
-				ason_make_empty(a);
-				break;
-			}
-		}
-	}
-}
-
-/**
- * Reduce a join of two lists.
- **/
-static void
-ason_reduce_list_join(ason_t *a)
-{
-	ason_t *b = ason_copy(a->items[1]);
-	ason_t *tmp = ason_copy(a->items[0]);
-
-	ason_clone_into(a, tmp);
-	a->items = xrealloc(a->items,
-			    (a->count + b->count) * sizeof(ason_t *));
-
-	memcpy(a->items + a->count, b->items, b->count * sizeof(ason_t *));
-	a->count += b->count;
-}
-
-/**
  * Reduce a join.
  **/
 static void
@@ -822,12 +766,21 @@ ason_reduce_join(ason_t *a)
 	ason_reduce(a->items[0]);
 	ason_reduce(a->items[1]);
 
-	if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1]))
-		ason_reduce_object_join(a);
-	else if (a->items[0]->type == TYPE_LIST && a->items[1]->type == TYPE_LIST)
-		ason_reduce_list_join(a);
-	else
-		ason_make_empty(a);
+	if (ason_distribute(a)) {
+		ason_reduce(a);
+		return;
+	}
+
+	if (a->items[0]->type == TYPE_NULL) {
+		ason_clone_into_d(a, a->items[1]);
+	} else if (a->items[1]->type == TYPE_NULL) {
+		ason_clone_into_d(a, a->items[0]);
+	} else if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1])) {
+		ason_reduce_object_intersect_join(a, 1);
+	} else {
+		a->type = TYPE_INTERSECT;
+		ason_reduce_intersect(a);
+	}
 }
 
 /**
