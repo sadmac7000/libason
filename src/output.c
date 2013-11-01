@@ -40,12 +40,14 @@ ason_get_precedence(ason_type_t operator)
 	switch (operator) {
 	case TYPE_EQUAL:
 		return 1;
-	case TYPE_INTERSECT:
-		return 2;
-	case TYPE_APPEND:
-		return 3;
 	case TYPE_REPR:
+		return 2;
+	case TYPE_UNION:
+		return 3;
+	case TYPE_INTERSECT:
 		return 4;
+	case TYPE_APPEND:
+		return 5;
 	default:
 		return INT_MAX;
 	}
