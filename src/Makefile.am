@@ -11,7 +11,7 @@ libason_la_SOURCES = \
 	namespace.c \
 	namespace_ram.c \
 	parse.c
-MOSTLYCLEANFILES = parse.c parse.h parse.out
+MOSTLYCLEANFILES = parse.c parse.h parse.out *.gcda *.gcno *.gcov
 
 if BUILD_ASONQ
 bin_PROGRAMS = asonq
