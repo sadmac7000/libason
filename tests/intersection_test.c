@@ -37,18 +37,19 @@ TEST_MAIN("Intersection")
 	ason_t *c;
 	ason_t *d;
 
+	a = ason_create_number(6);
+	b = ason_create_number(7);
+	c = ason_union_d(a, b);
+	a = ason_create_number(8);
+	b = ason_create_number(9);
+	d = ason_union_d(a, b);
+	c = ason_union_d(c, d);
+	a = ason_create_number(6);
+	b = ason_create_number(9);
+	d = ason_union_d(a, b);
+	c = ason_intersect(d, c);
+
 	TEST("Union Intersection") {
-		a = ason_create_number(6);
-		b = ason_create_number(7);
-		c = ason_union_d(a, b);
-		a = ason_create_number(8);
-		b = ason_create_number(9);
-		d = ason_union_d(a, b);
-		c = ason_union_d(c, d);
-		a = ason_create_number(6);
-		b = ason_create_number(9);
-		d = ason_union_d(a, b);
-		c = ason_intersect(d, c);
 		REQUIRE(ason_check_equal(c, d));
 	}
 
