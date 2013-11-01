@@ -18,6 +18,7 @@ typedef union {
 struct parse_data {
 	ason_t *ret;
 	ason_ns_t *ns;
+	int failed;
 };
 
 /* Lemon has a problem with these */
@@ -29,6 +30,8 @@ struct parse_data {
 %token_type {token_t}
 
 %extra_argument {struct parse_data *data}
+
+%syntax_error {data->failed = 1;}
 
 %right ASSIGN.
 %right EQUAL.
@@ -336,7 +339,7 @@ ason_readn(const char *text, size_t length, ason_ns_t *ns)
 	size_t len;
 	int type;
 	void *parser = asonLemonAlloc(xmalloc);
-	struct parse_data pdata = { .ret = NULL, .ns = ns };
+	struct parse_data pdata = { .ret = NULL, .ns = ns, .failed = 0 };
 	char *tmp = xstrndup(text, length);
 	char *text_unicode = string_to_utf8(tmp);
 
@@ -353,7 +356,11 @@ ason_readn(const char *text, size_t length, ason_ns_t *ns)
 	asonLemonFree(parser, free);
 
 	free(text_unicode);
-	
-	return pdata.ret;
+
+	if (! pdata.failed)
+		return pdata.ret;
+
+	ason_destroy(pdata.ret);
+	return NULL;
 }
 }
