@@ -20,3 +20,6 @@ libtool
 .libs
 *.la
 *.lo
+*.gcda
+*.gcno
+*.gcov
