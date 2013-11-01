@@ -53,8 +53,6 @@ in an object, or by themselves.
 In addition to the new constants, ASON introduces four new operators; three
 binary infix operators and one unary prefix operator.
 
-Operators appear, as you
-
 Operators and parenthesis behave as structural characters do in the JSON
 syntax\footnote{RFC 4267, section 2}.
 
@@ -73,7 +71,7 @@ The operators, in order of descending precedence, are:
 \subsection{Universal Object Syntax}
 ASON introduces a subtype of object called a "universal object." It is
 represented identically to a normal object, except that after the list of
-key-value pairs is one \(,\) and one \(*\). An example:
+key-value pairs is one "\(,\)" and one "\(*\)". An example:
 %
 \begin{equation}
 \{ \kvpair{num}{6} \kvpair{string}{"hello"} *\}
