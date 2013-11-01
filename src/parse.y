@@ -223,6 +223,9 @@ ason_get_token_number(const char *text, size_t length, int *type,
 	while (decimal_places--)
 		accum /= 10;
 
+	if (text == text_start)
+		return text_start;
+
 	*type = ASON_LEX_NUMBER;
 	data->n = accum;
 	return text;
@@ -348,9 +351,13 @@ ason_readn(const char *text, size_t length, ason_ns_t *ns)
 
 	while ((len = ason_get_token(text, length, &type, &data, ns))) {
 		text += len;
+		length -= len;
 
 		asonLemon(parser, type, data, &pdata);
 	}
+
+	if (length)
+		pdata.failed = 1;
 
 	asonLemon(parser, 0, data, &pdata);
 	asonLemonFree(parser, free);
