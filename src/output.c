@@ -285,7 +285,10 @@ ason_do_asprint(ason_t *value, int use_unicode)
 		return ason_asprint_list(value, use_unicode);
 	case TYPE_COMP:
 		tmp = ason_do_asprint(value->items[0], use_unicode);
-		ret = xasprintf("!%s", tmp);
+		if (ason_get_precedence(value->items[0]->type) < INT_MAX)
+			ret = xasprintf("!( %s )", tmp);
+		else
+			ret = xasprintf("!%s", tmp);
 		free(tmp);
 		return ret;
 	default:
