@@ -148,7 +148,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("Representation (false)") {
-		test_value = ason_read("(1 | 2) in 1", NULL);
+		test_value = ason_read("1 | 2 in 1", NULL);
 
 		REQUIRE(ason_check_equal(test_value, ASON_FALSE));
 	}

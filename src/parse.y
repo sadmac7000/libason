@@ -162,7 +162,7 @@ ason_read(const char *text, ason_ns_t *ns)
 /**
  * Get a number token.
  **/
-static size_t
+static const char *
 ason_get_token_number(const char *text, size_t length, int *type,
 		      token_t *data)
 {
@@ -174,7 +174,7 @@ ason_get_token_number(const char *text, size_t length, int *type,
 	int64_t accum = 0;
 
 	if (! length)
-		return 0;
+		return text;
 
 	text_start = text;
 
@@ -185,18 +185,18 @@ ason_get_token_number(const char *text, size_t length, int *type,
 	}
 
 	if (! length)
-		return 0;
+		return text_start;
 
 	if (length < 2 && *text == 0)
-		return 0;
+		return text_start;
 
 	if (text[0] == '0' && text[1] != '.')
-		return 0;
+		return text_start;
 
 	for (; length; length--, text++) {
 		if (*text == '.') {
 			if (decimal_inc)
-				return 0;
+				return text_start;
 			decimal_inc = 1;
 			continue;
 		} else if (! isdigit(*text)) {
@@ -210,7 +210,7 @@ ason_get_token_number(const char *text, size_t length, int *type,
 	}
 
 	if (decimal_inc && !decimal_places)
-		return 0;
+		return text_start;
 
 	accum *= negator;
 
@@ -222,7 +222,7 @@ ason_get_token_number(const char *text, size_t length, int *type,
 
 	*type = ASON_LEX_NUMBER;
 	data->n = accum;
-	return text - text_start;
+	return text;
 }
 
 /**
@@ -235,7 +235,6 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data,
 	const char *text_start = text;
 	const char *tok_start;
 	char *tmp;
-	size_t got;
 
 	while (length && isspace(*text)) {
 		length--;
@@ -279,10 +278,11 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data,
 
 #undef FIXED_TOKEN
 
-	got = ason_get_token_number(text, length, type, data);
+	tok_start = text;
+	text = ason_get_token_number(text, length, type, data);
 
-	if (got)
-		return got;
+	if (text > tok_start)
+		return text - text_start;
 
 	if (*text != '"') {
 		if (isdigit(*text))
