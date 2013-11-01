@@ -703,8 +703,7 @@ ason_reduce_intersect(ason_t *a)
 	} else if (a->items[0]->type == TYPE_UNIVERSE ||
 	    (a->items[0]->type == TYPE_WILD &&
 	     a->items[1]->type != TYPE_NULL)) {
-		tmp = ason_copy(a->items[1]);
-		ason_clone_into_d(a, tmp);
+		ason_clone_into(a, a->items[1]);
 	} else if (a->items[0]->type != a->items[1]->type) {
 		if (IS_BOOL(a->items[0]) && IS_BOOL(a->items[1]))
 			other = TYPE_FALSE;
@@ -731,10 +730,8 @@ ason_reduce_intersect(ason_t *a)
 		}
 	} else if (a->items[0]->type == TYPE_NUMERIC) {
 		n = a->items[1]->n;
-		tmp = ason_copy(a->items[0]);
 
-		ason_clone_into_d(a, tmp);
-		ason_destroy(tmp);
+		ason_clone_into(a, a->items[0]);
 
 		if (a->n != n)
 			ason_make_empty(a);
