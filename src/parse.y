@@ -360,7 +360,9 @@ ason_readn(const char *text, size_t length, ason_ns_t *ns)
 	if (! pdata.failed)
 		return pdata.ret;
 
-	ason_destroy(pdata.ret);
+	if (pdata.ret)
+		ason_destroy(pdata.ret);
+
 	return NULL;
 }
 }
