@@ -24,7 +24,8 @@
 
 #include "harness.h"
 
-TESTS("Union Intersection");
+TESTS("Union Intersection",
+      "Parsed Union Intersection");
 
 /**
  * Basic exercise of the parser.
@@ -55,6 +56,12 @@ TEST_MAIN("Intersection")
 
 	ason_destroy(c);
 	ason_destroy(d);
+
+	TEST("Parsed Union Intersection") {
+		a = ason_create_number(6);
+		b = ason_read("(6 | 7 | 8 | 9) & (5 | 6)", NULL);
+		REQUIRE(ason_check_equal(a, b));
+	}
 
 	return 0;
 }
