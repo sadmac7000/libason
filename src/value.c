@@ -429,58 +429,6 @@ ason_equality(ason_t *a, ason_t *b)
 }
 
 /**
- * Distribute an operator through a union on the left-hand side.
- **/
-static void
-ason_distribute_left(ason_t *operator)
-{
-	ason_t *left = operator->items[0];
-	ason_t *right = operator->items[1];
-	ason_type_t type = operator->type;
-	size_t i;
-
-	free(operator->items);
-	operator->items = xmemdup(left->items,
-				  left->count * sizeof(ason_t *));
-	operator->count = left->count;
-	operator->type = TYPE_UNION;
-
-	ason_destroy(left);
-
-	for (i = 0; i < operator->count; i++)
-		operator->items[i] = ason_operate(operator->items[i], right,
-						  type);
-
-	ason_destroy(right);
-}
-
-/**
- * Distribute an operator through a union on the right-hand side.
- **/
-static void
-ason_distribute_right(ason_t *operator)
-{
-	ason_t *left = operator->items[0];
-	ason_t *right = operator->items[1];
-	ason_type_t type = operator->type;
-	size_t i;
-
-	free(operator->items);
-	operator->items = xmemdup(right->items,
-				  right->count * sizeof(ason_t *));
-	operator->count = right->count;
-	operator->type = TYPE_UNION;
-
-	ason_destroy(right);
-
-	for (i = 0; i < operator->count; i++)
-		operator->items[i] = ason_operate(left, operator->items[i],
-						  type);
-
-	ason_destroy(left);
-}
-
-/**
  * Convert an ASON value in place into an empty value.
  **/
 static void
@@ -585,13 +533,34 @@ ason_reduce_complement(ason_t *a)
 static int
 ason_distribute(ason_t *a)
 {
+	size_t source;
+	size_t target;
+	size_t i;
+	ason_t *b;
+
+	ason_t *right;
+	ason_type_t type;
+
 	if (a->items[0]->type == TYPE_UNION) {
-		ason_distribute_left(a);
+		source = 1;
+		target = 0;
 	} else if (a->items[1]->type == TYPE_UNION) {
-		ason_distribute_right(a);
+		source = 0;
+		target = 1;
 	} else {
 		return 0;
 	}
+
+	right = ason_copy(a->items[source]);
+	type = a->type;
+
+	b = ason_copy(a->items[target]);
+	ason_clone_into_d(a, b);
+
+	for (i = 0; i < a->count; i++)
+		a->items[i] = ason_operate(a->items[i], right, type);
+
+	ason_destroy(right);
 
 	return 1;
 }
@@ -758,6 +727,8 @@ ason_reduce_intersect(ason_t *a)
 static void
 ason_reduce_join(ason_t *a)
 {
+	ason_t *b;
+
 	if (ason_distribute(a)) {
 		ason_reduce(a);
 		return;
@@ -772,9 +743,11 @@ ason_reduce_join(ason_t *a)
 	}
 
 	if (a->items[0]->type == TYPE_NULL) {
-		ason_clone_into_d(a, a->items[1]);
+		b = ason_copy(a->items[1]);
+		ason_clone_into_d(a, b);
 	} else if (a->items[1]->type == TYPE_NULL) {
-		ason_clone_into_d(a, a->items[0]);
+		b = ason_copy(a->items[0]);
+		ason_clone_into_d(a, b);
 	} else if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1])) {
 		ason_reduce_object_intersect_join(a, 1);
 	} else {
