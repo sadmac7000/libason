@@ -367,7 +367,7 @@ ason_operate(ason_t *a, ason_t *b, ason_type_t type)
 }
 
 /**
- * Disjoin two ASON values.
+ * Union two ASON values.
  **/
 API_EXPORT ason_t *
 ason_union(ason_t *a, ason_t *b)
