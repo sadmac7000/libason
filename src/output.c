@@ -170,10 +170,14 @@ ason_asprint_object(ason_t *value, int use_unicode)
 		}
 	}
 
-	if (value->type == TYPE_UOBJECT)
+	if (out && value->type == TYPE_UOBJECT)
 		tmp = xasprintf("{ %s, *}", out);
-	else
+	else if (out)
 		tmp = xasprintf("{ %s }", out);
+	else if (value->type == TYPE_UOBJECT)
+		tmp = xasprintf("{*}");
+	else
+		tmp = xasprintf("{}");
 	free(out);
 	return tmp;
 }

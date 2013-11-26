@@ -115,6 +115,7 @@ value(A) ::= START_OBJ kv_list(B) END_OBJ.		{ A = B; }
 value(A) ::= START_OBJ kv_list(B) COMMA WILD END_OBJ.	{
 	A = ason_join_d(B, ASON_OBJ_ANY);
 }
+value(A) ::= START_OBJ WILD END_OBJ.			{ A = ASON_OBJ_ANY; }
 value(A) ::= STRING(B). {
 	A = ason_create_string(B.c);
 	free(B.c);
