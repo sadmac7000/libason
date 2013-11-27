@@ -589,6 +589,11 @@ ason_reduce_object_intersect_join(ason_t *a, int is_join)
 	    a->items[1]->type == TYPE_UOBJECT)
 		type = TYPE_UOBJECT;
 
+	if (is_join && a->items[0]->type == TYPE_UOBJECT)
+		type = TYPE_UOBJECT;
+	if (is_join && a->items[1]->type == TYPE_UOBJECT)
+		type = TYPE_UOBJECT;
+
 	ason_coiterator_init(&iter, a->items[0], a->items[1]);
 	ason_make_empty(a);
 	a->type = type;
