@@ -681,6 +681,10 @@ ason_reduce_intersect(ason_t *a)
 	    (a->items[0]->type == TYPE_WILD &&
 	     a->items[1]->type != TYPE_NULL)) {
 		ason_clone_into(a, a->items[1]);
+	} else if (a->items[1]->type == TYPE_UNIVERSE ||
+	    (a->items[1]->type == TYPE_WILD &&
+	     a->items[0]->type != TYPE_NULL)) {
+		ason_clone_into(a, a->items[0]);
 	} else if (a->items[0]->type != a->items[1]->type) {
 		if (IS_BOOL(a->items[0]) && IS_BOOL(a->items[1]))
 			other = TYPE_FALSE;
