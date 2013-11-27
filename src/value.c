@@ -465,13 +465,16 @@ ason_clone_into(ason_t *target, ason_t *src)
 	size_t refcount = target->refcount;
 	size_t i;
 
+	src = ason_copy(src);
 	ason_make_empty(target);
 
 	memcpy(target, src, sizeof(ason_t));
 	target->refcount = refcount;
 
-	if (! target->count)
+	if (! target->count) {
+		ason_destroy(src);
 		return;
+	}
 
 	if (IS_OBJECT(target))
 		target->kvs = xmemdup(target->kvs,
@@ -488,6 +491,8 @@ ason_clone_into(ason_t *target, ason_t *src)
 			target->items[i] = ason_copy(target->items[i]);
 		}
 	}
+
+	ason_destroy(src);
 }
 
 /**
