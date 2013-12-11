@@ -152,7 +152,7 @@ into an identical representation.
 
 \begin{samepage}
 Reflexively, this specification shall describe a series of transformations on
-ASON objects which do not alter their semantic value. We will also state that:
+ASON values which do not alter their semantic value. We will also state that:
 %
 \begin{prule}
 \label{sec:commute}
@@ -164,6 +164,7 @@ may be transformed into the value \(A\).
 And lastly:
 %
 \begin{prule}
+\label{sec:assoc}
 All operators are associative.
 \end{prule}
 
@@ -324,6 +325,7 @@ And thus reduces, by the above transform, to:
 \subsection{Intersection Reduction}
 
 \begin{prule}
+\label{sec:interdist}
 \begin{equation}
 \begin{split}
 & \Bigg( \{\kvpaire{foo}{6}\} \cup \{\kvpaire{bar}{7}\} \Bigg) \quad \cap \quad
@@ -379,6 +381,7 @@ The counterpart to the previous rule is much more cleanly specified. A value
 intersected with itself is itself.
 
 \begin{prule}
+\label{sec:interlist}
 \begin{equation}
 {[}a,\quad b,\quad c] \quad\cap\quad {[}d,\quad e,\quad f]  =  {[}a\cap d,\quad
 b\cap e,\quad c\cap f] \\
@@ -395,6 +398,7 @@ of unions discussed later. In fact you can prove rules \ref{sec:interident} and
 rule. Nonetheless this rule does clarify the details of intersection.
 
 \begin{prule}
+\label{sec:interobj}
 \begin{equation}
 \begin{array}{rlllll}
 & \{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpaire{baz}{c}&&\}\quad\cap\\
@@ -447,6 +451,7 @@ Any value unioned with itself can be reduced to that value singly.
 Interestingly, this parallels intersection.
 
 \begin{prule}
+\label{sec:objuniondist}
 \begin{equation}
 \begin{array}{rcl}
 
@@ -468,14 +473,39 @@ repeatedly exchanging values containing unions for unions of values.
 
 \subsection{Complementation}
 \begin{prule}
-Given a value \(a\), if one takes the set of all values \(x\) such that \(a
-\cap x = \emptyset\) and joins them with the union operator, one arrives at a
-form equivalent to \(!a\)
+\label{sec:compelim}
+\begin{equation}
+\begin{array}{rcl}
+	!!a &=& a
+\end{array}
+\end{equation}
+Complementation of a complemented value is that value.
 \end{prule}
 
-This rule is difficult, as it describes a transformation to and from a form
-which would be uncoutably infinite in length. Nonetheless it is the simplest
-definition of complementation.
+\begin{prule}
+\begin{equation}
+\begin{array}{rcl}
+	!a \cap a &=& \emptyset
+\end{array}
+\end{equation}
+Intersecting a value with its complement yields \(\emptyset\).
+\end{prule}
+
+\begin{prule}
+\label{sec:demorgan}
+\begin{equation}
+\begin{array}{rcl}
+	! (a \cup b) &=& !a \cap !b
+\end{array}
+\end{equation}
+A complement of a union of two values is equal to the intersection of the
+complement of those two values separately.
+\end{prule}
+
+Complementation is defined by a series of simple rules: it is its own inverse,
+complemented values don't intersect with the original values, and complementing
+a union is equivalent to intersecting the complements of its operands (an
+analogue to DeMorgan's law).
 
 \subsection{Constants}
 \begin{equation}
@@ -487,5 +517,234 @@ U = &!\emptyset \\
 
 With complementation defined, the two constant values are easily expressed. In
 fact they are revealed as syntactic sugar.
+
+\section{Orders}
+
+One of the most important reasons to transform an ASON value is to place it in
+the simplest possible form. We divide ASON values into a series of numbered
+\textit{orders}, which roughly identify how complex the simplest form of the
+value is.
+
+Each order is a superset of all the orders below it, so an order 0 value is
+also an order 1 value. However, when we refer to "the order of value B" we
+typically refer to the minimally-applicable order. For the purposes of this
+section, we will denote variables with their implied order as a subscript, so
+variables referring to order 0 values will appear as \(a_0\) and soforth.
+
+\subsection{Closure}
+
+An important property of each order is \textit{closure}. An order is
+\textit{closed} under a given operator if applying that operator to two values
+of that order yields a value also of that order. For example, if \(a_n \cap
+b_n\) is always a value of order \(n\) then order \(n\) is closed under
+intersection.
+
+In addition to the four ASON operators, we will also discuss whether values are
+closed under \textit{containment}, that is, does using a value of a given order
+as an element of a list or object also yield a value of that order. If so, that
+order is closed under containment.
+
+\subsubsection{Closure and Join}
+
+Because the join operator is equivalent to the intersect operator in most
+cases, closure under intersection should imply closure under join in all such
+cases. The excepted case is joining with the \(none\) value, which will always
+be closed, because \(a_n : none = a_n\), which is order \(n\). Therefore we can
+ignore closure under join and simply discuss closure under intersection.
+
+\subsection{Order 0}
+
+Order 0 is the simplest order. We define it as follows:
+
+\begin{itemize}
+	\item All ASON values which are representable as valid JSON values are
+		order 0.
+	\item \(\emptyset\) is order 0.
+\end{itemize}
+
+\subsubsection{Closure under containment}
+
+We take it as trivial that any JSON value can also be a value within another
+containing JSON value, so closure under containment for JSON is trivial.
+
+Rule \ref{sec:oblit} proves that containment of \(\emptyset\) must result in
+\(\emptyset\), so containing \(\emptyset\) is also closed.
+
+\subsubsection{Closure under intersection}
+
+Rule \ref{sec:interelim} implies that intersecting two order 0 values will
+either yield \(\emptyset\) if they are unequal, or their mutual value if they
+are equal. The excepted case is if either can be expressed as a union of two
+non-equal, non-empty values, which we take as trivially impossible for
+JSON-equivalent values.
+
+\subsection{Order 1}
+
+Order 1 is any value expressable in the form:
+
+\begin{equation}
+a_0 \cup b_0
+\end{equation}
+
+Or the form:
+
+\begin{equation}
+a_1 \cup b_1
+\end{equation}
+
+\subsubsection{Closure under union}
+
+Closure under union is implied in the definition of the order.
+
+\subsubsection{Closure under containment}
+
+Suppose one has an object containing a value that is order 1, which is to say
+it is a union of multiple order 0 values. One can split that object by rule
+\ref{sec:objuniondist} into multiple objects each of which has an order 0 value in
+that position, and which are joined externally by a union. If the objects have
+no other order 1 values then they are themselves order 0 and the union of them is
+order 1. If they have other order 1 values we can apply the process recursively
+until they no longer do and we are left with a chained union of several order 0
+values.
+
+\subsubsection{Closure under intersection}
+
+Rule \ref{sec:interdist} states we can distribute an intersection across
+unions. This means we can continue to distribute intersections until
+we have a union of intersections of order 0 values. Order 0 is closed under
+intersection so the result is simply a union of order 0 values, which is order
+1.
+
+\subsection{Order 2}
+Order 2 contains order 1, as well as the complement of all order 1 values, and
+the union of any other order 2 values.
+
+\subsubsection{Closure under union}
+
+Closure under union is implied in the definition of the order.
+
+\subsubsection{Closure under complement}
+
+Given an order 1 value \(a_1\), \(!a_1\) must be order 2, but \(!!a_1\) is
+order 1, because the complementation can be eliminated given rule
+\ref{sec:compelim}.
+
+If an order 2 value is a union of other order 2 values, then by associativity
+we can eventually express it as unions of a series of order 1 values, and a
+series of complemented order 1 values. Example:
+
+\begin{equation}
+a_1 \cup b_1 \cup c_1 \cup ! d_1 \cup ! e_1 \cup ! f_1
+\end{equation}
+
+We can use rule \ref{sec:demorgan} and rule \ref{sec:assoc} to isolate the
+inverted items and convert them to an intersection:
+
+\begin{equation}
+a_1 \cup b_1 \cup c_1 \cup ! ( d_1 \cap  e_1 \cap  f_1 )
+\end{equation}
+
+Order 1 is closed under union and intersection, so we can substitute:
+
+\begin{equation}
+g_1 \cup ! h_1
+\end{equation}
+
+Now let's complement this form:
+
+\begin{equation}
+	! (g_1 \cup ! h_1)
+\end{equation}
+
+We can apply rule \ref{sec:demorgan} again to get:
+
+\begin{equation}
+	! g_1 \cap h_1
+\end{equation}
+
+\(h_1\) is either an order 0 value or a union of one or more such values by
+definition:
+
+\begin{equation}
+	! g_1 \cap ( i_0 \cup j_0 \cup k_0 )
+\end{equation}
+
+We can apply rule \ref{sec:interdist} to distribute:
+
+\begin{equation}
+	!g_1 \cap i_0 \cup !g_1 \cap j_0 \cup !g_1 \cap k_0
+\end{equation}
+
+Order 0 values can't be reflected by a union of one or more non-empty,
+non-equal values, so the result of the above intersections must be just the
+order 0 values by rule \ref{sec:interident} or \(\emptyset\) by
+\ref{sec:interelim}. The result is a union of order 0 values, or an order 1
+value.
+
+\subsubsection{Closure under intersection}
+
+Suppose the form:
+
+\begin{equation}
+a_2 \cap b_2
+\end{equation}
+
+We can rewrite this in the form:
+
+\begin{equation}
+! ( !a_2 \cup !b_2 )
+\end{equation}
+
+Order 2 is closed under complement and union, so the two variables are
+rewritable as uncomplemented order 2 values:
+
+\begin{equation}
+! ( c_2 \cup d_2 )
+\end{equation}
+
+Order 2 is also closed under union:
+
+\begin{equation}
+!e_2
+\end{equation}
+
+And since, again, we are closed under complement, this is an order 2 value.
+
+\subsubsection{Order of \(U\) and \(*\)}
+
+Since \(null\) and \(\emptyset\) are order 0, and complements of order 0 values
+are order 2, \(!null\) and \(!\emptyset\), also representable as \(U\) and
+\(*\), are order 2.
+
+\subsection{Order 3}
+Order 3 includes all order 2 values, as well as values containing order 2
+values, and the universal object \({ * }\).
+
+\subsubsection{Closure under intersection}
+
+Since order 2 values are closed under intersection, order 3 values which are
+order 2 values can intersect with each other without violating closure.
+
+\({ * }\) intersected with itself is \({ * }\), so closure is not violated.
+
+\({ * }\) intersected with any other value is that value, where the value is an
+object, or \(\emptyset\) where it is not, so intersection with \({ * }\) does
+not violate closure.
+
+Given rule \ref{sec:interobj} and rule \ref{sec:interlist}, we can turn an
+intersection of any two objects or lists containing values of order 2 into a
+single value where the contained values are intersections of order 2 values,
+and, due to order 2's closure under intersection, order 2 values themselves.
+Such an intersection thus does not violate closure.
+
+\subsection{Higher order values}
+
+A concise and useful definition for a fourth order or beyond has not emerged,
+so values outside of order 3 can be lumped together as "higher order values."
+It is believed but not proven that no finite collection of orders can be
+defined unless the highest one be defined explicitly as closed under all four
+properties. Therefore should formalizing higher orders prove useful in the
+future, the category of "higher order values" may shrink, but should never
+become empty.
 
 \end{document}
