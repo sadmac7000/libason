@@ -5,7 +5,6 @@ AC_PROG_CC
 m4_pattern_allow([AM_PROG_AR])
 AM_PROG_AR
 
-## Check for GLFW ##
 AC_ARG_WITH([asonq], [AS_HELP_STRING(
 	     [--with-asonq],
 	 [Build the asonq binary])
@@ -30,7 +29,20 @@ AM_CONDITIONAL([BUILD_ASONQ], [ test "x$with_asonq" != xno ])
 AC_PATH_PROG([LEMON], [lemon], [no])
 test "x$LEMON" = "xno" && AC_MSG_ERROR([Lemon parser generator not found])
 
+AC_ARG_ENABLE([spec], [AS_HELP_STRING(
+	     [--enable-spec],
+	     [Build the ASON specification document])
+], [], [with_spec=yes])
+
+AC_PATH_PROG([PDFLATEX], [pdflatex], [no])
+
+test "x$PDFLATEX" = "xno" -a "x$with_spec" != xno && \
+	AC_MSG_ERROR([PDFLatex not found])
+
+AM_CONDITIONAL([INSTALL_SPEC], [ test "x$with_spec" != xno ])
+
 AC_ARG_VAR([LEMON], [Lemon parser generator command])
+AC_ARG_VAR([PDFLATEX], [PDFLatex command])
 LT_INIT
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([include/config.h])
@@ -39,5 +51,6 @@ AC_CONFIG_FILES([
 	src/Makefile
 	include/Makefile
 	tests/Makefile
+	doc/Makefile
 ])
 AC_OUTPUT
