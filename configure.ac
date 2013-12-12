@@ -1,4 +1,4 @@
-AC_INIT([libason], [0.1], [casey.dahlin@gmail.com])
+AC_INIT([libason], [0.0.1], [casey.dahlin@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror -Wno-portability foreign parallel-tests])
 AM_SILENT_RULES([yes])
 AC_PROG_CC
