@@ -4,6 +4,7 @@ AM_SILENT_RULES([yes])
 AC_PROG_CC
 m4_pattern_allow([AM_PROG_AR])
 AM_PROG_AR
+AC_PROG_LN_S
 
 AC_ARG_WITH([asonq], [AS_HELP_STRING(
 	     [--with-asonq],
