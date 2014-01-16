@@ -65,6 +65,7 @@ extern struct test_info *test_info;
 
 #define EXIT_TEST_FAIL 88
 #define REQUIRE(x) if (! (x)) { \
+	printf("Failed: %s: %s:%d\n", #x, __FILE__, __LINE__); \
 	test_info->state[test_info->current] = TEST_FAILED; \
 	break; }
 
