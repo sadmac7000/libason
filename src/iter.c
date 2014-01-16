@@ -29,7 +29,7 @@ struct ason_iter_frame {
 /**
  * Begin a new iterator for an ASON value.
  **/
-ason_iter_t *
+API_EXPORT ason_iter_t *
 ason_iterate(ason_t *value)
 {
 	ason_iter_t *ret = xcalloc(1, sizeof(ason_iter_t));
@@ -57,7 +57,7 @@ ason_iter_index_refresh(ason_iter_t *iter)
 /**
  * Iterate sub-values of the current value.
  **/
-int
+API_EXPORT int
 ason_iter_enter(ason_iter_t *iter)
 {
 	size_t alloc_size;
@@ -99,7 +99,7 @@ ason_iter_enter(ason_iter_t *iter)
 /**
  * Return to the parent value of the current value.
  **/
-int
+API_EXPORT int
 ason_iter_exit(ason_iter_t *iter)
 {
 	if (! iter->depth)
@@ -114,7 +114,7 @@ ason_iter_exit(ason_iter_t *iter)
 /**
  * Get the next successive value for this iterator.
  **/
-int
+API_EXPORT int
 ason_iter_next(ason_iter_t *iter)
 {
 	ason_t *parent;
@@ -135,7 +135,7 @@ ason_iter_next(ason_iter_t *iter)
 /**
  * Get the previous value for this iterator.
  **/
-int
+API_EXPORT int
 ason_iter_prev(ason_iter_t *iter)
 {
 	if (! iter->depth)
@@ -151,7 +151,7 @@ ason_iter_prev(ason_iter_t *iter)
 /**
  * Get the type of the value this iterator points to.
  **/
-ason_type_t
+API_EXPORT ason_type_t
 ason_iter_type(ason_iter_t *iter)
 {
 	return iter->current->type;
@@ -161,7 +161,7 @@ ason_iter_type(ason_iter_t *iter)
  * Return the long value of the iterator's current value. Abort if the value is
  * not a number.
  **/
-long
+API_EXPORT long
 ason_iter_long(ason_iter_t *iter)
 {
 	if (iter->current->type != ASON_TYPE_NUMERIC)
@@ -174,7 +174,7 @@ ason_iter_long(ason_iter_t *iter)
  * Return the double value of the iterator's current value. Abort if the value
  * is not a number.
  **/
-double
+API_EXPORT double
 ason_iter_double(ason_iter_t *iter)
 {
 	if (iter->current->type != ASON_TYPE_NUMERIC)
@@ -187,7 +187,7 @@ ason_iter_double(ason_iter_t *iter)
  * Return the string value of the iterator's current value. Abort if the value
  * is not a string. The result must be freed by the caller.
  **/
-char *
+API_EXPORT char *
 ason_iter_string(ason_iter_t *iter)
 {
 	if (iter->current->type != ASON_TYPE_STRING)
@@ -201,7 +201,7 @@ ason_iter_string(ason_iter_t *iter)
  * if the current value is not in an object. The result must be freed by the
  * caller.
  **/
-char *
+API_EXPORT char *
 ason_iter_key(ason_iter_t *iter)
 {
 	ason_t *parent;
@@ -222,7 +222,7 @@ ason_iter_key(ason_iter_t *iter)
  * Get the current ASON value for this iterator. This creates a new ASON value
  * which must be destroyed.
  **/
-ason_t *
+API_EXPORT ason_t *
 ason_iter_value(ason_iter_t *iter)
 {
 	return ason_copy(iter->current);
@@ -231,7 +231,7 @@ ason_iter_value(ason_iter_t *iter)
 /**
  * Destroy an ASON iterator.
  **/
-void
+API_EXPORT void
 ason_iter_destroy(ason_iter_t *iter)
 {
 	if (iter->depth)
