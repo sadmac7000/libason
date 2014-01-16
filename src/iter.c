@@ -88,8 +88,9 @@ ason_iter_enter(ason_iter_t *iter)
 			xrealloc(iter->parents,
 				 alloc_size * sizeof(struct ason_iter_frame));
 
-	iter->parents[iter->depth++].value = iter->current;
-	iter->parents[iter->depth++].index= iter->index;
+	iter->parents[iter->depth].value = iter->current;
+	iter->parents[iter->depth].index= iter->index;
+	iter->depth++;
 	ason_iter_index_refresh(iter);
 	iter->index = 0;
 
