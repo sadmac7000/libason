@@ -7,6 +7,7 @@ lib_LTLIBRARIES = libason.la
 libason_la_SOURCES = \
 	value.c \
 	output.c \
+	iter.c \
 	stringfunc.c \
 	namespace.c \
 	namespace_ram.c \
