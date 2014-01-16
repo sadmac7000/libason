@@ -38,15 +38,15 @@ static int
 ason_get_precedence(ason_type_t operator)
 {
 	switch (operator) {
-	case TYPE_EQUAL:
+	case ASON_TYPE_EQUAL:
 		return 1;
-	case TYPE_REPR:
+	case ASON_TYPE_REPR:
 		return 2;
-	case TYPE_UNION:
+	case ASON_TYPE_UNION:
 		return 3;
-	case TYPE_INTERSECT:
+	case ASON_TYPE_INTERSECT:
 		return 4;
-	case TYPE_JOIN:
+	case ASON_TYPE_JOIN:
 		return 5;
 	default:
 		return INT_MAX;
@@ -60,19 +60,19 @@ static const char *
 ason_get_opchar(ason_type_t operator, int use_unicode)
 {
 	switch (operator) {
-	case TYPE_INTERSECT:
+	case ASON_TYPE_INTERSECT:
 		if (use_unicode)
 			return "∩";
 		else
 			return "&";
-	case TYPE_JOIN:
+	case ASON_TYPE_JOIN:
 		return ":";
-	case TYPE_REPR:
+	case ASON_TYPE_REPR:
 		if (use_unicode)
 			return "⊆";
 		else
 			return "in";
-	case TYPE_EQUAL:
+	case ASON_TYPE_EQUAL:
 		return "=";
 	default:
 		errx(1, "Unreachable statement at %s:%d", __FILE__, __LINE__);
@@ -170,11 +170,11 @@ ason_asprint_object(ason_t *value, int use_unicode)
 		}
 	}
 
-	if (out && value->type == TYPE_UOBJECT)
+	if (out && value->type == ASON_TYPE_UOBJECT)
 		tmp = xasprintf("{ %s, *}", out);
 	else if (out)
 		tmp = xasprintf("{ %s }", out);
-	else if (value->type == TYPE_UOBJECT)
+	else if (value->type == ASON_TYPE_UOBJECT)
 		tmp = xasprintf("{*}");
 	else
 		tmp = xasprintf("{}");
@@ -253,41 +253,41 @@ ason_do_asprint(ason_t *value, int use_unicode)
 	char *ret;
 
 	switch (value->type) {
-	case TYPE_NUMERIC:
+	case ASON_TYPE_NUMERIC:
 		return ason_asprint_number(value->n);
-	case TYPE_EMPTY:
+	case ASON_TYPE_EMPTY:
 		if (use_unicode)
 			return xasprintf("∅");
 		else
 			return xasprintf("_");
-	case TYPE_NULL:
+	case ASON_TYPE_NULL:
 		return xasprintf("null");
-	case TYPE_TRUE:
+	case ASON_TYPE_TRUE:
 		return xasprintf("true");
-	case TYPE_FALSE:
+	case ASON_TYPE_FALSE:
 		return xasprintf("false");
-	case TYPE_STRING:
+	case ASON_TYPE_STRING:
 		tmp = string_escape(value->string);
 		ret = xasprintf("\"%s\"", tmp);
 		free(tmp);
 		return ret;
-	case TYPE_UNIVERSE:
+	case ASON_TYPE_UNIVERSE:
 		return xasprintf("U");
-	case TYPE_WILD:
+	case ASON_TYPE_WILD:
 		return xasprintf("*");
-	case TYPE_INTERSECT:
-	case TYPE_JOIN:
-	case TYPE_REPR:
-	case TYPE_EQUAL:
+	case ASON_TYPE_INTERSECT:
+	case ASON_TYPE_JOIN:
+	case ASON_TYPE_REPR:
+	case ASON_TYPE_EQUAL:
 		return ason_asprint_operator(value, use_unicode);
-	case TYPE_UNION:
+	case ASON_TYPE_UNION:
 		return ason_asprint_union(value, use_unicode);
-	case TYPE_OBJECT:
-	case TYPE_UOBJECT:
+	case ASON_TYPE_OBJECT:
+	case ASON_TYPE_UOBJECT:
 		return ason_asprint_object(value, use_unicode);
-	case TYPE_LIST:
+	case ASON_TYPE_LIST:
 		return ason_asprint_list(value, use_unicode);
-	case TYPE_COMP:
+	case ASON_TYPE_COMP:
 		tmp = ason_do_asprint(value->items[0], use_unicode);
 		if (ason_get_precedence(value->items[0]->type) < INT_MAX)
 			ret = xasprintf("!( %s )", tmp);

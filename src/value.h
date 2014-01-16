@@ -25,29 +25,6 @@
 #include <ason/value.h>
 
 /**
- * An ASON type.
- **/
-typedef enum {
-	TYPE_NUMERIC,
-	TYPE_EMPTY,
-	TYPE_NULL,
-	TYPE_UNIVERSE,
-	TYPE_WILD,
-	TYPE_UNION,
-	TYPE_INTERSECT,
-	TYPE_OBJECT,
-	TYPE_UOBJECT,
-	TYPE_LIST,
-	TYPE_JOIN,
-	TYPE_COMP,
-	TYPE_STRING,
-	TYPE_TRUE,
-	TYPE_FALSE,
-	TYPE_REPR,
-	TYPE_EQUAL,
-} ason_type_t;
-
-/**
  * A Key-value pair.
  **/
 struct kv_pair {
@@ -74,12 +51,14 @@ struct ason {
 /**
  * Test if an ASON value is an object.
  **/
-#define IS_OBJECT(_x) (_x->type == TYPE_OBJECT || _x->type == TYPE_UOBJECT)
+#define IS_OBJECT(_x) (_x->type == ASON_TYPE_OBJECT || \
+		       _x->type == ASON_TYPE_UOBJECT)
 
 /**
  * Test if an ASON value is a boolean.
  **/
-#define IS_BOOL(_x) (_x->type == TYPE_TRUE || _x->type == TYPE_FALSE)
+#define IS_BOOL(_x) (_x->type == ASON_TYPE_TRUE || \
+		     _x->type == ASON_TYPE_FALSE)
 
 #ifdef __cplusplus
 extern "C" {

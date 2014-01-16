@@ -21,6 +21,29 @@
 #include <stdint.h>
 
 /**
+ * An ASON type.
+ **/
+typedef enum {
+	ASON_TYPE_NUMERIC,
+	ASON_TYPE_EMPTY,
+	ASON_TYPE_NULL,
+	ASON_TYPE_UNIVERSE,
+	ASON_TYPE_WILD,
+	ASON_TYPE_UNION,
+	ASON_TYPE_INTERSECT,
+	ASON_TYPE_OBJECT,
+	ASON_TYPE_UOBJECT,
+	ASON_TYPE_LIST,
+	ASON_TYPE_JOIN,
+	ASON_TYPE_COMP,
+	ASON_TYPE_STRING,
+	ASON_TYPE_TRUE,
+	ASON_TYPE_FALSE,
+	ASON_TYPE_REPR,
+	ASON_TYPE_EQUAL,
+} ason_type_t;
+
+/**
  * An ASON value
  **/
 typedef struct ason ason_t;
