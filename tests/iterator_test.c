@@ -26,7 +26,8 @@
 #include "harness.h"
 
 TESTS("Object Iteration",
-      "Universal Object Iteration",);
+      "Universal Object Iteration",
+      "List Iteration");
 
 /**
  * Basic exercise of the parser.
@@ -116,6 +117,31 @@ TEST_MAIN("Iteration")
 
 		for (i = 0; i < 3; i++)
 			REQUIRE(items[i].seen);
+	}
+
+	ason_destroy(a);
+	ason_iter_destroy(iter);
+
+	a = ason_read("[ \"foo\", \"bar\", \"baz\" ]", NULL);
+	iter = ason_iterate(a);
+
+	TEST("List Iteration") {
+		char *values[3] = { "foo", "bar", "baz" };
+
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_LIST);
+		REQUIRE(ason_iter_enter(iter));
+
+		i = 0;
+		do {
+			REQUIRE(i < 3);
+
+			str = ason_iter_string(iter);
+
+			REQUIRE(! strcmp(values[i], str));
+			free(str);
+
+			i++;
+		} while(ason_iter_next(iter));
 	}
 
 	ason_destroy(a);
