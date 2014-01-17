@@ -131,7 +131,7 @@ value(A) ::= SYMBOL(B). {
 
 list(A) ::= union(B).				{ A = ason_create_list_d(B); }
 list(A) ::= union(B) COMMA list(C).		{
-	A = ason_join_d(ason_create_list_d(B), C);
+	A = ason_append_lists_d(ason_create_list_d(B), C);
 }
 
 kv_pair(A) ::= STRING(B) COLON union(C).	{

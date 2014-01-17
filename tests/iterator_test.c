@@ -66,6 +66,8 @@ TEST_MAIN("Iteration")
 					REQUIRE(items[i].value == ason_iter_long(iter));
 					REQUIRE(! items[i].seen);
 					items[i].seen = 1;
+					free(str);
+					break;
 				}
 
 				free(str);
@@ -107,6 +109,8 @@ TEST_MAIN("Iteration")
 					REQUIRE(items[i].value == ason_iter_long(iter));
 					REQUIRE(! items[i].seen);
 					items[i].seen = 1;
+					free(str);
+					break;
 				}
 
 				free(str);
