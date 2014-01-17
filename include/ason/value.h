@@ -62,6 +62,7 @@ extern "C" {
 
 ason_t *ason_create_number(int64_t number);
 ason_t *ason_create_list(ason_t *content);
+ason_t *ason_append_lists(ason_t *list, ason_t *item);
 ason_t *ason_create_object(const char *key, ason_t *value); 
 ason_t *ason_create_string(const char *str);
 ason_t *ason_union(ason_t *a, ason_t *b);
@@ -148,6 +149,14 @@ ason_equality_d(ason_t *a, ason_t *b)
 {
 	ason_t *ret;
 	ret = ason_equality(a, b);
+	return ret;
+}
+
+static inline ason_t *
+ason_append_lists_d(ason_t *a, ason_t *b)
+{
+	ason_t *ret;
+	ret = ason_append_lists(a, b);
 	return ret;
 }
 

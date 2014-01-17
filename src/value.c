@@ -329,6 +329,30 @@ ason_create_list(ason_t *content)
 }
 
 /**
+ * Create an ASON list with the values in one list as well as the values in
+ * another list.
+ **/
+API_EXPORT ason_t *
+ason_append_lists(ason_t *a, ason_t *b)
+{
+	ason_t *ret;
+	size_t i;
+
+	if (a->type != ASON_TYPE_LIST || b->type != ASON_TYPE_LIST)
+		errx(1, "Arguments to ason_append_lists must be lists");
+
+	ret = ason_create(ASON_TYPE_LIST, a->count + b->count);
+
+	for (i = 0; i < a->count; i++)
+		ret->items[i] = ason_copy(a->items[i]);
+
+	for (i = 0; i < b->count; i++)
+		ret->items[a->count + i] = ason_copy(b->items[i]);
+
+	return ret;
+}
+
+/**
  * Create an ASON value.
  **/
 API_EXPORT ason_t *
