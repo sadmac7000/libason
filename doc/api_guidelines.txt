@@ -20,7 +20,7 @@ beware.
 Please note that this does NOT mean that the objects are actually not changing.
 ASON is allowed to reorganize the structure of an object AT ANY TIME so long as
 it represents the same value in an ASON sense. Also, examination may reveal
-libason returning the same pointer in multiple places DO NOT LOOK AT THE
+libason returning the same pointer in multiple places. DO NOT LOOK AT THE
 POINTERS. Semantically every ason_t * BEHAVES like a pointer to a distinct,
 immutable ASON value.
 
