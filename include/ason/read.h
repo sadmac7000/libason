@@ -17,8 +17,8 @@
  * along with libason. If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#ifndef ASON_PARSE_H
-#define ASON_PARSE_H
+#ifndef ASON_READ_H
+#define ASON_READ_H
 
 #include <ason/value.h>
 #include <ason/namespace.h>
@@ -34,5 +34,5 @@ ason_t *ason_readn(const char *text, size_t length, ason_ns_t *ns);
 }
 #endif
 
-#endif /* ASON_PARSE_H */
+#endif /* ASON_READ_H */
 
