@@ -1,0 +1,38 @@
+.TH ASON_READ 3 "JANUARY 2014" Linux "User Manuals"
+.SH NAME
+ason_read, ason_read \- Parse ASON values into ason_t objects.
+
+.SH SYNOPSIS
+.B #include <ason/value.h>
+.br
+.B #include <ason/read.h>
+.sp
+.B ason_t *ason_read(const char *text, ason_ns_t *ns);
+.br
+.B ason_t *ason_readn(const char *text, size_t length, ason_ns_t *ns);
+.SH DESCRIPTION
+.B ason_read
+parses an ASON value and creates an
+.I ason_t
+representation of that value.
+.B ason_readn
+is the same, but reads only
+.I length
+characters of the string.
+
+The parameter
+.I ns
+is a namespace to evaluate variables from, and store variables to. See
+.BR ason_namespace (3).
+.SH BUGS
+libason will try to negotiate between the current locale and the JSON-mandated
+UTF-8 encoding, but for best results, users should deal directly in UTF-8.
+.SH RETURN VALUE
+All functions should always return a valid pointer to
+.IR ason_t .
+.SH SEE ALSO
+.BR ason_values (3)
+.SH AUTHOR
+Casey Dahlin <cdahlin@redhat.com>
+
+
