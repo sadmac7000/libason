@@ -143,6 +143,8 @@ ason_representation_in_d(ason_t *a, ason_t *b)
 {
 	ason_t *ret;
 	ret = ason_representation_in(a, b);
+	ason_destroy(a);
+	ason_destroy(b);
 	return ret;
 }
 
@@ -151,6 +153,8 @@ ason_equality_d(ason_t *a, ason_t *b)
 {
 	ason_t *ret;
 	ret = ason_equality(a, b);
+	ason_destroy(a);
+	ason_destroy(b);
 	return ret;
 }
 
@@ -159,6 +163,8 @@ ason_append_lists_d(ason_t *a, ason_t *b)
 {
 	ason_t *ret;
 	ret = ason_append_lists(a, b);
+	ason_destroy(a);
+	ason_destroy(b);
 	return ret;
 }
 
