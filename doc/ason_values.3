@@ -1,9 +1,10 @@
 .TH ASON\ VALUES 3 "DECEMBER 2013" Linux "User Manuals"
 .SH NAME
-ason_create_number, ason_create_list, ason_create_object, ason_create_string,
-ason_union, ason_intersect, ason_join, ason_complement, ason_representation_in,
-ason_equality, ason_create_list_d, ason_create_object_d, ason_union_d,
-ason_intersect_d, ason_join_d, ason_complement_d, ason_representation_in_d,
+ason_create_number, ason_create_list, ason_append_lists, ason_create_object,
+ason_create_string, ason_union, ason_intersect, ason_join, ason_complement,
+ason_representation_in, ason_equality, ason_create_list_d, ason_append_lists_d,
+ason_create_object_d, ason_union_d, ason_intersect_d, ason_join_d,
+ason_complement_d, ason_representation_in_d,
 ason_equality_d \- Create ASON values
 
 ASON_EMPTY, ASON_NULL, ASON_UNIVERSE, ASON_WILD, ASON_OBJ_ANY, ASON_TRUE,
@@ -18,6 +19,10 @@ ASON_FALSE \- Predefined basic ASON value constants
 .B ason_t *ason_create_list(ason_t *content);
 .br
 .B ason_t *ason_create_list_d(ason_t *content);
+.br
+.B ason_t *ason_append_lists(ason_t *content);
+.br
+.B ason_t *ason_append_lists_d(ason_t *content);
 .sp
 .B ason_t *ason_create_object(const char *key, ason_t *value); 
 .br
@@ -48,11 +53,17 @@ ASON_FALSE \- Predefined basic ASON value constants
 .B ason_t *ason_equality_d(ason_t *a, ason_t *b);
 .sp
 .B ason_t * const ASON_EMPTY;
+.br
 .B ason_t * const ASON_NULL;
+.br
 .B ason_t * const ASON_UNIVERSE;
+.br
 .B ason_t * const ASON_WILD;
+.br
 .B ason_t * const ASON_OBJ_ANY;
+.br
 .B ason_t * const ASON_TRUE;
+.br
 .B ason_t * const ASON_FALSE;
 .SH DESCRIPTION
 .SS Functions
@@ -93,6 +104,14 @@ is different in only this resepct;
 .I a
 is no longer valid after being passed and does not need to be released with
 .BR ason_destroy (3).
+
+.B ason_append_lists
+creates an ASON list containing the values from an ASON list
+.I a
+followed by the values from an ASON list
+.IR b .
+.B ason_append_lists_d
+is the same, and also destroys the two argument lists.
 
 .B ason_create_object
 creates a non-universal ASON object with one key
