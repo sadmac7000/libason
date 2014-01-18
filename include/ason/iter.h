@@ -1,4 +1,6 @@
 /**
+ * Copyright © 2013, 2014 Red Hat, Casey Dahlin <cdahlin@redhat.com>
+ *
  * This file is part of libason.
  *
  * libason is free software: you can redistribute it and/or modify
