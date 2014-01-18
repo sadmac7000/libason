@@ -708,13 +708,15 @@ ason_reduce_intersect(ason_t *a)
 
 		if (other == ASON_TYPE_NULL || other == ASON_TYPE_UNIVERSE)
 			a->type = ASON_TYPE_NULL;
-	} else if (a->items[0]->type == ASON_TYPE_UNIVERSE ||
-	    (a->items[0]->type == ASON_TYPE_WILD &&
-	     a->items[1]->type != ASON_TYPE_NULL)) {
+	} else if (a->items[0]->type == ASON_TYPE_UNIVERSE) {
 		ason_clone_into(a, a->items[1]);
-	} else if (a->items[1]->type == ASON_TYPE_UNIVERSE ||
-	    (a->items[1]->type == ASON_TYPE_WILD &&
-	     a->items[0]->type != ASON_TYPE_NULL)) {
+	} else if (a->items[1]->type == ASON_TYPE_UNIVERSE) {
+		ason_clone_into(a, a->items[0]);
+	} else if (a->items[0]->type == ASON_TYPE_WILD &&
+		   a->items[1]->type != ASON_TYPE_NULL) {
+		ason_clone_into(a, a->items[1]);
+	} else if (a->items[1]->type == ASON_TYPE_WILD &&
+		   a->items[0]->type != ASON_TYPE_NULL) {
 		ason_clone_into(a, a->items[0]);
 	} else if (a->items[0]->type != a->items[1]->type) {
 		if (IS_BOOL(a->items[0]) && IS_BOOL(a->items[1]))
