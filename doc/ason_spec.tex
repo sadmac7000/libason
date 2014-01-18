@@ -233,95 +233,6 @@ operations. Without this transformation it might be provable that the
 underlying set of a non-universal object has a cardinality greater than 1.
 Consider our coming definition of intersection.
 
-\subsection{Join Reduction}
-
-\begin{prule}
-\begin{equation}
-\begin{split}
-& \Bigg( \{\kvpaire{foo}{6}\} \cup \{\kvpaire{bar}{7}\} \Bigg) \quad : \quad
-\{\kvpaire{baz}{8}\} \\
-= \quad& \{\kvpaire{foo}{6}\} : \{\kvpaire{baz}{8}\} \quad \cup \quad \{\kvpaire{bar}{7}\}
- . \{\kvpaire{baz}{8}\}
-\end{split}
-\end{equation}
-
-The join operator may be distributed across the union operator.
-\end{prule}
-
-This is a logical rule, but its implications are significant. Because of
-rule \ref{sec:oblit}, join can behave much like relational algebra's inner join,
-crossing two unioned collections of values.
-
-\begin{prule}
-\begin{equation}
-\begin{array}{rclcl}
-6 \quad&:&\quad null & = & 6 \\
-null \quad&:&\quad 6 & = & 6 \\
-\end{array}
-\end{equation}
-\end{prule}
-
-If either operand of a join can be represented as \(null\), the entire
-expression can be represented by the other operand.
-
-\begin{prule}
-All applications of join which cannot be transformed by one of the above rules
-are identical to intersection.
-\end{prule}
-
-This is all we need to specify join fully. Intersection will find common
-members in objects, and the \(null\) replacement will let us append objects to
-oneanother.
-
-\begin{prule}
-\begin{equation}
-\begin{array}{rlllll}
-& \{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpaire{baz}{c}&&\}\quad:\\
-& \{&\kvpair{bar}{d}&\kvpair{baz}{null}&\kvpaire{bam}{e}&\} \\
-\\
-=&\{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpair{baz}{c}&\kvpaire{bam}{null}&\}\quad:\\
- &\{\kvpair{foo}{null}&\kvpair{bar}{d}&\kvpair{baz}{null}&\kvpaire{bam}{e}&\} \\
-\\
-=&\Bigg\{\kvpair{foo}{a}&\kvpair{bar}{b :
-d}&\kvpair{baz}{c}&\kvpaire{bam}{e}&\Bigg\}\\
-\end{array}
-\end{equation}
-
-An join of two or more objects, universal or otherwise, can be replaced with
-a single object, where that object is universal if and only if either of the
-two operands were universal.
-\begin{enumerate}
-\item Use key expansion so both original objects have the same set of keys. The
-result object will also have that set of keys
-\item If either operand has \(null\) as the value for a given key, the result
-object will have the value from the other operand. If both objects have
-\(null\) the result object will have \(null\).
-\item If neither operand has \(null\) for a given key, then the result object
-will have the intersection of the two values in the operands for that key.
-\end{enumerate}
-\end{prule}
-
-Consider for a moment the implication that this has for objects with duplicate
-keys. JSON does not specify a semantic, and thus does not expressly prohibit
-duplicate keys, although this is incompatible with most programmers' intuitive
-understanding of what a JSON object represents. ASON offers a solution, where:
-
-\begin{equation}
-\{\kvpair{foo}{a}\kvpaire{foo}{b}\}
-\end{equation}
-
-Is interpreted as:
-
-\begin{equation}
-\{\kvpaire{foo}{a}\}:\{\kvpaire{foo}{b}\}
-\end{equation}
-
-And thus reduces, by the above transform, to:
-
-\begin{equation}
-\{\kvpaire{foo}{a : b}\}
-\end{equation}
-
 \subsection{Intersection Reduction}
 
 \begin{prule}
@@ -426,6 +337,99 @@ values for that key in the operands.
 This complements the previous rule, and rounds out our definition of
 intersection. Again, it nicely parallels rule \ref{sec:interelim}, but does
 resolve real ambiguity in the system.
+
+\subsection{Join Reduction}
+
+\begin{prule}
+\begin{equation}
+\begin{split}
+& \Bigg( \{\kvpaire{foo}{6}\} \cup \{\kvpaire{bar}{7}\} \Bigg) \quad : \quad
+\{\kvpaire{baz}{8}\} \\
+= \quad& \{\kvpaire{foo}{6}\} : \{\kvpaire{baz}{8}\} \quad \cup \quad \{\kvpaire{bar}{7}\}
+ : \{\kvpaire{baz}{8}\}
+\end{split}
+\end{equation}
+
+The join operator may be distributed over the union operator.
+\end{prule}
+
+An issue of precedence, which should be well expected by now.
+
+\begin{prule}
+\begin{equation}
+\begin{array}{rclcl}
+6 \quad&:&\quad 7 & = & \emptyset \\
+\{\kvpaire{foo}{"bar"}\} \quad&:&\quad 7 & = & \emptyset \\
+{[}4,\quad5,\quad6] \quad&:&\quad 7 & = & \emptyset \\
+{[}4,\quad5,\quad6] \quad&:&\quad {[}7,\quad8] & = & \emptyset \\
+{[}4,\quad5,\quad6] \quad&:&\quad \{\kvpaire{foo}{"bar"}\} & = & \emptyset \\
+\\
+6 \quad&:&\quad null & = & 6 \\
+\end{array}
+\end{equation}
+
+The joining of any two values which are not equal, and of which neither
+can be expressed as a union of two or more non-equal, non-empty values, is
+\(\emptyset\), unless one of those values is \(null\), in which case the join
+may be expressed as the other value singly.
+\end{prule}
+
+We borrow this from the intersect operator, which join mirrors, and add an
+exception, which wholly encapsulates how join differs from intersect.
+
+\begin{prule}
+\begin{equation}
+\begin{array}{rclcl}
+6 \quad&:&\quad 6 & = & 6 \\
+\{\kvpaire{foo}{"bar"}\} \quad&:&\quad \{\kvpaire{foo}{"bar"}\}  & = & \{\kvpaire{foo}{"bar"}\} \\
+{[}4,\quad5,\quad6] \quad&:&\quad {[}4,\quad5,\quad6] & = & {[}4,\quad5,\quad6] \\
+\end{array}
+\end{equation}
+
+The join of any two values which are equal is equal to those values.
+\end{prule}
+
+Here intersect behaves identically.
+
+\begin{prule}
+\begin{equation}
+{[}a,\quad b,\quad c] \quad:\quad {[}d,\quad e,\quad f]  =  {[}a: d,\quad
+b: e,\quad c: f] \\
+\end{equation}
+
+The join of any two lists of the same length can be reduced to a list
+which is also that length and where each element is the intersection of the
+corresponding two elements in the operand lists.
+\end{prule}
+
+Again, similar to intersection.
+
+\begin{prule}
+\begin{equation}
+\begin{array}{rlllll}
+& \{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpaire{baz}{c}&&\}\quad:\\
+& \{&\kvpair{bar}{d}&\kvpair{baz}{null}&\kvpaire{bam}{e}&\} \\
+\\
+=&\{\kvpair{foo}{a}&\kvpair{bar}{b}&\kvpair{baz}{c}&\kvpaire{bam}{null}&\}\quad:\\
+ &\{\kvpair{foo}{null}&\kvpair{bar}{d}&\kvpair{baz}{null}&\kvpaire{bam}{e}&\} \\
+\\
+=&\Bigg\{\kvpair{foo}{a: null}&\kvpair{bar}{b:
+d}&\kvpair{baz}{c: null}&\kvpaire{bam}{e: null}&\Bigg\}\\
+\end{array}
+\end{equation}
+
+A join of two or more objects, universal or otherwise, can be replaced
+with a single object, where that object is universal if and only if both of
+the two operands were universal.
+\begin{enumerate}
+\item Use key expansion so both original objects have the same set of keys. The
+result object will also have that set of keys
+\item For each key, the result object will have the join of the two
+values for that key in the operands.
+\end{enumerate}
+\end{prule}
+
+We finish here the same way we finish in intersection.
 
 \subsection{Union Reduction}
 \begin{prule}
