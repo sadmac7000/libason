@@ -1,0 +1,171 @@
+.TH ASON\ ITERATORS 3 "JANUARY 2014" Linux "User Manuals"
+.SH NAME
+ason_destroy \- Free resources associated with an ason_t value.
+
+.SH SYNOPSIS
+.B #include <ason/value.h>
+.br
+.B #include <ason/iter.h>
+.sp
+.B ason_iter_t *ason_iterate(ason_t *value);
+.sp
+.B int ason_iter_enter(ason_iter_t *iter);
+.br
+.B int ason_iter_exit(ason_iter_t *iter);
+.sp
+.B int ason_iter_next(ason_iter_t *iter);
+.br
+.B int ason_iter_prev(ason_iter_t *iter);
+.sp
+.B long ason_iter_long(ason_iter_t *iter);
+.br
+.B double ason_iter_double(ason_iter_t *iter);
+.br
+.B char *ason_iter_string(ason_iter_t *iter);
+.br
+.B ason_t *ason_iter_value(ason_iter_t *iter);
+.sp
+.B char *ason_iter_key(ason_iter_t *iter);
+.sp
+.B void ason_iter_destroy(ason_iter_t *iter);
+.sp
+.B ason_type_t ason_iter_type(ason_iter_t *iter);
+.sp
+.B typedef enum {
+.br
+.B 	ASON_TYPE_NUMERIC,
+.br
+.B 	ASON_TYPE_EMPTY,
+.br
+.B 	ASON_TYPE_NULL,
+.br
+.B 	ASON_TYPE_UNIVERSE,
+.br
+.B 	ASON_TYPE_WILD,
+.br
+.B 	ASON_TYPE_UNION,
+.br
+.B 	ASON_TYPE_INTERSECT,
+.br
+.B 	ASON_TYPE_OBJECT,
+.br
+.B 	ASON_TYPE_UOBJECT,
+.br
+.B 	ASON_TYPE_LIST,
+.br
+.B 	ASON_TYPE_JOIN,
+.br
+.B 	ASON_TYPE_COMP,
+.br
+.B 	ASON_TYPE_STRING,
+.br
+.B 	ASON_TYPE_TRUE,
+.br
+.B 	ASON_TYPE_FALSE,
+.br
+.B 	ASON_TYPE_REPR,
+.br
+.B 	ASON_TYPE_EQUAL,
+.br
+.B } ason_type_t;
+.SH DESCRIPTION
+ASON iterators are used to traverse ASON values and query individual values
+within. ASON iterators are created with
+.BR ason_iterate ,
+and they should be released after use with
+.BR ason_iter_destroy .
+
+Once created, the iterator points to the object which was passed to
+.BR ason_iterate .
+You can get a copy of this value with
+.BR ason_iter_value .
+
+.B ason_iter_enter
+is used to begin iterating sub-values of a value. It will let you iterate
+through operands of an irreducible operator, values in a list, and key-value
+pairs in an object or universal object. Values joined by union operators are
+merged as one value, so if you entered the value 6 | 7 | 8 you would be able to
+iterate through 6, 7, and 8 sequentially.
+
+.B ason_iter_exit reverses the effect of ason_enter. The iterator points back
+to the containing value.
+
+.B ason_iter_next
+and
+.B ason_iter_prev
+shift to the next and previous values being iterated respectively. If we are at
+the beginning or end of the set they have no effect.
+
+.B ason_iter_type
+returns a constant indicating the type of value the iterator currently points
+to.
+
+.BR ason_iter_long ,
+.BR ason_iter_double ,
+and
+.B ason_iter_string
+return the C value of ASON numerical values or ASON string values. It is an
+error to use these functions when the iterator is not pointing to a value of
+the type they convert. Always use
+.B ason_iter_type
+to verify the type first.
+.B ason_iter_string
+returns a pointer to a region that must be freed with
+.BR free (3).
+
+.BR ason_iter_value
+Returns an
+.I ason_t *
+copy of the value the iterator is currently pointing to.
+
+.B ason_iter_key
+returns the key for the value the iterator currently points to, if we are
+iterating through an object.
+.SH RETURN VALUE
+.B ason_iterate
+returns a new iterator which should be released with
+.BR ason_iter_destroy .
+
+.BR ason_iter_enter ,
+.BR ason_iter_exit ,
+.BR ason_iter_next ,
+and
+.B ason_iter_prev
+will return nonzero when and only when it was possible to move the iterator in
+the way prescribed.
+
+.B ason_iter_type
+returns a constant indicating the type of the value the iterator points to.
+
+.BR ason_iter_long ,
+and
+.B ason_iter_double
+return the numerical value that the iterator points to.
+
+.BR ason_iter_string ,
+and
+.B ason_iter_key
+return string pointers that should be released with
+.BR free (3)
+and which contain the string value the iterator points to, or the key for the
+value the iterator points to.
+
+.B ason_iter_value
+returns a value of type
+.I ason_t *
+which should be released with
+.BR ason_destroy (3)
+.SH ERRORS
+libason will abort if
+.BR ason_iter_long ,
+.BR ason_iter_double ,
+or
+.B ason_iter_string
+are used when the iterator does not point to the appropriate type of value.
+
+.B ason_iter_key
+will cause an abort if used while not iterating through an object.
+.SH SEE ALSO
+.BR ason_values (3)
+.SH AUTHOR
+Casey Dahlin <cdahlin@redhat.com>
