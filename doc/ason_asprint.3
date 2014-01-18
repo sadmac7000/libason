@@ -1,0 +1,31 @@
+.TH ASON_ASPRINT 3 "JANUARY 2014" Linux "User Manuals"
+.SH NAME
+ason_asprint, ason_asprint_unicode \- Convert ason_t values to strings.
+.SH SYNOPSIS
+.B #include <ason/value.h>
+.br
+.B #include <ason/output.h>
+.sp
+.B char *ason_asprint(ason_t *value);
+.br
+.B char *ason_asprint_unicode(ason_t *value);
+.SH DESCRIPTION
+.B ason_asprint
+converts a value of type
+.I ason_t
+into a human readable textual ASON representation.
+.B ason_asprint_unicode
+is the same, except the returned type is always UTF-8 encoded, and makes full
+use of the character set, whereas
+.I ason_asprint
+endeavors to be locale-safe.
+.SH RETURN VALUE
+All functions should always return a valid pointer to
+.I char
+.IR * .
+.SH SEE ALSO
+.BR ason_values (3)
+.SH AUTHOR
+Casey Dahlin <cdahlin@redhat.com>
+
+
