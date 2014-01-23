@@ -44,6 +44,16 @@ ason_ns_create(const ason_ns_ops_t *ops, const char *setup)
 }
 
 /**
+ * Destroy an ASON namespace.
+ **/
+API_EXPORT void
+ason_ns_destroy(ason_ns_t *ns)
+{
+	ns->ops->teardown(ns->data);
+	free(ns);
+}
+
+/**
  * Load a value from an ASON namespace.
  **/
 API_EXPORT ason_t *
