@@ -256,7 +256,7 @@ ason_ns_set_meta(ason_ns_t *ns, const char *name, const char *meta)
 /**
  * Get metadata for a variable in an ASON namespace.
  **/
-const char *
+API_EXPORT const char *
 ason_ns_get_meta(ason_ns_t *ns, const char *name)
 {
 	ns = ason_ns_resolve_subspaces(ns, &name);
