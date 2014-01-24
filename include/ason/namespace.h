@@ -62,6 +62,10 @@ int ason_ns_mkvar(ason_ns_t *ns, const char *name);
 int ason_ns_set_meta(ason_ns_t *ns, const char *name, const char *meta);
 const char *ason_ns_get_meta(ason_ns_t *ns, const char *name);
 
+ason_ns_t *ason_ns_attach(ason_ns_t *ns, ason_ns_t *parent, const char *name);
+void ason_ns_detach(ason_ns_t *ns);
+ason_ns_t *ason_ns_get_sub(ason_ns_t *ns, const char *name);
+
 #ifdef __cplusplus
 }
 #endif
