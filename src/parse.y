@@ -143,7 +143,7 @@ value(A) ::= STRING(B). {
 value(A) ::= O_PAREN union(B) C_PAREN. { A = B; }
 value(A) ::= SYMBOL(B). {
 	if (data->ns)
-		A = ason_ns_load(data->ns, B.c);
+		A = ason_ns_load(data->ns, B.c) ?: ASON_EMPTY;
 	else
 		A = ASON_EMPTY;
 }
