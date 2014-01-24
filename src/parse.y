@@ -320,7 +320,7 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data,
 		tok_start = text;
 
 		while (length && (isalpha(*text) || isdigit(*text) ||
-				  *text == '_')) {
+				  *text == '_' || *text == '.')) {
 			length--;
 			text++;
 		}
