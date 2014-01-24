@@ -3,7 +3,8 @@ TESTS = parser_test	  \
 	print_object	  \
 	complement_test	  \
 	intersection_test \
-	iterator_test
+	iterator_test     \
+	ns_test
 noinst_PROGRAMS = $(TESTS)
 
 MOSTLYCLEANFILES=*.gcda *.gcno *.gcov
@@ -25,3 +26,6 @@ intersection_test_LDADD = ../src/libason.la
 
 iterator_test_SOURCES = iterator_test.c harness.c
 iterator_test_LDADD = ../src/libason.la
+
+ns_test_SOURCES = ns_test.c harness.c
+ns_test_LDADD = ../src/libason.la
