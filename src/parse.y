@@ -23,6 +23,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "value.h"
 
@@ -83,8 +84,12 @@ struct parse_data {
 
 assignment ::= result.
 assignment ::= SYMBOL(A) ASSIGN result.			{
-	ason_ns_mkvar(data->ns, A.c);
-	ason_ns_store(data->ns, A.c, data->ret);
+	int i = ason_ns_mkvar(data->ns, A.c);
+
+	if (!i || i == -EEXIST)
+		ason_ns_store(data->ns, A.c, data->ret);
+	else
+		data->failed = 1;
 
 	free(A.c);
 }
