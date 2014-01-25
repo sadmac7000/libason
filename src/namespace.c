@@ -25,6 +25,20 @@
 #include "util.h"
 
 /**
+ * An entry in our registry of types of ASON namespaces.
+ */
+struct ason_ns_ops_registry {
+	char *name;
+	const ason_ns_ops_t *ops;
+};
+
+/**
+ * Our registry of types of ASON namespaces.
+ **/
+struct ason_ns_ops_registry *ason_ns_ops_registry = NULL;
+size_t ason_ns_ops_registry_count = 0;
+
+/**
  * A sub-namespace of an ASON namespace.
  **/
 struct ason_subns {
@@ -265,4 +279,64 @@ ason_ns_get_meta(ason_ns_t *ns, const char *name)
 		return NULL;
 
 	return ns->ops->get_meta(ns->data, name);
+}
+
+/**
+ * Register a new type of namespace.
+ **/
+API_EXPORT int
+ason_ns_register_proto(const ason_ns_ops_t *ops, const char *name)
+{
+	const char *pos = name;
+
+	if (! *pos)
+		return -EINVAL;
+
+	while (*pos && *pos != ':')
+		pos++;
+
+	if (*pos)
+		return -EINVAL;
+
+	ason_ns_ops_registry = xrealloc(ason_ns_ops_registry,
+					ason_ns_ops_registry_count + 1);
+
+	ason_ns_ops_registry[ason_ns_ops_registry_count].name = xstrdup(name);
+	ason_ns_ops_registry[ason_ns_ops_registry_count].ops = ops;
+	ason_ns_ops_registry_count++;
+
+	return 0;
+}
+
+/**
+ * Create a namespace from a URL.
+ **/
+API_EXPORT ason_ns_t *
+ason_ns_connect(const char *name)
+{
+	size_t i;
+	const char *args = name;
+
+	if (! ason_ns_ops_registry)
+		ason_ns_register_proto(ASON_NS_RAM, "ram");
+
+	while (*args && *args != ':')
+		args++;
+
+	for (i = 0; i < ason_ns_ops_registry_count; i++) {
+		if (strlen(ason_ns_ops_registry[i].name) !=
+		    (unsigned)(args - name))
+			continue;
+
+		if (! strncmp(ason_ns_ops_registry[i].name, name, args - name))
+			break;
+	}
+
+	if (i == ason_ns_ops_registry_count)
+		return NULL;
+
+	if (*args)
+		args++;
+
+	return ason_ns_create(ason_ns_ops_registry[i].ops, args);
 }

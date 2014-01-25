@@ -60,7 +60,10 @@ connect(const char *line, ason_ns_t *ns)
 	if (! name)
 		errx(1, "Out of Memory");
 
-	sub = ason_ns_create(ASON_NS_RAM, "");
+	while (isspace(*pos))
+		pos++;
+
+	sub = ason_ns_connect(pos);
 
 	if (! sub) {
 		printf("Could not connect\n");

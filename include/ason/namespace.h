@@ -66,6 +66,9 @@ ason_ns_t *ason_ns_attach(ason_ns_t *ns, ason_ns_t *parent, const char *name);
 void ason_ns_detach(ason_ns_t *ns);
 ason_ns_t *ason_ns_get_sub(ason_ns_t *ns, const char *name);
 
+int ason_ns_register_proto(const ason_ns_ops_t *ops, const char *name);
+ason_ns_t *ason_ns_connect(const char *name);
+
 #ifdef __cplusplus
 }
 #endif
