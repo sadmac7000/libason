@@ -202,7 +202,6 @@ colormap_offset_to_block_num(size_t color_off, size_t colormap_idx)
 	return color_off + colormap_idx * BLOCK_COLOR_ENTRIES;	
 }
 
-#if 0 /* We don't need this ATM. */
 /**
  * Turn a colormap offset to a block offset.
  **/
@@ -212,7 +211,6 @@ colormap_offset_to_offset(size_t color_off, size_t colormap_idx)
 	return block_num_to_offset(colormap_offset_to_block_num(color_off,
 								colormap_idx));
 }
-#endif
 
 /**
  * Find the color for a given colormap entry.
@@ -423,6 +421,7 @@ blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 	size_t max_count = 0;
 	size_t max_start = 0;
 	size_t max_end = 0;
+	size_t last_block_off;
 	size_t ret;
 
 	char color_before = 0;
@@ -472,8 +471,9 @@ blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 		color = 3;
 
 	ret = colormap_offset_to_block_num(max_start, 0);
+	last_block_off = colormap_offset_to_offset(max_start, 0) + blocks - 1;
 
-	if (! blockfile_ensure_space(blockfile, max_start + blocks))
+	if (! blockfile_ensure_space(blockfile, last_block_off))
 		return -ENOSPC;
 
 	colormap_color(blockfile->colormap, max_start, blocks, color);
