@@ -107,7 +107,7 @@ blockfile_open(const char *path)
 	}
 
 	ret->colormap = mmap(NULL, BLOCK_SIZE, PROT_READ | PROT_WRITE,
-			     MAP_SHARED, ret->fd, 0);
+			     MAP_SHARED, ret->fd, BLOCK_SIZE);
 
 	if (! ret->colormap) {
 		munmap(ret->metapage, BLOCK_SIZE);
