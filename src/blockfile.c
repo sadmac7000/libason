@@ -435,7 +435,7 @@ blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 	if (blocks > BLOCK_COLOR_ENTRIES)
 		return -EINVAL;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < BLOCK_COLOR_ENTRIES; i++) {
 		if (probe_colormap(blockfile->colormap, i)) {
 			count = 0;
 			continue;
