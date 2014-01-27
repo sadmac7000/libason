@@ -490,7 +490,7 @@ blockfile_free(blockfile_t *blockfile, size_t block_num)
 {
 	size_t color_off = block_num_to_colormap_offset(block_num, NULL);
 	size_t block_offset = block_num_to_offset(block_num);
-	size_t real_block_offset;
+	size_t real_block_offset = block_offset;
 	size_t size = block_allocation_dimensions(blockfile, &real_block_offset);
 	size_t i;
 
