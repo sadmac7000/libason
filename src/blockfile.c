@@ -474,7 +474,7 @@ blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 	ret = colormap_offset_to_block_num(max_start, 0);
 
 	if (! blockfile_ensure_space(blockfile, max_start + blocks))
-		return 0;
+		return -ENOSPC;
 
 	colormap_color(blockfile->colormap, max_start, blocks, color);
 	msync(blockfile->colormap, BLOCK_SIZE, MS_SYNC);
