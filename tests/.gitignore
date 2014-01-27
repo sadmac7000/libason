@@ -4,5 +4,6 @@ esc_parser_test
 complement_test
 intersection_test
 iterator_test
+ns_test
 *.log
 *.trs
