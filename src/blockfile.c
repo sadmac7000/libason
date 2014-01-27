@@ -199,7 +199,7 @@ offset_to_colormap_offset(size_t offset, size_t *colormap_idx)
 static size_t
 colormap_offset_to_block_num(size_t color_off, size_t colormap_idx)
 {
-	return color_off + colormap_idx * BLOCK_COLOR_ENTRIES;	
+	return color_off + colormap_idx * BLOCK_COLOR_ENTRIES;
 }
 
 /**
