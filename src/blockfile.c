@@ -494,6 +494,9 @@ blockfile_free(blockfile_t *blockfile, size_t block_num)
 	size_t size = block_allocation_dimensions(blockfile, &real_block_offset);
 	size_t i;
 
+	if (size == 0)
+		return -EINVAL;
+
 	if (real_block_offset != block_offset)
 		return -EINVAL;
 
