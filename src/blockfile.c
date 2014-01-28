@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -512,26 +513,104 @@ blockfile_free(blockfile_t *blockfile, size_t block_num)
 /**
  * Annotate a given block. Annotations are string tags which can be applied to
  * any one block. If the annotation already exists, it is altered to point to
- * the given block.
+ * the given block. The annotation must be less than 256 bytes long.
  **/
 int
 blockfile_annotate_block(blockfile_t *blockfile, size_t block_num, const char *name)
 {
-	(void)blockfile;
-	(void)block_num;
-	(void)name;
-	return -ENOTSUP;
+	unsigned char *metapage = blockfile->metapage;
+	size_t pos = BLOCK_MAGIC_LENGTH;
+	size_t namelen = strlen(name);
+	size_t space = namelen + 10;
+
+	if (! namelen)
+		return -EINVAL;
+
+	if (namelen > 0xff)
+		return -ENOSPC;
+
+	while (pos < BLOCK_SIZE && metapage[pos]) {
+		if (metapage[pos] != namelen) {
+			pos += metapage[pos] + 9;
+			continue;
+		}
+
+		pos++;
+
+		if (strncmp((char *)&metapage[pos], name, namelen)) {
+			pos += namelen + 8;
+			continue;
+		}
+
+		pos += namelen;
+		goto write_value;
+	}
+
+	if (pos + space > BLOCK_SIZE)
+		return -ENOSPC;
+
+	metapage[pos++] = (unsigned char)namelen;
+	memcpy(&metapage[pos], name, namelen);
+	pos += namelen;
+
+	metapage[pos + 8] = 0;
+
+write_value:
+	*(uint64_t *)&metapage[pos] = htobe64(block_num);
+	pos += 8;
+
+	return 0;
 }
 
 /**
  * Remove a given block annotation.
  **/
-int
+void
 blockfile_remove_annotation(blockfile_t *blockfile, const char *name)
 {
-	(void)blockfile;
-	(void)name;
-	return -ENOTSUP;
+	unsigned char *metapage = blockfile->metapage;
+	size_t pos = BLOCK_MAGIC_LENGTH;
+	size_t end_pos;
+	size_t next_pos;
+	size_t namelen = strlen(name);
+
+	if (! namelen)
+		return;
+
+	if (namelen > 0xff)
+		return;
+
+	while (pos < BLOCK_SIZE && metapage[pos]) {
+		if (metapage[pos] != namelen) {
+			pos += metapage[pos] + 9;
+			continue;
+		}
+
+		if (! strncmp((char *)&metapage[pos + 1], name, namelen))
+			break;
+
+		pos += namelen + 9;
+		continue;
+	}
+
+	if (pos >= BLOCK_SIZE)
+		errx(1, "Corrupt annotation list");
+
+	if (! metapage[pos])
+		return;
+
+	end_pos = pos;
+	end_pos += namelen + 9;
+	next_pos = end_pos;
+
+	while (end_pos < BLOCK_SIZE && metapage[end_pos])
+		end_pos += metapage[end_pos] + 9;
+
+	if (end_pos >= BLOCK_SIZE)
+		errx(1, "Corrupt annotation list");
+
+	memmove(&metapage[pos], &metapage[next_pos], end_pos - next_pos + 1);
+	msync(metapage, BLOCK_SIZE, MS_SYNC);
 }
 
 /**
@@ -540,7 +619,38 @@ blockfile_remove_annotation(blockfile_t *blockfile, const char *name)
 ssize_t
 blockfile_get_annotated_block(blockfile_t *blockfile, const char *name)
 {
-	(void)blockfile;
-	(void)name;
-	return -ENOENT;
+	unsigned char *metapage = blockfile->metapage;
+	size_t pos = BLOCK_MAGIC_LENGTH;
+	size_t namelen = strlen(name);
+
+	if (! namelen)
+		return -EINVAL;
+
+	if (namelen > 0xff)
+		return -EINVAL;
+
+	while (pos < BLOCK_SIZE && metapage[pos]) {
+		if (metapage[pos] != namelen) {
+			pos += metapage[pos] + 9;
+			continue;
+		}
+
+		pos++;
+
+		if (! strncmp((char *)&metapage[pos], name, namelen))
+			break;
+
+		pos += namelen + 8;
+		continue;
+	}
+
+	if (pos >= BLOCK_SIZE)
+		errx(1, "Corrupt annotation list");
+
+	if (! metapage[pos])
+		return -ENOENT;
+
+	pos += namelen;
+
+	return be64toh(*(uint64_t *)&metapage[pos]);
 }

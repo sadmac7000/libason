@@ -55,7 +55,9 @@ ssize_t blockfile_allocate(blockfile_t *blockfile, size_t blocks);
 int blockfile_free(blockfile_t *blockfile, size_t block_num);
 int blockfile_annotate_block(blockfile_t *blockfile, size_t block_num,
 			     const char *name);
-int blockfile_remove_annotation(blockfile_t *blockfile, const char *name);
+void blockfile_remove_annotation(blockfile_t *blockfile, const char *name);
+ssize_t blockfile_get_annotated_block(blockfile_t *blockfile,
+				      const char *name);
 
 #ifdef __cplusplus
 }
