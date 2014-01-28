@@ -35,7 +35,10 @@ TESTS("Initialization",
       "Allocation",
       "False free",
       "Free",
-      "Mapping");
+      "Mapping",
+      "Annotation",
+      "Removing annotation",
+      "Checking annotation");
 
 /* TODO: Make autoconf set this for us */
 #define TMPDIR "/tmp"
@@ -87,9 +90,9 @@ TEST_MAIN("Blockfiles")
 				got = 0;
 		}
 
-		REQUIRE(! strncmp(BLOCK_MAGIC, buf, BLOCK_MAGIC_LENGTH));
+		REQUIRE(! memcmp(BLOCK_MAGIC, buf, BLOCK_MAGIC_LENGTH));
 		REQUIRE(! buf[BLOCK_MAGIC_LENGTH]);
-		
+
 		for (i = 0; i < BLOCK_SIZE; i++)
 			REQUIRE(! buf[BLOCK_SIZE + i]);
 	}
@@ -202,7 +205,76 @@ TEST_MAIN("Blockfiles")
 	if (fd >= 0)
 		close(fd);
 
-	//unlink(TMPFILE);
+	unlink(TMPFILE);
+
+	bf = blockfile_open(TMPFILE);
+	fd = -1;
+	raw_mapping = NULL;
+
+	TEST("Annotation") {
+		REQUIRE(! blockfile_annotate_block(bf, 10, "foo"));
+		REQUIRE(! blockfile_annotate_block(bf, 10, "barr"));
+		REQUIRE(! blockfile_annotate_block(bf, 15, "bazzz"));
+		REQUIRE(! blockfile_annotate_block(bf, 20, "foo"));
+
+		fd = open(TMPFILE, O_RDONLY | O_CLOEXEC);
+
+		if (fd < 0)
+			err(1, "Could not open temporary file");
+
+		seek = lseek(fd, 0, SEEK_END);
+
+		if (seek < 0)
+			err(1, "Could noot seek");
+
+		REQUIRE(seek == 2 * BLOCK_SIZE);
+
+		raw_mapping = mmap(NULL, BLOCK_SIZE, PROT_READ, MAP_PRIVATE, fd, 0);
+
+		char test[] = "asonblok\0\0\0\3foo\0\0\0\0\0\0\0\x14\x4"
+			"barr\0\0\0\0\0\0\0\xa\5bazzz\0\0\0\0\0\0\0\xf\0";
+
+		REQUIRE(! memcmp(raw_mapping, test, sizeof(test) - 1));
+	}
+
+	if (raw_mapping)
+		munmap(raw_mapping, BLOCK_SIZE);
+
+	if (fd >= 0)
+		close(fd);
+
+	fd = -1;
+	raw_mapping = NULL;
+
+	TEST("Removing annotation") {
+		blockfile_remove_annotation(bf, "barr");
+
+		fd = open(TMPFILE, O_RDONLY | O_CLOEXEC);
+
+		if (fd < 0)
+			err(1, "Could not open temporary file");
+
+		raw_mapping = mmap(NULL, BLOCK_SIZE, PROT_READ, MAP_PRIVATE, fd, 0);
+
+		char test[] = "asonblok\0\0\0\3foo\0\0\0\0\0\0\0\x14\x5"
+			"bazzz\0\0\0\0\0\0\0\xf\0";
+
+		REQUIRE(! memcmp(raw_mapping, test, sizeof(test) - 1));
+	}
+
+	if (raw_mapping)
+		munmap(raw_mapping, BLOCK_SIZE);
+
+	if (fd >= 0)
+		close(fd);
+
+	TEST("Checking annotation") {
+		REQUIRE(blockfile_get_annotated_block(bf, "bar") == -ENOENT);
+		REQUIRE(blockfile_get_annotated_block(bf, "bazzz") == 15);
+	}
+
+	blockfile_close(bf);
+	/* unlink(TMPFILE); */
 
 	return 0;
 }
