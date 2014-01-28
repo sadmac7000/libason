@@ -383,7 +383,7 @@ static void
 colormap_color(char *colormap, size_t color_off, size_t blocks, char color)
 {
 	size_t start = color_off % 4;
-	char mask;
+	unsigned char mask;
 	size_t this_blocks;
 
 	color = color | (color << 2) | (color << 4) | (color << 6);
@@ -398,7 +398,7 @@ colormap_color(char *colormap, size_t color_off, size_t blocks, char color)
 		if (blocks < this_blocks)
 			this_blocks = blocks;
 
-		mask ^= mask >> (2 * this_blocks);
+		mask ^= (mask >> (2 * this_blocks));
 
 		*colormap &= ~mask;
 		*colormap |= color & mask;
