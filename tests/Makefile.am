@@ -4,6 +4,7 @@ TESTS = parser_test	  \
 	complement_test	  \
 	intersection_test \
 	iterator_test     \
+	blockfile_test     \
 	ns_test
 noinst_PROGRAMS = $(TESTS)
 
@@ -29,3 +30,6 @@ iterator_test_LDADD = ../src/libason.la
 
 ns_test_SOURCES = ns_test.c harness.c
 ns_test_LDADD = ../src/libason.la
+
+blockfile_test_SOURCES = blockfile_test.c harness.c \
+			 ../src/blockfile.c ../src/blockfile.h
