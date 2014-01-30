@@ -498,7 +498,7 @@ colormap_allocate(blockfile_t *blockfile)
 		return NULL;
 
 	mapping = mmap(NULL, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED,
-		       blockfile->fd, pos);
+		       blockfile->fd, pos * BLOCK_SIZE);
 
 	if (mapping == MAP_FAILED)
 		return NULL;
