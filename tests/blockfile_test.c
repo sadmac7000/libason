@@ -274,7 +274,7 @@ TEST_MAIN("Blockfiles")
 	}
 
 	blockfile_close(bf);
-	/* unlink(TMPFILE); */
+	unlink(TMPFILE);
 
 	return 0;
 }
