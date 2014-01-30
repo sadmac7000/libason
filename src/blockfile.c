@@ -85,7 +85,7 @@ blockfile_init_colormaps(blockfile_t *blockfile)
 					       BLOCK_SIZE +
 					       (BLOCK_COLOR_ENTRIES + 1) * i);
 
-		if (! blockfile->colormaps[i])
+		if (blockfile->colormaps[i] == MAP_FAILED)
 			return -1;
 	}
 
@@ -131,7 +131,7 @@ blockfile_open(const char *path)
 	ret->metapage = mmap(NULL, BLOCK_SIZE, PROT_READ | PROT_WRITE,
 			      MAP_SHARED, ret->fd, 0);
 
-	if (! ret->metapage) {
+	if (ret->metapage == MAP_FAILED) {
 		close(ret->fd);
 		free(ret);
 		return NULL;
@@ -330,7 +330,7 @@ blockfile_map(blockfile_t *blockfile, size_t block_num)
 	mapping = mmap(NULL, BLOCK_SIZE * size, PROT_READ | PROT_WRITE,
 		       MAP_SHARED, blockfile->fd, BLOCK_SIZE * block_offset);
 
-	if (! mapping)
+	if (mapping == MAP_FAILED)
 		return NULL;
 
 	blockfile->mapped = xrealloc(blockfile->mapped,
@@ -500,7 +500,7 @@ colormap_allocate(blockfile_t *blockfile)
 	mapping = mmap(NULL, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED,
 		       blockfile->fd, pos);
 
-	if (! mapping)
+	if (mapping == MAP_FAILED)
 		return NULL;
 
 	blockfile->colormaps = xrealloc(blockfile->colormaps,
