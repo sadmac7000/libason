@@ -38,7 +38,8 @@ TESTS("Initialization",
       "Mapping",
       "Annotation",
       "Removing annotation",
-      "Checking annotation");
+      "Checking annotation",
+      "Big regions");
 
 /* TODO: Make autoconf set this for us */
 #define TMPDIR "/tmp"
@@ -166,8 +167,8 @@ TEST_MAIN("Blockfiles")
 		/* Not sure how to verify blockfile_sync independently without
 		 * depending on specific undefined kernel behavior.
 		 */
-		blockfile_sync(bf, mapping, 0, BLOCK_SIZE * 10, 1);
-		blockfile_sync(bf, mapping_b, 0, BLOCK_SIZE, 1);
+		blockfile_sync(bf, mapping, 0, 10, 1);
+		blockfile_sync(bf, mapping_b, 0, 1, 1);
 
 		blockfile_unmap(bf, mapping);
 		blockfile_unmap(bf, mapping_b);
@@ -274,6 +275,67 @@ TEST_MAIN("Blockfiles")
 	}
 
 	blockfile_close(bf);
+	unlink(TMPFILE);
+
+	bf = blockfile_open(TMPFILE);
+
+	region = blockfile_allocate(bf, BLOCK_COLOR_ENTRIES);
+	region_b = blockfile_allocate(bf, 10);
+	mapping = mapping_b = raw_mapping = NULL;
+	fd = -1;
+
+	TEST("Big regions") {
+		mapping = blockfile_map(bf, region);
+
+		REQUIRE(mapping);
+
+		mapping_b = blockfile_map(bf, region_b);
+
+		REQUIRE(mapping_b);
+
+		memset(mapping, 0xab, BLOCK_COLOR_ENTRIES * BLOCK_SIZE);
+		memset(mapping_b, 0xcd, 10 * BLOCK_SIZE);
+
+		blockfile_sync(bf, mapping, 0, BLOCK_COLOR_ENTRIES , 1);
+		blockfile_sync(bf, mapping_b, 0, 10, 1);
+
+		blockfile_unmap(bf, mapping);
+		blockfile_unmap(bf, mapping_b);
+
+		fd = open(TMPFILE, O_RDONLY | O_CLOEXEC);
+
+		if (fd < 0)
+			err(1, "Could not open temporary file");
+
+		seek = lseek(fd, 0, SEEK_END);
+
+		if (seek < 0)
+			err(1, "Could noot seek");
+
+		raw_mapping = mmap(NULL, seek, PROT_READ, MAP_PRIVATE, fd, 0);
+
+		loc = raw_mapping;
+		loc += (region + 2) * BLOCK_SIZE;
+
+		for (i = 0; i < BLOCK_COLOR_ENTRIES * BLOCK_SIZE; i++)
+			REQUIRE(loc[i] == 0xab);
+
+		loc = raw_mapping + 2 * BLOCK_SIZE;
+		loc += region_b * BLOCK_SIZE;
+		loc += BLOCK_SIZE; /* Additional colormap */
+
+		for (i = 0; i < 10 * BLOCK_SIZE; i++)
+			REQUIRE(loc[i] == 0xcd);
+	}
+
+	blockfile_close(bf);
+
+	if (raw_mapping)
+		munmap(raw_mapping, seek);
+
+	if (fd >= 0)
+		close(fd);
+
 	unlink(TMPFILE);
 
 	return 0;
