@@ -46,7 +46,8 @@ struct blockfile {
 	struct block_range *mapped;
 	size_t mapped_count;
 	void *metapage;
-	void *colormap;
+	void **colormaps;
+	size_t colormap_count;
 };
 
 /**
@@ -56,6 +57,41 @@ static int
 blockfile_validate(blockfile_t *blockfile)
 {
 	return !!memcmp(blockfile->metapage, BLOCK_MAGIC, BLOCK_MAGIC_LENGTH);
+}
+
+/**
+ **/
+static int
+blockfile_init_colormaps(blockfile_t *blockfile)
+{
+	off_t end = lseek(blockfile->fd, 0, SEEK_END);
+	size_t i;
+
+	if (end < 0)
+		err(1, "Could not lseek blockfile");
+
+	end /= BLOCK_SIZE;
+	end -= 1;
+	end += BLOCK_COLOR_ENTRIES;
+
+	end /= (BLOCK_COLOR_ENTRIES + 1);
+
+	blockfile->colormaps = xcalloc(end, sizeof(void *));
+
+	for (i = 0; i < (size_t)end; i++) {
+		blockfile->colormaps[i] = mmap(NULL, BLOCK_SIZE,
+					       PROT_READ | PROT_WRITE,
+					       MAP_SHARED, blockfile->fd,
+					       BLOCK_SIZE +
+					       (BLOCK_COLOR_ENTRIES + 1) * i);
+
+		if (! blockfile->colormaps[i])
+			return -1;
+	}
+
+	blockfile->colormap_count = end;
+
+	return 0;
 }
 
 /**
@@ -107,10 +143,7 @@ blockfile_open(const char *path)
 		msync(ret->metapage, BLOCK_SIZE, MS_SYNC);
 	}
 
-	ret->colormap = mmap(NULL, BLOCK_SIZE, PROT_READ | PROT_WRITE,
-			     MAP_SHARED, ret->fd, BLOCK_SIZE);
-
-	if (! ret->colormap) {
+	if (blockfile_init_colormaps(ret)) {
 		munmap(ret->metapage, BLOCK_SIZE);
 		close(ret->fd);
 		free(ret);
@@ -118,8 +151,8 @@ blockfile_open(const char *path)
 	}
 
 	if (flags & O_CREAT) {
-		memset(ret->colormap, 0, BLOCK_SIZE);
-		msync(ret->colormap, BLOCK_SIZE, MS_SYNC);
+		memset(ret->colormaps[0], 0, BLOCK_SIZE);
+		msync(ret->colormaps[0], BLOCK_SIZE, MS_SYNC);
 	} else if (! blockfile_validate(ret)) {
 		blockfile_close(ret);
 		return NULL;
@@ -141,7 +174,11 @@ blockfile_close(blockfile_t *blockfile)
 		       blockfile->mapped[i].length * BLOCK_SIZE);
 
 	munmap(blockfile->metapage, BLOCK_SIZE);
-	munmap(blockfile->colormap, BLOCK_SIZE);
+
+	for (i = 0; i < blockfile->colormap_count; i++);
+		munmap(blockfile->colormaps[i], BLOCK_SIZE);
+
+	free(blockfile->colormaps);
 	free(blockfile->mapped);
 	close(blockfile->fd);
 	free(blockfile);
@@ -237,26 +274,33 @@ probe_colormap(char *colormap, size_t color_offset)
 static size_t
 block_allocation_dimensions(blockfile_t *blockfile, size_t *block_offset)
 {
-	size_t color_offset = offset_to_colormap_offset(*block_offset, NULL);
+	size_t colormap_idx;
+	size_t color_offset = offset_to_colormap_offset(*block_offset,
+							&colormap_idx);
 	size_t end_offset = color_offset;
 	char color;
 	size_t ret = 1;
+	void *colormap;
 
 	if (end_offset >= BLOCK_COLOR_ENTRIES)
 		errx(1, "Multiple colormaps not yet supported.");
 
-	color = probe_colormap(blockfile->colormap, color_offset);
+	if (colormap_idx >= blockfile->colormap_count)
+		return 0;
+
+	colormap = blockfile->colormaps[colormap_idx];
+
+	color = probe_colormap(colormap, color_offset);
 	if (! color)
 		return 0;
 
 	for(; color_offset; color_offset--, (*block_offset)--)
-		if (probe_colormap(blockfile->colormap,
-				   color_offset - 1) != color)
+		if (probe_colormap(colormap, color_offset - 1) != color)
 			break;
 
 	end_offset++;
 	while (end_offset < BLOCK_COLOR_ENTRIES &&
-	       probe_colormap(blockfile->colormap, end_offset) == color) {
+	       probe_colormap(colormap, end_offset) == color) {
 		end_offset++;
 		ret++;
 	}
@@ -411,19 +455,76 @@ colormap_color(char *colormap, size_t color_off, size_t blocks, char color)
 }
 
 /**
+ * Find the largest free region in a colormap.
+ **/
+static void
+colormap_get_max_region(void *colormap, size_t *max_start, size_t *max_count)
+{
+	size_t count = 0;
+	size_t start;
+	size_t i;
+
+	*max_start = 0;
+	*max_count = 0;
+
+	for (i = 0; i < BLOCK_COLOR_ENTRIES; i++) {
+		if (probe_colormap(colormap, i)) {
+			count = 0;
+			continue;
+		}
+
+		if (! count)
+			start = i;
+
+		count++;
+
+		if (count > *max_count) {
+			*max_count = count;
+			*max_start = start;
+		}
+	}
+}
+
+/**
+ * Allocate a new colormap.
+ **/
+void *
+colormap_allocate(blockfile_t *blockfile)
+{
+	size_t pos = 1 + (BLOCK_COLOR_ENTRIES + 1) * blockfile->colormap_count;
+	void *mapping;
+
+	if (ftruncate(blockfile->fd, (pos + 1) * BLOCK_SIZE))
+		return NULL;
+
+	mapping = mmap(NULL, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED,
+		       blockfile->fd, pos);
+
+	if (! mapping)
+		return NULL;
+
+	blockfile->colormaps = xrealloc(blockfile->colormaps,
+					(blockfile->colormap_count + 1) *
+					sizeof(void *));
+
+	blockfile->colormaps[blockfile->colormap_count++] = mapping;
+
+	return mapping;
+}
+
+/**
  * Allocate a region in a block file.
  **/
 ssize_t
 blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 {
 	size_t i;
-	size_t count = 0;
-	size_t start;
 	size_t max_count = 0;
 	size_t max_start = 0;
-	size_t max_end = 0;
+	size_t max_end;
 	size_t last_block_off;
 	size_t ret;
+	void *colormap = NULL;
 
 	char color_before = 0;
 	char color_after = 0;
@@ -435,34 +536,33 @@ blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 	if (blocks > BLOCK_COLOR_ENTRIES)
 		return -EINVAL;
 
-	for (i = 0; i < BLOCK_COLOR_ENTRIES; i++) {
-		if (probe_colormap(blockfile->colormap, i)) {
-			count = 0;
-			continue;
-		}
+	for (i = 0; i < blockfile->colormap_count; i++) {
+		colormap = blockfile->colormaps[i];
 
-		if (! count)
-			start = i;
+		colormap_get_max_region(colormap, &max_start, &max_count);
 
-		count++;
-
-		if (count > max_count) {
-			max_count = count;
-			max_start = start;
-		}
+		if (max_count >= blocks)
+			break;
 	}
 
-	if (max_count < blocks)
-		return -ENOSPC;
+	if (max_count < blocks) {
+		colormap = colormap_allocate(blockfile);
+
+		if (! colormap)
+			return -ENOSPC;
+
+		max_start = 0;
+		max_count = BLOCK_COLOR_ENTRIES;
+		i = blockfile->colormap_count - 1;
+	}
 
 	max_end = max_start + max_count;
 
 	if (max_start)
-		color_before = probe_colormap(blockfile->colormap,
-					      max_start - 1);
+		color_before = probe_colormap(colormap, max_start - 1);
 
 	if (max_end < BLOCK_COLOR_ENTRIES)
-		color_after = probe_colormap(blockfile->colormap, max_end);
+		color_after = probe_colormap(colormap, max_end);
 
 	color = 1;
 
@@ -471,14 +571,14 @@ blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 	if (color_before == color || color_after == color)
 		color = 3;
 
-	ret = colormap_offset_to_block_num(max_start, 0);
-	last_block_off = colormap_offset_to_offset(max_start, 0) + blocks - 1;
+	ret = colormap_offset_to_block_num(max_start, i);
+	last_block_off = colormap_offset_to_offset(max_start, i) + blocks - 1;
 
 	if (! blockfile_ensure_space(blockfile, last_block_off))
 		return -ENOSPC;
 
-	colormap_color(blockfile->colormap, max_start, blocks, color);
-	msync(blockfile->colormap, BLOCK_SIZE, MS_SYNC);
+	colormap_color(colormap, max_start, blocks, color);
+	msync(colormap, BLOCK_SIZE, MS_SYNC);
 
 	return ret;
 }
@@ -489,11 +589,14 @@ blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 int
 blockfile_free(blockfile_t *blockfile, size_t block_num)
 {
-	size_t color_off = block_num_to_colormap_offset(block_num, NULL);
+	size_t colormap_idx;
+	size_t color_off = block_num_to_colormap_offset(block_num,
+							&colormap_idx);
 	size_t block_offset = block_num_to_offset(block_num);
 	size_t real_block_offset = block_offset;
 	size_t size = block_allocation_dimensions(blockfile, &real_block_offset);
 	size_t i;
+	void *colormap;
 
 	if (size == 0)
 		return -EINVAL;
@@ -501,12 +604,20 @@ blockfile_free(blockfile_t *blockfile, size_t block_num)
 	if (real_block_offset != block_offset)
 		return -EINVAL;
 
+	if (colormap_idx > blockfile->colormap_count)
+		return -ENOENT;
+
+	colormap = blockfile->colormaps[colormap_idx];
+
+	if (! probe_colormap(colormap, color_off))
+		return -ENOENT;
+
 	for (i = 0; i < blockfile->mapped_count; i++)
 		if (blockfile->mapped[i].offset == block_offset)
 			return -EDEADLK;
 
-	colormap_color(blockfile->colormap, color_off, size, 0);
-	msync(blockfile->colormap, BLOCK_SIZE, MS_SYNC);
+	colormap_color(colormap, color_off, size, 0);
+	msync(colormap, BLOCK_SIZE, MS_SYNC);
 	return 0;
 }
 
