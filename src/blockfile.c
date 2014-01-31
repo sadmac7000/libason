@@ -60,6 +60,7 @@ blockfile_validate(blockfile_t *blockfile)
 }
 
 /**
+ * Initialize the colormap table for a newly-opened blockfile_t
  **/
 static int
 blockfile_init_colormaps(blockfile_t *blockfile)
@@ -139,7 +140,10 @@ blockfile_open(const char *path)
 
 	if (flags & O_CREAT) {
 		memcpy(ret->metapage, BLOCK_MAGIC, BLOCK_MAGIC_LENGTH);
-		((char *)ret->metapage)[BLOCK_MAGIC_LENGTH] = 0;
+		memset(ret->metapage + BLOCK_MAGIC_LENGTH, 0,
+		       BLOCK_COLOR_JOURNAL_LENGTH);
+		((char *)ret->metapage)[BLOCK_MAGIC_LENGTH +
+			BLOCK_COLOR_JOURNAL_LENGTH] = 0;
 		msync(ret->metapage, BLOCK_SIZE, MS_SYNC);
 	}
 
@@ -630,7 +634,7 @@ int
 blockfile_annotate_block(blockfile_t *blockfile, size_t block_num, const char *name)
 {
 	unsigned char *metapage = blockfile->metapage;
-	size_t pos = BLOCK_MAGIC_LENGTH;
+	size_t pos = BLOCK_MAGIC_LENGTH + BLOCK_COLOR_JOURNAL_LENGTH;
 	size_t namelen = strlen(name);
 	size_t space = namelen + 10;
 
@@ -680,7 +684,7 @@ void
 blockfile_remove_annotation(blockfile_t *blockfile, const char *name)
 {
 	unsigned char *metapage = blockfile->metapage;
-	size_t pos = BLOCK_MAGIC_LENGTH;
+	size_t pos = BLOCK_MAGIC_LENGTH + BLOCK_COLOR_JOURNAL_LENGTH;
 	size_t end_pos;
 	size_t next_pos;
 	size_t namelen = strlen(name);
@@ -731,7 +735,7 @@ ssize_t
 blockfile_get_annotated_block(blockfile_t *blockfile, const char *name)
 {
 	unsigned char *metapage = blockfile->metapage;
-	size_t pos = BLOCK_MAGIC_LENGTH;
+	size_t pos = BLOCK_MAGIC_LENGTH + BLOCK_COLOR_JOURNAL_LENGTH;
 	size_t namelen = strlen(name);
 
 	if (! namelen)

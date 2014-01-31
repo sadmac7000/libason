@@ -38,6 +38,7 @@
  **/
 #define BLOCK_MAGIC "asonblok\0\0\0\0\0\0\0"
 #define BLOCK_MAGIC_LENGTH 15
+#define BLOCK_COLOR_JOURNAL_LENGTH 25
 
 typedef struct blockfile blockfile_t;
 
