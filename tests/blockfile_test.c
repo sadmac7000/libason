@@ -232,7 +232,8 @@ TEST_MAIN("Blockfiles")
 
 		raw_mapping = mmap(NULL, BLOCK_SIZE, PROT_READ, MAP_PRIVATE, fd, 0);
 
-		char test[] = "asonblok\0\0\0\3foo\0\0\0\0\0\0\0\x14\x4"
+		char test[] = "asonblok\0\0\0\0\0\0\0\3"
+			"foo\0\0\0\0\0\0\0\x14\x4"
 			"barr\0\0\0\0\0\0\0\xa\5bazzz\0\0\0\0\0\0\0\xf\0";
 
 		REQUIRE(! memcmp(raw_mapping, test, sizeof(test) - 1));
@@ -257,7 +258,8 @@ TEST_MAIN("Blockfiles")
 
 		raw_mapping = mmap(NULL, BLOCK_SIZE, PROT_READ, MAP_PRIVATE, fd, 0);
 
-		char test[] = "asonblok\0\0\0\3foo\0\0\0\0\0\0\0\x14\x5"
+		char test[] = "asonblok\0\0\0\0\0\0\0\3"
+			"foo\0\0\0\0\0\0\0\x14\x5"
 			"bazzz\0\0\0\0\0\0\0\xf\0";
 
 		REQUIRE(! memcmp(raw_mapping, test, sizeof(test) - 1));
