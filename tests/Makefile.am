@@ -33,7 +33,8 @@ ns_test_SOURCES = ns_test.c harness.c
 ns_test_LDADD = ../src/libason.la
 
 blockfile_test_SOURCES = blockfile_test.c harness.c \
-			 ../src/blockfile.c ../src/blockfile.h
+			 ../src/blockfile.c ../src/blockfile.h \
+			 ../src/crc.c ../src/crc.h
 
 crc_test_SOURCES = crc_test.c harness.c \
 			 ../src/crc.c ../src/crc.h

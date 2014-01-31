@@ -28,6 +28,7 @@
 
 #include "blockfile.h"
 #include "util.h"
+#include "crc.h"
 
 /**
  * A range of blocks.
@@ -96,6 +97,86 @@ blockfile_init_colormaps(blockfile_t *blockfile)
 }
 
 /**
+ * Convert block numbers to file offsets in blocks. Block numbers don't count
+ * the metadata or the colormap blocks.
+ **/
+static size_t
+block_num_to_offset(size_t block_num)
+{
+	size_t colormaps = 1 + (block_num / BLOCK_COLOR_ENTRIES);
+
+	return block_num + colormaps + 1;
+}
+
+/**
+ * Convert a file offset in blocks to a block number.
+ **/
+static size_t
+offset_to_block_num(size_t offset)
+{
+	offset--;
+	offset -= offset / (BLOCK_COLOR_ENTRIES + 1);
+	offset--;
+	return offset;
+}
+
+/**
+ * Convert a block number to an offset within a colormap. Optionally return the
+ * colormap index.
+ **/
+static size_t
+block_num_to_colormap_offset(size_t block_num, size_t *colormap_idx)
+{
+	if (colormap_idx)
+		*colormap_idx = block_num / BLOCK_COLOR_ENTRIES;
+	return block_num % BLOCK_COLOR_ENTRIES;
+}
+
+/**
+ * Turn a block offset to a colormap offset. Optionally return the colormap
+ * index.
+ **/
+static size_t
+offset_to_colormap_offset(size_t offset, size_t *colormap_idx)
+{
+	return block_num_to_colormap_offset(offset_to_block_num(offset),
+					    colormap_idx);
+}
+
+/**
+ * Color a region in a color map.
+ **/
+static void
+colormap_color(char *colormap, size_t color_off, size_t blocks, char color)
+{
+	size_t start = color_off % 4;
+	unsigned char mask;
+	size_t this_blocks;
+
+	color = color | (color << 2) | (color << 4) | (color << 6);
+
+	colormap += color_off / 4;
+
+	while (blocks) {
+		this_blocks = 4 - start;
+
+		mask = 0xff >> (2 * start);
+
+		if (blocks < this_blocks)
+			this_blocks = blocks;
+
+		mask ^= (mask >> (2 * this_blocks));
+
+		*colormap &= ~mask;
+		*colormap |= color & mask;
+
+		blocks -= this_blocks;
+		start = 0;
+		colormap++;
+	}
+}
+
+/**
  * Open a block file.
  **/
 blockfile_t *
@@ -103,6 +184,10 @@ blockfile_open(const char *path)
 {
 	blockfile_t *ret = xmalloc(sizeof(blockfile_t));
 	int flags = O_CLOEXEC | O_RDWR;
+	size_t colormap;
+	size_t colormap_offset;
+	size_t count;
+	char color;
 
 	for (;;) {
 		ret->fd = open(path, flags, 0600);
@@ -160,6 +245,18 @@ blockfile_open(const char *path)
 	} else if (! blockfile_validate(ret)) {
 		blockfile_close(ret);
 		return NULL;
+	} else if (! crc64(ret->metapage, BLOCK_COLOR_JOURNAL_LENGTH)) {
+		color = *(char *)(ret->metapage + BLOCK_COLOR_JOURNAL_LENGTH);
+
+		colormap_offset = block_num_to_colormap_offset(
+		       be64toh(*(uint64_t *)(ret->metapage +
+					     BLOCK_MAGIC_LENGTH + 1)),
+		       &colormap);
+		count = be64toh(*(uint64_t *)(ret->metapage +
+					      BLOCK_MAGIC_LENGTH + 1));
+		colormap_color(ret->colormaps[colormap], colormap_offset, count,
+			       color);
+		msync(ret->colormaps[colormap], BLOCK_SIZE, MS_SYNC);
 	}
 
 	return ret;
@@ -186,53 +283,6 @@ blockfile_close(blockfile_t *blockfile)
 	free(blockfile->mapped);
 	close(blockfile->fd);
 	free(blockfile);
-}
-
-/**
- * Convert block numbers to file offsets in blocks. Block numbers don't count
- * the metadata or the colormap blocks.
- **/
-static size_t
-block_num_to_offset(size_t block_num)
-{
-	size_t colormaps = 1 + (block_num / BLOCK_COLOR_ENTRIES);
-
-	return block_num + colormaps + 1;
-}
-
-/**
- * Convert a file offset in blocks to a block number.
- **/
-static size_t
-offset_to_block_num(size_t offset)
-{
-	offset--;
-	offset -= offset / (BLOCK_COLOR_ENTRIES + 1);
-	offset--;
-	return offset;
-}
-
-/**
- * Convert a block number to an offset within a colormap. Optionally return the
- * colormap index.
- **/
-static size_t
-block_num_to_colormap_offset(size_t block_num, size_t *colormap_idx)
-{
-	if (colormap_idx)
-		*colormap_idx = block_num / BLOCK_COLOR_ENTRIES;
-	return block_num % BLOCK_COLOR_ENTRIES;
-}
-
-/**
- * Turn a block offset to a colormap offset. Optionally return the colormap
- * index.
- **/
-static size_t
-offset_to_colormap_offset(size_t offset, size_t *colormap_idx)
-{
-	return block_num_to_colormap_offset(offset_to_block_num(offset),
-					    colormap_idx);
 }
 
 /**
@@ -426,39 +476,6 @@ blockfile_ensure_space(blockfile_t *blockfile, size_t last_block_offset)
 }
 
 /**
- * Color a region in a color map.
- **/
-static void
-colormap_color(char *colormap, size_t color_off, size_t blocks, char color)
-{
-	size_t start = color_off % 4;
-	unsigned char mask;
-	size_t this_blocks;
-
-	color = color | (color << 2) | (color << 4) | (color << 6);
-
-	colormap += color_off / 4;
-
-	while (blocks) {
-		this_blocks = 4 - start;
-
-		mask = 0xff >> (2 * start);
-
-		if (blocks < this_blocks)
-			this_blocks = blocks;
-
-		mask ^= (mask >> (2 * this_blocks));
-
-		*colormap &= ~mask;
-		*colormap |= color & mask;
-
-		blocks -= this_blocks;
-		start = 0;
-		colormap++;
-	}
-}
-
-/**
  * Find the largest free region in a colormap.
  **/
 static void
@@ -514,6 +531,22 @@ colormap_allocate(blockfile_t *blockfile)
 	blockfile->colormaps[blockfile->colormap_count++] = mapping;
 
 	return mapping;
+}
+
+/**
+ * Write to a colormap journal.
+ **/
+static void
+colormap_journal_commit(void *metapage, size_t start, size_t blocks,
+			char color)
+{
+	char *pos = metapage + BLOCK_MAGIC_LENGTH;
+
+	*(char *)(pos) = color;
+	*(uint64_t *)(pos + 1) = htobe64(start);
+	*(uint64_t *)(pos + 9) = htobe64(blocks);
+	*(uint64_t *)(pos + 17) = htobe64(crc64(metapage, 17));
+	msync(metapage, BLOCK_SIZE, MS_SYNC);
 }
 
 /**
@@ -581,6 +614,7 @@ blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 	if (! blockfile_ensure_space(blockfile, last_block_off))
 		return -ENOSPC;
 
+	colormap_journal_commit(blockfile->metapage, ret, blocks, color);
 	colormap_color(colormap, max_start, blocks, color);
 	msync(colormap, BLOCK_SIZE, MS_SYNC);
 
@@ -620,6 +654,7 @@ blockfile_free(blockfile_t *blockfile, size_t block_num)
 		if (blockfile->mapped[i].offset == block_offset)
 			return -EDEADLK;
 
+	colormap_journal_commit(blockfile->metapage, block_num, size, 0);
 	colormap_color(colormap, color_off, size, 0);
 	msync(colormap, BLOCK_SIZE, MS_SYNC);
 	return 0;
