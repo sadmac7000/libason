@@ -57,13 +57,13 @@ extern struct test_info *test_info;
 })
 
 #define TEST(_name) \
-	test_info->to_go--; \
 	test_info->current = TEST_LOOKUP_NAME(_name); \
 	test_info->state[test_info->current] = TEST_PENDING; \
 	setjmp(test_abort); \
 	for (; \
 	     test_info->state[test_info->current] == TEST_PENDING; \
-	     test_info->state[test_info->current] = TEST_PASSED)
+	     test_info->state[test_info->current] = TEST_PASSED, \
+	     test_info->to_go--)
 
 #define TEST_MAIN(name) \
 	const char *test_name = (name); \
@@ -75,6 +75,7 @@ extern struct test_info *test_info;
 	printf("Failed: %s: %s:%d\n", #x, __FILE__, __LINE__); \
 	fflush(stdout); \
 	test_info->state[test_info->current] = TEST_FAILED; \
+	test_info->to_go--; \
 	longjmp(test_abort, 1); }
 
 #ifdef __cplusplus
