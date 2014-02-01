@@ -21,6 +21,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <endian.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -177,6 +178,34 @@ colormap_color(char *colormap, size_t color_off, size_t blocks, char color)
 }
 
 /**
+ * Restore the colormap journal if needed.
+ **/
+static void
+blockfile_restore_color_journal(blockfile_t *blockfile)
+{
+	unsigned char *journal = blockfile->metapage + BLOCK_MAGIC_LENGTH;
+	unsigned char color;
+	size_t colormap;
+	size_t colormap_offset;
+	size_t count;
+
+	if (crc64(journal, BLOCK_COLOR_JOURNAL_LENGTH))
+		return;
+
+	color = *journal;
+
+	colormap_offset =
+		block_num_to_colormap_offset(
+				     be64toh(*(uint64_t *)(journal + 1)),
+				     &colormap);
+
+	count = be64toh(*(uint64_t *)(journal + 9));
+	colormap_color(blockfile->colormaps[colormap], colormap_offset, count,
+		       color);
+	msync(blockfile->colormaps[colormap], BLOCK_SIZE, MS_SYNC);
+}
+
+/**
  * Open a block file.
  **/
 blockfile_t *
@@ -184,10 +213,6 @@ blockfile_open(const char *path)
 {
 	blockfile_t *ret = xmalloc(sizeof(blockfile_t));
 	int flags = O_CLOEXEC | O_RDWR;
-	size_t colormap;
-	size_t colormap_offset;
-	size_t count;
-	char color;
 
 	for (;;) {
 		ret->fd = open(path, flags, 0600);
@@ -245,18 +270,8 @@ blockfile_open(const char *path)
 	} else if (! blockfile_validate(ret)) {
 		blockfile_close(ret);
 		return NULL;
-	} else if (! crc64(ret->metapage, BLOCK_COLOR_JOURNAL_LENGTH)) {
-		color = *(char *)(ret->metapage + BLOCK_COLOR_JOURNAL_LENGTH);
-
-		colormap_offset = block_num_to_colormap_offset(
-		       be64toh(*(uint64_t *)(ret->metapage +
-					     BLOCK_MAGIC_LENGTH + 1)),
-		       &colormap);
-		count = be64toh(*(uint64_t *)(ret->metapage +
-					      BLOCK_MAGIC_LENGTH + 1));
-		colormap_color(ret->colormaps[colormap], colormap_offset, count,
-			       color);
-		msync(ret->colormaps[colormap], BLOCK_SIZE, MS_SYNC);
+	} else {
+		blockfile_restore_color_journal(ret);
 	}
 
 	return ret;
