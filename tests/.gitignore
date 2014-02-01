@@ -6,5 +6,6 @@ intersection_test
 iterator_test
 ns_test
 blockfile_test
+crc_test
 *.log
 *.trs
