@@ -29,6 +29,7 @@
 #include <sys/mman.h>
 
 #include "../src/blockfile.h"
+#include "../src/crc.h"
 #include "harness.h"
 
 TESTS("Initialization",
@@ -39,7 +40,8 @@ TESTS("Initialization",
       "Annotation",
       "Removing annotation",
       "Checking annotation",
-      "Big regions");
+      "Big regions",
+      "Colormap journal");
 
 /* TODO: Make autoconf set this for us */
 #define TMPDIR "/tmp"
@@ -330,6 +332,63 @@ TEST_MAIN("Blockfiles")
 
 		for (i = 0; i < 10 * BLOCK_SIZE; i++)
 			REQUIRE(loc[i] == 0xcd);
+	}
+
+	blockfile_close(bf);
+
+	if (raw_mapping)
+		munmap(raw_mapping, seek);
+
+	if (fd >= 0)
+		close(fd);
+
+	unlink(TMPFILE);
+
+	bf = blockfile_open(TMPFILE);
+	blockfile_close(bf);
+	fd = -1;
+	raw_mapping = NULL;
+
+	TEST("Colormap journal")
+	{
+		fd = open(TMPFILE, O_RDWR | O_CLOEXEC);
+
+		if (fd < 0)
+			err(1, "Could not open temporary file");
+
+		raw_mapping = mmap(NULL, BLOCK_SIZE * 2, PROT_READ | PROT_WRITE,
+				   MAP_SHARED, fd, 0);
+
+		if (raw_mapping == MAP_FAILED)
+			err(1, "Could not map file");
+
+		*(char *)(raw_mapping + BLOCK_MAGIC_LENGTH) = 1;
+		*(uint64_t *)(raw_mapping + BLOCK_MAGIC_LENGTH + 1) = htobe64(0);
+		*(uint64_t *)(raw_mapping + BLOCK_MAGIC_LENGTH + 9) = htobe64(10);
+		*(uint64_t *)(raw_mapping + BLOCK_MAGIC_LENGTH + 17) =
+			htobe64(crc64(raw_mapping + BLOCK_MAGIC_LENGTH, 17));
+
+		msync(raw_mapping, BLOCK_SIZE * 2, MS_SYNC);
+		munmap(raw_mapping, BLOCK_SIZE * 2);
+		close(fd);
+
+		bf = blockfile_open(TMPFILE);
+
+		if (! bf)
+			errx(1, "Could not reopen blockfile");
+
+		fd = open(TMPFILE, O_RDONLY | O_CLOEXEC);
+
+		if (fd < 0)
+			err(1, "Could not open temporary file");
+
+		raw_mapping = mmap(NULL, BLOCK_SIZE * 2, PROT_READ,
+				   MAP_PRIVATE, fd, 0);
+
+		if (! raw_mapping)
+			err(1, "Could not map file");
+
+		REQUIRE(*(uint64_t *)(raw_mapping + BLOCK_SIZE) == htobe64(0x5555500000000000));
 	}
 
 	blockfile_close(bf);
