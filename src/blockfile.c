@@ -57,7 +57,7 @@ struct blockfile {
 static int
 blockfile_validate(blockfile_t *blockfile)
 {
-	return !!memcmp(blockfile->metapage, BLOCK_MAGIC, BLOCK_MAGIC_LENGTH);
+	return !memcmp(blockfile->metapage, BLOCK_MAGIC, BLOCK_MAGIC_LENGTH);
 }
 
 /**
