@@ -57,9 +57,9 @@ TEST_MAIN("Blockfiles")
 	blockfile_t *bf;
 	int fd = -1;
 	char buf[BLOCK_SIZE * 2];
-	size_t to_read;
-	ssize_t region;
-	ssize_t region_b;
+	bfsize_t to_read;
+	block_t region;
+	block_t region_b;
 	void *mapping;
 	void *mapping_b;
 	void *raw_mapping;
@@ -112,7 +112,7 @@ TEST_MAIN("Blockfiles")
 	TEST("Allocation") {
 		region = blockfile_allocate(bf, 10);
 
-		REQUIRE(region >= 0);
+		REQUIRE(region < BLOCK_ERROR_START);
 
 		fd = open(TMPFILE, O_RDONLY | O_CLOEXEC);
 
@@ -136,13 +136,13 @@ TEST_MAIN("Blockfiles")
 	region = blockfile_allocate(bf, 10);
 
 	TEST("False free") {
-		REQUIRE(blockfile_free(bf, region + 1) == -EINVAL);
-		REQUIRE(blockfile_free(bf, region + 10) == -EINVAL);
+		REQUIRE(blockfile_free(bf, region + 1) == BLOCK_BAD_ARGUMENT);
+		REQUIRE(blockfile_free(bf, region + 10) == BLOCK_BAD_ARGUMENT);
 	}
 
 	TEST("Free") {
-		REQUIRE(! blockfile_free(bf, region));
-		REQUIRE(blockfile_free(bf, region) == -EINVAL);
+		REQUIRE(blockfile_free(bf, region) == BLOCK_BAD_MISSING);
+		REQUIRE(blockfile_free(bf, region) == BLOCK_BAD_ARGUMENT);
 	}
 
 	blockfile_close(bf);
@@ -215,10 +215,10 @@ TEST_MAIN("Blockfiles")
 	raw_mapping = NULL;
 
 	TEST("Annotation") {
-		REQUIRE(! blockfile_annotate_block(bf, 10, "foo"));
-		REQUIRE(! blockfile_annotate_block(bf, 10, "barr"));
-		REQUIRE(! blockfile_annotate_block(bf, 15, "bazzz"));
-		REQUIRE(! blockfile_annotate_block(bf, 20, "foo"));
+		REQUIRE(blockfile_annotate_block(bf, 10, "foo") == 10);
+		REQUIRE(blockfile_annotate_block(bf, 10, "barr") == 10);
+		REQUIRE(blockfile_annotate_block(bf, 15, "bazzz") == 15);
+		REQUIRE(blockfile_annotate_block(bf, 20, "foo") == 20);
 
 		fd = open(TMPFILE, O_RDONLY | O_CLOEXEC);
 
@@ -276,7 +276,7 @@ TEST_MAIN("Blockfiles")
 		close(fd);
 
 	TEST("Checking annotation") {
-		REQUIRE(blockfile_get_annotated_block(bf, "bar") == -ENOENT);
+		REQUIRE(blockfile_get_annotated_block(bf, "bar") == BLOCK_BAD_MISSING);
 		REQUIRE(blockfile_get_annotated_block(bf, "bazzz") == 15);
 	}
 

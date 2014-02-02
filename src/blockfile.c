@@ -35,8 +35,8 @@
  * A range of blocks.
  **/
 struct block_range {
-	size_t offset;
-	size_t length;
+	block_t offset;
+	bfsize_t length;
 	void *mem_loc;
 };
 
@@ -45,12 +45,12 @@ struct block_range {
  **/
 struct blockfile {
 	int fd;
-	size_t refcount;
+	bfsize_t refcount;
 	struct block_range *mapped;
-	size_t mapped_count;
+	bfsize_t mapped_count;
 	void *metapage;
 	void **colormaps;
-	size_t colormap_count;
+	bfsize_t colormap_count;
 };
 
 /**
@@ -69,7 +69,7 @@ static int
 blockfile_init_colormaps(blockfile_t *blockfile)
 {
 	off_t end = lseek(blockfile->fd, 0, SEEK_END);
-	size_t i;
+	bfsize_t i;
 
 	if (end < 0)
 		err(1, "Could not lseek blockfile");
@@ -82,7 +82,7 @@ blockfile_init_colormaps(blockfile_t *blockfile)
 
 	blockfile->colormaps = xcalloc(end, sizeof(void *));
 
-	for (i = 0; i < (size_t)end; i++) {
+	for (i = 0; i < (bfsize_t)end; i++) {
 		blockfile->colormaps[i] = mmap(NULL, BLOCK_SIZE,
 					       PROT_READ | PROT_WRITE,
 					       MAP_SHARED, blockfile->fd,
@@ -102,10 +102,10 @@ blockfile_init_colormaps(blockfile_t *blockfile)
  * Convert block numbers to file offsets in blocks. Block numbers don't count
  * the metadata or the colormap blocks.
  **/
-static size_t
-block_num_to_offset(size_t block_num)
+static bfsize_t
+block_num_to_offset(bfsize_t block_num)
 {
-	size_t colormaps = 1 + (block_num / BLOCK_COLOR_ENTRIES);
+	bfsize_t colormaps = 1 + (block_num / BLOCK_COLOR_ENTRIES);
 
 	return block_num + colormaps + 1;
 }
@@ -113,8 +113,8 @@ block_num_to_offset(size_t block_num)
 /**
  * Convert a file offset in blocks to a block number.
  **/
-static size_t
-offset_to_block_num(size_t offset)
+static bfsize_t
+offset_to_block_num(bfsize_t offset)
 {
 	offset--;
 	offset -= offset / (BLOCK_COLOR_ENTRIES + 1);
@@ -126,8 +126,8 @@ offset_to_block_num(size_t offset)
  * Convert a block number to an offset within a colormap. Optionally return the
  * colormap index.
  **/
-static size_t
-block_num_to_colormap_offset(size_t block_num, size_t *colormap_idx)
+static bfsize_t
+block_num_to_colormap_offset(bfsize_t block_num, bfsize_t *colormap_idx)
 {
 	if (colormap_idx)
 		*colormap_idx = block_num / BLOCK_COLOR_ENTRIES;
@@ -138,8 +138,8 @@ block_num_to_colormap_offset(size_t block_num, size_t *colormap_idx)
  * Turn a block offset to a colormap offset. Optionally return the colormap
  * index.
  **/
-static size_t
-offset_to_colormap_offset(size_t offset, size_t *colormap_idx)
+static bfsize_t
+offset_to_colormap_offset(bfsize_t offset, bfsize_t *colormap_idx)
 {
 	return block_num_to_colormap_offset(offset_to_block_num(offset),
 					    colormap_idx);
@@ -149,11 +149,11 @@ offset_to_colormap_offset(size_t offset, size_t *colormap_idx)
  * Color a region in a color map.
  **/
 static void
-colormap_color(char *colormap, size_t color_off, size_t blocks, char color)
+colormap_color(char *colormap, bfsize_t color_off, bfsize_t blocks, char color)
 {
-	size_t start = color_off % 4;
+	bfsize_t start = color_off % 4;
 	unsigned char mask;
-	size_t this_blocks;
+	bfsize_t this_blocks;
 
 	color = color | (color << 2) | (color << 4) | (color << 6);
 
@@ -186,9 +186,9 @@ blockfile_restore_color_journal(blockfile_t *blockfile)
 {
 	unsigned char *journal = blockfile->metapage + BLOCK_MAGIC_LENGTH;
 	unsigned char color;
-	size_t colormap;
-	size_t colormap_offset;
-	size_t count;
+	bfsize_t colormap;
+	bfsize_t colormap_offset;
+	bfsize_t count;
 
 	if (crc64(journal, BLOCK_COLOR_JOURNAL_LENGTH))
 		return;
@@ -295,7 +295,7 @@ blockfile_get_ref(blockfile_t *blockfile)
 void
 blockfile_close(blockfile_t *blockfile)
 {
-	size_t i;
+	bfsize_t i;
 
 	if (--blockfile->refcount)
 		return;
@@ -318,8 +318,8 @@ blockfile_close(blockfile_t *blockfile)
 /**
  * Turn a colormap offset to a block number.
  **/
-static size_t
-colormap_offset_to_block_num(size_t color_off, size_t colormap_idx)
+static bfsize_t
+colormap_offset_to_block_num(bfsize_t color_off, bfsize_t colormap_idx)
 {
 	return color_off + colormap_idx * BLOCK_COLOR_ENTRIES;
 }
@@ -327,8 +327,8 @@ colormap_offset_to_block_num(size_t color_off, size_t colormap_idx)
 /**
  * Turn a colormap offset to a block offset.
  **/
-static size_t
-colormap_offset_to_offset(size_t color_off, size_t colormap_idx)
+static bfsize_t
+colormap_offset_to_offset(bfsize_t color_off, bfsize_t colormap_idx)
 {
 	return block_num_to_offset(colormap_offset_to_block_num(color_off,
 								colormap_idx));
@@ -338,7 +338,7 @@ colormap_offset_to_offset(size_t color_off, size_t colormap_idx)
  * Find the color for a given colormap entry.
  **/
 static inline char
-probe_colormap(char *colormap, size_t color_offset)
+probe_colormap(char *colormap, bfsize_t color_offset)
 {
 	char color = colormap[color_offset / 4];
 
@@ -355,15 +355,15 @@ probe_colormap(char *colormap, size_t color_offset)
 /**
  * Get the dimensions of an allocated segment.
  **/
-static size_t
-block_allocation_dimensions(blockfile_t *blockfile, size_t *block_offset)
+static bfsize_t
+block_allocation_dimensions(blockfile_t *blockfile, bfsize_t *block_offset)
 {
-	size_t colormap_idx;
-	size_t color_offset = offset_to_colormap_offset(*block_offset,
+	bfsize_t colormap_idx;
+	bfsize_t color_offset = offset_to_colormap_offset(*block_offset,
 							&colormap_idx);
-	size_t end_offset = color_offset;
+	bfsize_t end_offset = color_offset;
 	char color;
-	size_t ret = 1;
+	bfsize_t ret = 1;
 	void *colormap;
 
 	if (end_offset >= BLOCK_COLOR_ENTRIES)
@@ -396,11 +396,11 @@ block_allocation_dimensions(blockfile_t *blockfile, size_t *block_offset)
  * Map a section in the block file to memory.
  **/
 void *
-blockfile_map(blockfile_t *blockfile, size_t block_num)
+blockfile_map(blockfile_t *blockfile, uint64_t block_num)
 {
-	size_t block_offset = block_num_to_offset(block_num);
-	size_t real_block_offset = block_offset;
-	size_t size = block_allocation_dimensions(blockfile, &real_block_offset);
+	uint64_t block_offset = block_num_to_offset(block_num);
+	bfsize_t real_block_offset = block_offset;
+	bfsize_t size = block_allocation_dimensions(blockfile, &real_block_offset);
 	void *mapping;
 
 	/* Unallocated region */
@@ -433,10 +433,10 @@ blockfile_map(blockfile_t *blockfile, size_t block_num)
  * Sync blocks in a blockfile to disk.
  **/
 void
-blockfile_sync(blockfile_t *blockfile, void *addr, size_t block_offset,
-	       size_t blocks, int wait)
+blockfile_sync(blockfile_t *blockfile, void *addr, bfsize_t block_offset,
+	       bfsize_t blocks, int wait)
 {
-	size_t i;
+	bfsize_t i;
 	int flags;
 
 	if (wait)
@@ -466,7 +466,7 @@ blockfile_sync(blockfile_t *blockfile, void *addr, size_t block_offset,
 void
 blockfile_unmap(blockfile_t *blockfile, void *addr)
 {
-	size_t i;
+	bfsize_t i;
 
 	for (i = 0; i < blockfile->mapped_count; i++)
 	        if (blockfile->mapped[i].mem_loc == addr)
@@ -488,14 +488,14 @@ blockfile_unmap(blockfile_t *blockfile, void *addr)
  * Ensure we have space for the block at the given offset.
  **/
 static int
-blockfile_ensure_space(blockfile_t *blockfile, size_t last_block_offset)
+blockfile_ensure_space(blockfile_t *blockfile, bfsize_t last_block_offset)
 {
 	off_t end = lseek(blockfile->fd, 0, SEEK_END);
 
 	if (end < 0)
 		err(1, "Could not lseek blockfile");
 
-	if ((size_t)end / BLOCK_SIZE > last_block_offset)
+	if ((bfsize_t)end / BLOCK_SIZE > last_block_offset)
 		return 1;
 
 	if (! ftruncate(blockfile->fd,
@@ -509,11 +509,11 @@ blockfile_ensure_space(blockfile_t *blockfile, size_t last_block_offset)
  * Find the largest free region in a colormap.
  **/
 static void
-colormap_get_max_region(void *colormap, size_t *max_start, size_t *max_count)
+colormap_get_max_region(void *colormap, bfsize_t *max_start, bfsize_t *max_count)
 {
-	size_t count = 0;
-	size_t start;
-	size_t i;
+	bfsize_t count = 0;
+	bfsize_t start;
+	bfsize_t i;
 
 	*max_start = 0;
 	*max_count = 0;
@@ -542,7 +542,7 @@ colormap_get_max_region(void *colormap, size_t *max_start, size_t *max_count)
 static void *
 colormap_allocate(blockfile_t *blockfile)
 {
-	size_t pos = 1 + (BLOCK_COLOR_ENTRIES + 1) * blockfile->colormap_count;
+	bfsize_t pos = 1 + (BLOCK_COLOR_ENTRIES + 1) * blockfile->colormap_count;
 	void *mapping;
 
 	if (ftruncate(blockfile->fd, (pos + 1) * BLOCK_SIZE))
@@ -567,7 +567,7 @@ colormap_allocate(blockfile_t *blockfile)
  * Write to a colormap journal.
  **/
 static void
-colormap_journal_commit(void *metapage, size_t start, size_t blocks,
+colormap_journal_commit(void *metapage, bfsize_t start, bfsize_t blocks,
 			char color)
 {
 	char *pos = metapage + BLOCK_MAGIC_LENGTH;
@@ -582,15 +582,15 @@ colormap_journal_commit(void *metapage, size_t start, size_t blocks,
 /**
  * Allocate a region in a block file.
  **/
-ssize_t
-blockfile_allocate(blockfile_t *blockfile, size_t blocks)
+block_t
+blockfile_allocate(blockfile_t *blockfile, bfsize_t blocks)
 {
-	size_t i;
-	size_t max_count = 0;
-	size_t max_start = 0;
-	size_t max_end;
-	size_t last_block_off;
-	size_t ret;
+	bfsize_t i;
+	bfsize_t max_count = 0;
+	bfsize_t max_start = 0;
+	bfsize_t max_end;
+	bfsize_t last_block_off;
+	bfsize_t ret;
 	void *colormap = NULL;
 
 	char color_before = 0;
@@ -598,10 +598,10 @@ blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 	char color;
 
 	if (! blocks)
-		return -EINVAL;
+		return BLOCK_BAD_ARGUMENT;
 
 	if (blocks > BLOCK_COLOR_ENTRIES)
-		return -EINVAL;
+		return BLOCK_BAD_ARGUMENT;
 
 	for (i = 0; i < blockfile->colormap_count; i++) {
 		colormap = blockfile->colormaps[i];
@@ -616,7 +616,7 @@ blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 		colormap = colormap_allocate(blockfile);
 
 		if (! colormap)
-			return -ENOSPC;
+			return BLOCK_BAD_NOSPACE;
 
 		max_start = 0;
 		max_count = BLOCK_COLOR_ENTRIES;
@@ -642,7 +642,7 @@ blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 	last_block_off = colormap_offset_to_offset(max_start, i) + blocks - 1;
 
 	if (! blockfile_ensure_space(blockfile, last_block_off))
-		return -ENOSPC;
+		return BLOCK_BAD_NOSPACE;
 
 	colormap_journal_commit(blockfile->metapage, ret, blocks, color);
 	colormap_color(colormap, max_start, blocks, color);
@@ -654,40 +654,40 @@ blockfile_allocate(blockfile_t *blockfile, size_t blocks)
 /**
  * Free a region in a blockfile.
  **/
-int
-blockfile_free(blockfile_t *blockfile, size_t block_num)
+block_t
+blockfile_free(blockfile_t *blockfile, block_t block_num)
 {
-	size_t colormap_idx;
-	size_t color_off = block_num_to_colormap_offset(block_num,
+	bfsize_t colormap_idx;
+	bfsize_t color_off = block_num_to_colormap_offset(block_num,
 							&colormap_idx);
-	size_t block_offset = block_num_to_offset(block_num);
-	size_t real_block_offset = block_offset;
-	size_t size = block_allocation_dimensions(blockfile, &real_block_offset);
-	size_t i;
+	bfsize_t block_offset = block_num_to_offset(block_num);
+	bfsize_t real_block_offset = block_offset;
+	bfsize_t size = block_allocation_dimensions(blockfile, &real_block_offset);
+	bfsize_t i;
 	void *colormap;
 
 	if (size == 0)
-		return -EINVAL;
+		return BLOCK_BAD_ARGUMENT;
 
 	if (real_block_offset != block_offset)
-		return -EINVAL;
+		return BLOCK_BAD_ARGUMENT;
 
 	if (colormap_idx > blockfile->colormap_count)
-		return -ENOENT;
+		return BLOCK_BAD_ARGUMENT;
 
 	colormap = blockfile->colormaps[colormap_idx];
 
 	if (! probe_colormap(colormap, color_off))
-		return -ENOENT;
+		return BLOCK_BAD_ARGUMENT;
 
 	for (i = 0; i < blockfile->mapped_count; i++)
 		if (blockfile->mapped[i].offset == block_offset)
-			return -EDEADLK;
+			return block_num;
 
 	colormap_journal_commit(blockfile->metapage, block_num, size, 0);
 	colormap_color(colormap, color_off, size, 0);
 	msync(colormap, BLOCK_SIZE, MS_SYNC);
-	return 0;
+	return BLOCK_BAD_MISSING;
 }
 
 /**
@@ -695,19 +695,19 @@ blockfile_free(blockfile_t *blockfile, size_t block_num)
  * any one block. If the annotation already exists, it is altered to point to
  * the given block. The annotation must be less than 256 bytes long.
  **/
-int
-blockfile_annotate_block(blockfile_t *blockfile, size_t block_num, const char *name)
+block_t
+blockfile_annotate_block(blockfile_t *blockfile, block_t block_num, const char *name)
 {
 	unsigned char *metapage = blockfile->metapage;
-	size_t pos = BLOCK_MAGIC_LENGTH + BLOCK_COLOR_JOURNAL_LENGTH;
-	size_t namelen = strlen(name);
-	size_t space = namelen + 10;
+	bfsize_t pos = BLOCK_MAGIC_LENGTH + BLOCK_COLOR_JOURNAL_LENGTH;
+	bfsize_t namelen = strlen(name);
+	bfsize_t space = namelen + 10;
 
 	if (! namelen)
-		return -EINVAL;
+		return BLOCK_BAD_ARGUMENT;
 
 	if (namelen > 0xff)
-		return -ENOSPC;
+		return BLOCK_BAD_NOSPACE;
 
 	while (pos < BLOCK_SIZE && metapage[pos]) {
 		if (metapage[pos] != namelen) {
@@ -727,7 +727,7 @@ blockfile_annotate_block(blockfile_t *blockfile, size_t block_num, const char *n
 	}
 
 	if (pos + space > BLOCK_SIZE)
-		return -ENOSPC;
+		return BLOCK_BAD_NOSPACE;
 
 	metapage[pos++] = (unsigned char)namelen;
 	memcpy(&metapage[pos], name, namelen);
@@ -739,7 +739,7 @@ write_value:
 	*(uint64_t *)&metapage[pos] = htobe64(block_num);
 	pos += 8;
 
-	return 0;
+	return block_num;
 }
 
 /**
@@ -749,10 +749,10 @@ void
 blockfile_remove_annotation(blockfile_t *blockfile, const char *name)
 {
 	unsigned char *metapage = blockfile->metapage;
-	size_t pos = BLOCK_MAGIC_LENGTH + BLOCK_COLOR_JOURNAL_LENGTH;
-	size_t end_pos;
-	size_t next_pos;
-	size_t namelen = strlen(name);
+	bfsize_t pos = BLOCK_MAGIC_LENGTH + BLOCK_COLOR_JOURNAL_LENGTH;
+	bfsize_t end_pos;
+	bfsize_t next_pos;
+	bfsize_t namelen = strlen(name);
 
 	if (! namelen)
 		return;
@@ -796,18 +796,18 @@ blockfile_remove_annotation(blockfile_t *blockfile, const char *name)
 /**
  * Get the block with a given annotation.
  **/
-ssize_t
+block_t
 blockfile_get_annotated_block(blockfile_t *blockfile, const char *name)
 {
 	unsigned char *metapage = blockfile->metapage;
-	size_t pos = BLOCK_MAGIC_LENGTH + BLOCK_COLOR_JOURNAL_LENGTH;
-	size_t namelen = strlen(name);
+	bfsize_t pos = BLOCK_MAGIC_LENGTH + BLOCK_COLOR_JOURNAL_LENGTH;
+	bfsize_t namelen = strlen(name);
 
 	if (! namelen)
-		return -EINVAL;
+		return BLOCK_BAD_ARGUMENT;
 
 	if (namelen > 0xff)
-		return -EINVAL;
+		return BLOCK_BAD_ARGUMENT;
 
 	while (pos < BLOCK_SIZE && metapage[pos]) {
 		if (metapage[pos] != namelen) {
@@ -828,7 +828,7 @@ blockfile_get_annotated_block(blockfile_t *blockfile, const char *name)
 		errx(1, "Corrupt annotation list");
 
 	if (! metapage[pos])
-		return -ENOENT;
+		return BLOCK_BAD_MISSING;
 
 	pos += namelen;
 

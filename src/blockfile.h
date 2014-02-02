@@ -20,6 +20,8 @@
 #ifndef BLOCKFILE_H
 #define BLOCKFILE_H
 
+#include <stdint.h>
+
 /**
  * Size of a single block in a block file. This will be the standard page size
  * on most popular arches. We can optimize around an 8k page with this block
@@ -40,7 +42,18 @@
 #define BLOCK_MAGIC_LENGTH 15
 #define BLOCK_COLOR_JOURNAL_LENGTH 25
 
+/**
+ * Invalid block values for returning.
+ **/
+#define BLOCK_BAD_ARGUMENT    0xffffffffffffffff
+#define BLOCK_BAD_NOSPACE     0xfffffffffffffffe
+#define BLOCK_BAD_MISSING     0xfffffffffffffffd
+
+#define BLOCK_ERROR_START BLOCK_BAD_MISSING
+
 typedef struct blockfile blockfile_t;
+typedef uint64_t block_t;
+typedef uint64_t bfsize_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,16 +61,16 @@ extern "C" {
 
 blockfile_t *blockfile_open(const char *path);
 void blockfile_close(blockfile_t *blockfile);
-void *blockfile_map(blockfile_t *blockfile, size_t block_num);
-void blockfile_sync(blockfile_t *blockfile, void *addr, size_t block_offset,
-		    size_t blocks, int wait);
+void *blockfile_map(blockfile_t *blockfile, block_t block_num);
+void blockfile_sync(blockfile_t *blockfile, void *addr, bfsize_t block_offset,
+		    bfsize_t blocks, int wait);
 void blockfile_unmap(blockfile_t *blockfile, void *addr);
-ssize_t blockfile_allocate(blockfile_t *blockfile, size_t blocks);
-int blockfile_free(blockfile_t *blockfile, size_t block_num);
-int blockfile_annotate_block(blockfile_t *blockfile, size_t block_num,
-			     const char *name);
+block_t blockfile_allocate(blockfile_t *blockfile, bfsize_t blocks);
+block_t blockfile_free(blockfile_t *blockfile, block_t block_num);
+block_t blockfile_annotate_block(blockfile_t *blockfile, block_t block_num,
+				 const char *name);
 void blockfile_remove_annotation(blockfile_t *blockfile, const char *name);
-ssize_t blockfile_get_annotated_block(blockfile_t *blockfile,
+block_t blockfile_get_annotated_block(blockfile_t *blockfile,
 				      const char *name);
 blockfile_t *blockfile_get_ref(blockfile_t *blockfile);
 
