@@ -45,6 +45,7 @@ struct block_range {
  **/
 struct blockfile {
 	int fd;
+	size_t refcount;
 	struct block_range *mapped;
 	size_t mapped_count;
 	void *metapage;
@@ -238,6 +239,7 @@ blockfile_open(const char *path)
 
 	ret->mapped = NULL;
 	ret->mapped_count = 0;
+	ret->refcount = 1;
 
 	ret->metapage = mmap(NULL, BLOCK_SIZE, PROT_READ | PROT_WRITE,
 			      MAP_SHARED, ret->fd, 0);
@@ -278,12 +280,25 @@ blockfile_open(const char *path)
 }
 
 /**
+ * Get a reference to a blockfile.
+ **/
+blockfile_t *
+blockfile_get_ref(blockfile_t *blockfile)
+{
+	blockfile->refcount++;
+	return blockfile;
+}
+
+/**
  * Close a blockfile.
  **/
 void
 blockfile_close(blockfile_t *blockfile)
 {
 	size_t i;
+
+	if (--blockfile->refcount)
+		return;
 
 	for (i = 0; i < blockfile->mapped_count; i++)
 		munmap(blockfile->mapped[i].mem_loc,

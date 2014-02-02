@@ -59,6 +59,7 @@ int blockfile_annotate_block(blockfile_t *blockfile, size_t block_num,
 void blockfile_remove_annotation(blockfile_t *blockfile, const char *name);
 ssize_t blockfile_get_annotated_block(blockfile_t *blockfile,
 				      const char *name);
+blockfile_t *blockfile_get_ref(blockfile_t *blockfile);
 
 #ifdef __cplusplus
 }
