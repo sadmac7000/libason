@@ -539,7 +539,7 @@ colormap_get_max_region(void *colormap, size_t *max_start, size_t *max_count)
 /**
  * Allocate a new colormap.
  **/
-void *
+static void *
 colormap_allocate(blockfile_t *blockfile)
 {
 	size_t pos = 1 + (BLOCK_COLOR_ENTRIES + 1) * blockfile->colormap_count;
