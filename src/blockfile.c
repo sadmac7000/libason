@@ -402,6 +402,11 @@ blockfile_map(blockfile_t *blockfile, uint64_t block_num)
 	bfsize_t real_block_offset = block_offset;
 	bfsize_t size = block_allocation_dimensions(blockfile, &real_block_offset);
 	void *mapping;
+	size_t i;
+
+	for (i = 0; i < blockfile->mapped_count; i++)
+		if (blockfile->mapped[i].offset == block_offset)
+			return blockfile->mapped[i].mem_loc;
 
 	/* Unallocated region */
 	if (! size)
