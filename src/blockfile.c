@@ -38,6 +38,7 @@ struct block_range {
 	block_t offset;
 	bfsize_t length;
 	void *mem_loc;
+	size_t refcount;
 };
 
 /**
@@ -404,9 +405,14 @@ blockfile_map(blockfile_t *blockfile, uint64_t block_num)
 	void *mapping;
 	size_t i;
 
-	for (i = 0; i < blockfile->mapped_count; i++)
-		if (blockfile->mapped[i].offset == block_offset)
-			return blockfile->mapped[i].mem_loc;
+	for (i = 0; i < blockfile->mapped_count; i++) {
+		if (blockfile->mapped[i].offset != block_offset)
+			continue;
+
+		blockfile->mapped[i].refcount++;
+
+		return blockfile->mapped[i].mem_loc;
+	}
 
 	/* Unallocated region */
 	if (! size)
@@ -429,6 +435,7 @@ blockfile_map(blockfile_t *blockfile, uint64_t block_num)
 	blockfile->mapped[blockfile->mapped_count].offset = block_offset;
 	blockfile->mapped[blockfile->mapped_count].length = size;
 	blockfile->mapped[blockfile->mapped_count].mem_loc = mapping;
+	blockfile->mapped[blockfile->mapped_count].refcount = 0;
 	blockfile->mapped_count++;
 
 	return mapping;
@@ -479,6 +486,9 @@ blockfile_unmap(blockfile_t *blockfile, void *addr)
 
 	if (i == blockfile->mapped_count)
 	        return;
+
+	if (--blockfile->mapped[i].refcount)
+		return;
 
 	munmap(addr, blockfile->mapped[i].length * BLOCK_SIZE);
 
