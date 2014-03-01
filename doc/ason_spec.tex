@@ -721,34 +721,17 @@ are order 2, \(!null\) and \(!\emptyset\), also representable as \(U\) and
 \(*\), are order 2.
 
 \subsection{Order 3}
-Order 3 includes all order 2 values, as well as values containing order 2
-values, and the universal object \({ * }\).
+Order 3 contains all remaining values. This includes the universal object \({ *
+}\), and values containing order 2 values.
 
-\subsubsection{Closure under intersection}
+\subsection{Order and "Arity"}
 
-Since order 2 values are closed under intersection, order 3 values which are
-order 2 values can intersect with each other without violating closure.
-
-\({ * }\) intersected with itself is \({ * }\), so closure is not violated.
-
-\({ * }\) intersected with any other value is that value, where the value is an
-object, or \(\emptyset\) where it is not, so intersection with \({ * }\) does
-not violate closure.
-
-Given rule \ref{sec:interobj} and rule \ref{sec:interlist}, we can turn an
-intersection of any two objects or lists containing values of order 2 into a
-single value where the contained values are intersections of order 2 values,
-and, due to order 2's closure under intersection, order 2 values themselves.
-Such an intersection thus does not violate closure.
-
-\subsection{Higher order values}
-
-A concise and useful definition for a fourth order or beyond has not emerged,
-so values outside of order 3 can be lumped together as "higher order values."
-It is believed but not proven that no finite collection of orders can be
-defined unless the highest one be defined explicitly as closed under all four
-properties. Therefore should formalizing higher orders prove useful in the
-future, the category of "higher order values" may shrink, but should never
-become empty.
+One way to look at orders is to look at them in terms of "arity." An order 0
+value has an arity of 1, which is to say it represents exactly one JSON value.
+Order 1 values can represent finite collections of JSON values, Order 2 values
+can represent infinite collections of values, but their complements always
+represent finite collections of values. Order 3 contains values which represent
+infinite sets of values, but which may be complemented to represent finite sets
+of values.
 
 \end{document}
