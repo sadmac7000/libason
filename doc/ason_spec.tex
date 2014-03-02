@@ -1,7 +1,7 @@
 \documentclass[letterpaper]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsthm,amssymb,amsmath}
-\title{ASON: A semantically complete superset of JSON}
+\title{ASON: A semantically complete superset of JSON\\\normalsize\vspace{5mm} Version 0.2}
 \author{Casey Dahlin}
 \begin{document}
 \setlength{\parskip}{1em}
@@ -69,16 +69,16 @@ The operators, in order of descending precedence, are:
 
 \begin{samepage}
 \subsection{Universal Object Syntax}
-ASON introduces a subtype of object called a "universal object." It is
+ASON introduces a subtype of object called a ``universal object." It is
 represented identically to a normal object, except that after the list of
-key-value pairs is one "\(,\)" and one "\(*\)". An example:
+key-value pairs is one ``\(,\)" and one ``\(*\)". An example:
 %
 \begin{equation}
-\{ \kvpair{num}{6} \kvpair{string}{"hello"} *\}
+\{ \kvpair{num}{6} \kvpair{string}{``hello"} *\}
 \end{equation}
 \end{samepage}
 
-Please note that we will typically use the term "object" to refer to either
+Please note that we will typically use the term ``object" to refer to either
 normal or universal objects.
 
 \section{ASON Intuitively}
@@ -258,10 +258,10 @@ becomes obvious.
 \begin{equation}
 \begin{array}{rclcl}
 6 \quad&\cap&\quad 7 & = & \emptyset \\
-\{\kvpaire{foo}{"bar"}\} \quad&\cap&\quad 7 & = & \emptyset \\
+\{\kvpaire{foo}{``bar"}\} \quad&\cap&\quad 7 & = & \emptyset \\
 {[}4,\quad5,\quad6] \quad&\cap&\quad 7 & = & \emptyset \\
 {[}4,\quad5,\quad6] \quad&\cap&\quad {[}7,\quad8] & = & \emptyset \\
-{[}4,\quad5,\quad6] \quad&\cap&\quad \{\kvpaire{foo}{"bar"}\} & = & \emptyset \\
+{[}4,\quad5,\quad6] \quad&\cap&\quad \{\kvpaire{foo}{``bar"}\} & = & \emptyset \\
 \end{array}
 \end{equation}
 
@@ -280,7 +280,7 @@ as purely transformation over syntax, as this specification aims to do.
 \begin{equation}
 \begin{array}{rclcl}
 6 \quad&\cap&\quad 6 & = & 6 \\
-\{\kvpaire{foo}{"bar"}\} \quad&\cap&\quad \{\kvpaire{foo}{"bar"}\}  & = & \{\kvpaire{foo}{"bar"}\} \\
+\{\kvpaire{foo}{``bar"}\} \quad&\cap&\quad \{\kvpaire{foo}{``bar"}\}  & = & \{\kvpaire{foo}{``bar"}\} \\
 {[}4,\quad5,\quad6] \quad&\cap&\quad {[}4,\quad5,\quad6] & = & {[}4,\quad5,\quad6] \\
 \end{array}
 \end{equation}
@@ -359,10 +359,10 @@ An issue of precedence, which should be well expected by now.
 \begin{equation}
 \begin{array}{rclcl}
 6 \quad&:&\quad 7 & = & \emptyset \\
-\{\kvpaire{foo}{"bar"}\} \quad&:&\quad 7 & = & \emptyset \\
+\{\kvpaire{foo}{``bar"}\} \quad&:&\quad 7 & = & \emptyset \\
 {[}4,\quad5,\quad6] \quad&:&\quad 7 & = & \emptyset \\
 {[}4,\quad5,\quad6] \quad&:&\quad {[}7,\quad8] & = & \emptyset \\
-{[}4,\quad5,\quad6] \quad&:&\quad \{\kvpaire{foo}{"bar"}\} & = & \emptyset \\
+{[}4,\quad5,\quad6] \quad&:&\quad \{\kvpaire{foo}{``bar"}\} & = & \emptyset \\
 \\
 6 \quad&:&\quad null & = & 6 \\
 \end{array}
@@ -381,7 +381,7 @@ exception, which wholly encapsulates how join differs from intersect.
 \begin{equation}
 \begin{array}{rclcl}
 6 \quad&:&\quad 6 & = & 6 \\
-\{\kvpaire{foo}{"bar"}\} \quad&:&\quad \{\kvpaire{foo}{"bar"}\}  & = & \{\kvpaire{foo}{"bar"}\} \\
+\{\kvpaire{foo}{``bar"}\} \quad&:&\quad \{\kvpaire{foo}{``bar"}\}  & = & \{\kvpaire{foo}{``bar"}\} \\
 {[}4,\quad5,\quad6] \quad&:&\quad {[}4,\quad5,\quad6] & = & {[}4,\quad5,\quad6] \\
 \end{array}
 \end{equation}
@@ -530,7 +530,7 @@ the simplest possible form. We divide ASON values into a series of numbered
 value is.
 
 Each order is a superset of all the orders below it, so an order 0 value is
-also an order 1 value. However, when we refer to "the order of value B" we
+also an order 1 value. However, when we refer to ``the order of value B" we
 typically refer to the minimally-applicable order. For the purposes of this
 section, we will denote variables with their implied order as a subscript, so
 variables referring to order 0 values will appear as \(a_0\) and soforth.
@@ -724,14 +724,14 @@ are order 2, \(!null\) and \(!\emptyset\), also representable as \(U\) and
 Order 3 contains all remaining values. This includes the universal object \({ *
 }\), and values containing order 2 values.
 
-\subsection{Order and "Arity"}
+\subsection{Order and ``Cardinality"}
 
-One way to look at orders is to look at them in terms of "arity." An order 0
-value has an arity of 1, which is to say it represents exactly one JSON value.
-Order 1 values can represent finite collections of JSON values, Order 2 values
-can represent infinite collections of values, but their complements always
-represent finite collections of values. Order 3 contains values which represent
-infinite sets of values, but which may be complemented to represent finite sets
-of values.
+One way to look at orders is to look at them in terms of ``cardinality." An
+order 0 value has a cardinality of 1, which is to say it represents exactly one
+JSON value.  Order 1 values can represent finite collections of JSON values,
+Order 2 values can represent infinite collections of values, but their
+complements always represent finite collections of values. Order 3 contains
+values which represent infinite sets of values, but which may be complemented
+to represent finite sets of values.
 
 \end{document}
