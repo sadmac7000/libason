@@ -24,12 +24,14 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <stdarg.h>
 
 #include "value.h"
 
 typedef union {
 	int64_t n;
 	char *c;
+	ason_t *value;
 } token_t;
 
 /**
@@ -125,6 +127,7 @@ join(A) ::= value(B) COLON join(C).		{
 	A = ason_join_d(B, C);
 }
 
+value(A) ::= PREBAKED(B).	{ A = B.value; }
 value(A) ::= EMPTY.		{ A = ASON_EMPTY; }
 value(A) ::= NULL.		{ A = ASON_NULL; }
 value(A) ::= UNIVERSE.		{ A = ASON_UNIVERSE; }
@@ -177,15 +180,6 @@ kv_list(A) ::= kv_list(B) COMMA kv_pair(C).	{
 #include "parse.h"
 #include "util.h"
 #include "stringfunc.h"
-
-/**
- * Read an ASON value from a string.
- **/
-API_EXPORT ason_t *
-ason_read(const char *text, ason_ns_t *ns)
-{
-	return ason_readn(text, strlen(text), ns);
-}
 
 /**
  * Get a number token.
@@ -257,11 +251,55 @@ ason_get_token_number(const char *text, size_t length, int *type,
 }
 
 /**
+ * Get a token from a positional argument.
+ **/
+static size_t
+ason_get_token_arg(char type, token_t *data, va_list ap)
+{
+	size_t ret = 1;
+
+	switch (type) {
+	case 'i':
+		data->value = ason_create_fixnum(0);
+		data->value->n = TO_FP(va_arg(ap, int));
+		break;
+	case 'u':
+		data->value = ason_create_fixnum(0);
+		data->value->n = TO_FP(va_arg(ap, unsigned int));
+		break;
+	case 'I':
+		data->value = ason_create_fixnum(0);
+		data->value->n = TO_FP(va_arg(ap, int64_t));
+		break;
+	case 'U':
+		data->value = ason_create_fixnum(0);
+		data->value->n = TO_FP(va_arg(ap, uint64_t));
+		break;
+
+	/* Float becomes double in va_arg, so we can handle these together */
+	case 'f':
+	case 'F':
+		data->value = ason_create_fixnum(0);
+		/* TO_FP was designed for integers, but this seems to work */
+		data->value->n = TO_FP(va_arg(ap, double));
+		break;
+	case 's':
+		data->value = ason_create_string(va_arg(ap, char *));
+		break;
+	default:
+		ret = 0;
+		data->value = ason_copy(va_arg(ap, ason_t *));
+	};
+
+	return ret;
+}
+
+/**
  * Tokenize a string for ASON parsing.
  **/
 static size_t
 ason_get_token(const char *text, size_t length, int *type, token_t *data,
-	       ason_ns_t *ns)
+	       ason_ns_t *ns, va_list ap)
 {
 	const char *text_start = text;
 	const char *tok_start;
@@ -308,6 +346,18 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data,
 	FIXED_TOKEN("false", ASON_LEX_FALSE);
 
 #undef FIXED_TOKEN
+
+	if (*text == '?') {
+		text++;
+		length--;
+		if (length)
+			text += ason_get_token_arg(*text, data, ap);
+		else
+			ason_get_token_arg('\0', data, ap);
+
+		*type = ASON_LEX_PREBAKED;
+		return text - text_start;
+	}
 
 	tok_start = text;
 	text = ason_get_token_number(text, length, type, data);
@@ -358,10 +408,10 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data,
 
 /**
  * Read an ASON value from a string. Stop after `length` bytes. Use `ns` to
- * resolve and assign symbols.
+ * resolve and assign symbols, and `ap` to resolve tokens.
  **/
-API_EXPORT ason_t *
-ason_readn(const char *text, size_t length, ason_ns_t *ns)
+static ason_t *
+ason_vreadn(const char *text, size_t length, ason_ns_t *ns, va_list ap)
 {
 	token_t data;
 	size_t len;
@@ -374,7 +424,7 @@ ason_readn(const char *text, size_t length, ason_ns_t *ns)
 	free(tmp);
 	text = text_unicode;
 
-	while ((len = ason_get_token(text, length, &type, &data, ns))) {
+	while ((len = ason_get_token(text, length, &type, &data, ns, ap))) {
 		text += len;
 		length -= len;
 
@@ -397,4 +447,36 @@ ason_readn(const char *text, size_t length, ason_ns_t *ns)
 
 	return NULL;
 }
+
+/**
+ * Read an ASON value from a string. Stop after `length` bytes. Use `ns` to
+ * resolve and assign symbols.
+ **/
+API_EXPORT ason_t *
+ason_readn(const char *text, size_t length, ason_ns_t *ns, ...)
+{
+	va_list ap;
+	ason_t *ret;
+
+	va_start(ap, ns);
+	ret = ason_vreadn(text, length, ns, ap);
+	va_end(ap);
+	return ret;
+}
+
+/**
+ * Read an ASON value from a string.
+ **/
+API_EXPORT ason_t *
+ason_read(const char *text, ason_ns_t *ns, ...)
+{
+	va_list ap;
+	ason_t *ret;
+
+	va_start(ap, ns);
+	ret = ason_vreadn(text, strlen(text), ns, ap);
+	va_end(ap);
+	return ret;
+}
+
 }

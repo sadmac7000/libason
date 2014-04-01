@@ -27,8 +27,8 @@
 extern "C" {
 #endif
 
-ason_t *ason_read(const char *text, ason_ns_t *ns);
-ason_t *ason_readn(const char *text, size_t length, ason_ns_t *ns);
+ason_t *ason_read(const char *text, ason_ns_t *ns, ...);
+ason_t *ason_readn(const char *text, size_t length, ason_ns_t *ns, ...);
 
 #ifdef __cplusplus
 }

@@ -26,7 +26,8 @@
 
 #include "harness.h"
 
-TESTS("Union value",
+TESTS("Parse parameter",
+      "Union value",
       "Truth",
       "Falsehood",
       "String",
@@ -56,6 +57,18 @@ TEST_MAIN("Parse values")
 	char *str;
 
 	a = ason_create_number(6);
+
+	TEST("Parse parameter") {
+		b = ason_read("?i", NULL, 6);
+		REQUIRE(ason_check_equal(a, b));
+
+		c = ason_read("?i", NULL, 7);
+		REQUIRE(!ason_check_equal(a, c));
+	}
+
+	ason_destroy(b);
+	ason_destroy(c);
+
 	a = ason_create_object_d("foo", a);
 
 	b = ason_create_number(8);
