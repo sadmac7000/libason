@@ -28,6 +28,10 @@
 #include "util.h"
 #include "stringfunc.h"
 
+/* Special values for the order field. */
+#define ORDER_UNKNOWN 5
+#define ORDER_OF_EMPTY -1
+
 /**
  * An iterator to iterate the keys in two objects at once.
  **/
@@ -45,6 +49,7 @@ static struct ason ASON_EMPTY_DATA = {
 	.type = ASON_TYPE_EMPTY,
 	.items = NULL,
 	.count = 0,
+	.order = ORDER_OF_EMPTY,
 };
 API_EXPORT ason_t * const ASON_EMPTY = &ASON_EMPTY_DATA;
 
@@ -52,6 +57,7 @@ static struct ason ASON_NULL_DATA = {
 	.type = ASON_TYPE_NULL,
 	.items = NULL,
 	.count = 0,
+	.order = 0,
 };
 API_EXPORT ason_t * const ASON_NULL = &ASON_NULL_DATA;
 
@@ -59,6 +65,7 @@ static struct ason ASON_UNIVERSE_DATA = {
 	.type = ASON_TYPE_UNIVERSE,
 	.items = NULL,
 	.count = 0,
+	.order = 2,
 };
 API_EXPORT ason_t * const ASON_UNIVERSE = &ASON_UNIVERSE_DATA;
 
@@ -66,6 +73,7 @@ static struct ason ASON_TRUE_DATA = {
 	.type = ASON_TYPE_TRUE,
 	.items = NULL,
 	.count = 0,
+	.order = 0,
 };
 API_EXPORT ason_t * const ASON_TRUE = &ASON_TRUE_DATA;
 
@@ -73,6 +81,7 @@ static struct ason ASON_FALSE_DATA = {
 	.type = ASON_TYPE_FALSE,
 	.items = NULL,
 	.count = 0,
+	.order = 0,
 };
 API_EXPORT ason_t * const ASON_FALSE = &ASON_FALSE_DATA;
 
@@ -80,6 +89,7 @@ static struct ason ASON_WILD_DATA = {
 	.type = ASON_TYPE_WILD,
 	.items = NULL,
 	.count = 0,
+	.order = 2,
 };
 API_EXPORT ason_t * const ASON_WILD = &ASON_WILD_DATA;
 
@@ -87,6 +97,7 @@ static struct ason ASON_OBJ_ANY_DATA = {
 	.type = ASON_TYPE_UOBJECT,
 	.items = NULL,
 	.count = 0,
+	.order = 3,
 };
 API_EXPORT ason_t * const ASON_OBJ_ANY = &ASON_OBJ_ANY_DATA;
 
@@ -214,6 +225,7 @@ ason_create(ason_type_t type, size_t count)
 	ret->type = type;
 	ret->count = count;
 	ret->refcount = 1;
+	ret->order = ORDER_UNKNOWN;
 
 	if (! ret->count)
 		return ret;
@@ -886,6 +898,9 @@ ason_reduce(ason_t *a)
 	ason_t *tmp_2;
 
 	if (a->type == ASON_TYPE_EMPTY)
+		a->order = ORDER_OF_EMPTY;
+
+	if (a->order == ORDER_OF_EMPTY)
 		return 1;
 
 	if (a->type == ASON_TYPE_EQUAL) {
@@ -897,6 +912,7 @@ ason_reduce(ason_t *a)
 		ason_destroy(a->items[1]);
 		a->items[0] = tmp;
 		a->items[1] = tmp_2;
+		a->order = ORDER_UNKNOWN;
 	}
 
 	if (a->type == ASON_TYPE_REPR) {
@@ -907,6 +923,8 @@ ason_reduce(ason_t *a)
 			a->type = ASON_TYPE_TRUE;
 		else
 			a->type = ASON_TYPE_FALSE;
+
+		a->order = 0;
 	}
 
 	if (IS_OBJECT(a))
@@ -922,7 +940,10 @@ ason_reduce(ason_t *a)
 	else if (a->type == ASON_TYPE_COMP)
 		ason_reduce_complement(a);
 
-	return a->type == ASON_TYPE_EMPTY;
+	if (a->type == ASON_TYPE_EMPTY)
+		a->order = ORDER_OF_EMPTY;
+
+	return a->order == ORDER_OF_EMPTY;
 }
 
 /**

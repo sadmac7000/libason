@@ -39,6 +39,7 @@ struct kv_pair {
  **/
 struct ason {
 	ason_type_t type;
+	int order;
 	union {
 		int64_t n;
 		ason_t **items;
