@@ -556,7 +556,7 @@ ason_reduce_complement(ason_t *a)
 {
 	ason_t *tmp;
 
-	if (ason_reduce(a->items[0])) {
+	if (ason_reduce(a->items[0]) == ORDER_OF_EMPTY) {
 		ason_destroy(a->items[0]);
 		free(a->items);
 		a->count = 0;
@@ -646,7 +646,7 @@ ason_reduce_object_intersect_join(ason_t *a, int is_join)
 		else
 			tmp = ason_intersect(left, right);
 
-		if (ason_reduce(tmp)) {
+		if (ason_reduce(tmp) == ORDER_OF_EMPTY) {
 			ason_destroy(tmp);
 			ason_make_empty(a);
 			ason_coiterator_release(&iter);
@@ -687,7 +687,7 @@ ason_reduce_list_intersect(ason_t *a)
 		tmp = ason_intersect(left->items[a->count],
 				     right->items[a->count]);
 
-		if (ason_reduce(tmp)) {
+		if (ason_reduce(tmp) == ORDER_OF_EMPTY) {
 			ason_destroy(tmp);
 			ason_make_empty(a);
 			return;
@@ -708,7 +708,8 @@ ason_reduce_intersect(ason_t *a)
 	char *string;
 	int64_t n;
 
-	if (ason_reduce(a->items[0]) || ason_reduce(a->items[1])) {
+	if (ason_reduce(a->items[0]) == ORDER_OF_EMPTY ||
+	    ason_reduce(a->items[1]) == ORDER_OF_EMPTY) {
 		ason_make_empty(a);
 	} else if (ason_distribute(a)) {
 		ason_reduce(a);
@@ -819,7 +820,7 @@ ason_reduce_object(ason_t *a)
 	size_t i;
 
 	for (i = 0; i < a->count; i++) {
-		if (ason_reduce(a->kvs[i].value)) {
+		if (ason_reduce(a->kvs[i].value) == ORDER_OF_EMPTY) {
 			ason_make_empty(a);
 			break;
 		}
@@ -836,7 +837,7 @@ ason_reduce_list(ason_t *a)
 	size_t i;
 
 	for (i = 0; !ret && i < a->count; i++) {
-		if (ason_reduce(a->items[i])) {
+		if (ason_reduce(a->items[i]) == ORDER_OF_EMPTY) {
 			ason_make_empty(a);
 			break;
 		}
@@ -856,7 +857,7 @@ ason_reduce_union(ason_t *a)
 	int found_null = 0;
 
 	for (pos = new_count = 0; pos < a->count; pos++) {
-		if (!ason_reduce(a->items[pos])) {
+		if (ason_reduce(a->items[pos]) != ORDER_OF_EMPTY) {
 			a->items[new_count++] = a->items[pos];
 		} else {
 			ason_destroy(a->items[pos]);
@@ -889,7 +890,7 @@ ason_reduce_union(ason_t *a)
  * Reduce an ASON value. This technically mutates the value, but our API allows
  * values to change representation as long as they remain equal to themselves.
  *
- * Return whether the value is now empty.
+ * Return the order of the value.
  **/
 int
 ason_reduce(ason_t *a)
@@ -901,7 +902,7 @@ ason_reduce(ason_t *a)
 		a->order = ORDER_OF_EMPTY;
 
 	if (a->order == ORDER_OF_EMPTY)
-		return 1;
+		return a->order;
 
 	if (a->type == ASON_TYPE_EQUAL) {
 		a->type = ASON_TYPE_INTERSECT;
@@ -943,7 +944,7 @@ ason_reduce(ason_t *a)
 	if (a->type == ASON_TYPE_EMPTY)
 		a->order = ORDER_OF_EMPTY;
 
-	return a->order == ORDER_OF_EMPTY;
+	return a->order;
 }
 
 /**
