@@ -901,7 +901,7 @@ ason_reduce(ason_t *a)
 	if (a->type == ASON_TYPE_EMPTY)
 		a->order = ORDER_OF_EMPTY;
 
-	if (a->order == ORDER_OF_EMPTY)
+	if (a->order != ORDER_UNKNOWN)
 		return a->order;
 
 	if (a->type == ASON_TYPE_EQUAL) {
