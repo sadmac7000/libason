@@ -897,12 +897,35 @@ ason_reduce(ason_t *a)
 {
 	ason_t *tmp;
 	ason_t *tmp_2;
+	size_t i;
 
 	if (a->type == ASON_TYPE_EMPTY)
 		a->order = ORDER_OF_EMPTY;
 
 	if (a->order != ORDER_UNKNOWN)
 		return a->order;
+
+	if (! a->count) {
+		if (a->type == ASON_TYPE_UOBJECT)
+			a->order = 3;
+		else if (a->type == ASON_TYPE_EMPTY)
+			a->order = ORDER_OF_EMPTY;
+		else if (a->type == ASON_TYPE_UNIVERSE ||
+			 a->type == ASON_TYPE_WILD)
+			a->order = 2;
+		else
+			a->order = 0;
+
+		return a->order;
+	}
+
+	for (i = 0; i < a->count; i++) {
+		if (IS_OBJECT(a))
+			ason_reduce(a->kvs[i].value);
+		else
+			ason_reduce(a->items[i]);
+	}
+
 
 	if (a->type == ASON_TYPE_EQUAL) {
 		a->type = ASON_TYPE_INTERSECT;
