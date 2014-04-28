@@ -943,7 +943,7 @@ ason_reduce(ason_t *a)
 		a->type = ASON_TYPE_INTERSECT;
 		a->items[1] = ason_complement_d(a->items[1]);
 
-		if (ason_reduce(a))
+		if (ason_reduce(a) == ORDER_OF_EMPTY)
 			a->type = ASON_TYPE_TRUE;
 		else
 			a->type = ASON_TYPE_FALSE;
