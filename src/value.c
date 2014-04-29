@@ -896,7 +896,6 @@ int
 ason_reduce(ason_t *a)
 {
 	ason_t *tmp;
-	ason_t *tmp_2;
 	size_t i;
 
 	if (a->type == ASON_TYPE_EMPTY)
@@ -928,15 +927,20 @@ ason_reduce(ason_t *a)
 
 
 	if (a->type == ASON_TYPE_EQUAL) {
-		a->type = ASON_TYPE_INTERSECT;
-
 		tmp = ason_representation_in(a->items[0], a->items[1]);
-		tmp_2 = ason_representation_in(a->items[1], a->items[0]);
-		ason_destroy(a->items[0]);
-		ason_destroy(a->items[1]);
-		a->items[0] = tmp;
-		a->items[1] = tmp_2;
-		a->order = ORDER_UNKNOWN;
+		ason_reduce(tmp);
+
+		if (tmp->type == ASON_TYPE_TRUE) {
+			ason_destroy(tmp);
+			tmp = ason_representation_in(a->items[1], a->items[0]);
+			ason_reduce(tmp);
+		}
+
+		ason_make_empty(a);
+		a->type = tmp->type;
+		a->order = tmp->order;
+		ason_destroy(tmp);
+		return a->order;
 	}
 
 	if (a->type == ASON_TYPE_REPR) {
