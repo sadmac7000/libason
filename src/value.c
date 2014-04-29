@@ -798,14 +798,6 @@ ason_reduce_join(ason_t *a)
 		return;
 	}
 
-	ason_reduce(a->items[0]);
-	ason_reduce(a->items[1]);
-
-	if (ason_distribute(a)) {
-		ason_reduce(a);
-		return;
-	}
-
 	if (a->items[0]->type == ASON_TYPE_NULL) {
 		b = ason_copy(a->items[1]);
 		ason_clone_into_d(a, b);
