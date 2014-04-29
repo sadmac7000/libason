@@ -838,10 +838,11 @@ ason_reduce_list(ason_t *a)
 	size_t i;
 
 	for (i = 0; !ret && i < a->count; i++) {
-		if (ason_reduce(a->items[i]) == ORDER_OF_EMPTY) {
-			ason_make_empty(a);
-			break;
-		}
+		if (a->items[i]->type != ASON_TYPE_EMPTY)
+			continue;
+
+		ason_make_empty(a);
+		return;
 	}
 }
 
