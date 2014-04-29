@@ -492,6 +492,7 @@ ason_make_empty(ason_t *a)
 
 	a->count = 0;
 	a->type = ASON_TYPE_EMPTY;
+	a->order = ORDER_OF_EMPTY;
 }
 
 /**
