@@ -969,9 +969,6 @@ ason_reduce(ason_t *a)
 	else if (a->type == ASON_TYPE_COMP)
 		ason_reduce_complement(a);
 
-	if (a->type == ASON_TYPE_EMPTY)
-		a->order = ORDER_OF_EMPTY;
-
 	return a->order;
 }
 
