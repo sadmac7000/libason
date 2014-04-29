@@ -954,6 +954,7 @@ ason_reduce(ason_t *a)
 			a->type = ASON_TYPE_FALSE;
 
 		a->order = 0;
+		return a->order;
 	}
 
 	if (IS_OBJECT(a))
