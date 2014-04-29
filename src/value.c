@@ -557,17 +557,24 @@ ason_reduce_complement(ason_t *a)
 {
 	ason_t *tmp;
 
-	if (ason_reduce(a->items[0]) == ORDER_OF_EMPTY) {
-		ason_destroy(a->items[0]);
-		free(a->items);
-		a->count = 0;
+	if (a->items[0]->type == ASON_TYPE_EMPTY) {
+		ason_make_empty(a);
 		a->type = ASON_TYPE_UNIVERSE;
+		a->order = 2;
+		return;
 	} else if (a->items[0]->type == ASON_TYPE_UNIVERSE) {
 		ason_make_empty(a);
+		return;
 	} else if (a->items[0]->type == ASON_TYPE_COMP) {
 		tmp = ason_copy(a->items[0]->items[0]);
 		ason_clone_into_d(a, tmp);
+		return;
 	}
+
+	if (a->items[0]->order <= 1)
+		a->order = 2;
+	else
+		a->order = 3;
 }
 
 /**
