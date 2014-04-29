@@ -826,13 +826,23 @@ static void
 ason_reduce_object(ason_t *a)
 {
 	size_t i;
+	int max_order = 0;
+
+	if (a->type == ASON_TYPE_UOBJECT)
+		max_order = 3;
 
 	for (i = 0; i < a->count; i++) {
-		if (ason_reduce(a->kvs[i].value) == ORDER_OF_EMPTY) {
-			ason_make_empty(a);
-			break;
-		}
+		if (a->kvs[i].value->order > max_order)
+			max_order = a->kvs[i].value->order;
+
+		if (a->kvs[i].value->type != ASON_TYPE_EMPTY)
+			continue;
+
+		ason_make_empty(a);
+		break;
 	}
+
+	a->order = max_order;
 }
 
 /**
