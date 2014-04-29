@@ -612,6 +612,7 @@ ason_distribute(ason_t *a)
 		a->items[i] = ason_operate(a->items[i], right, type);
 
 	ason_destroy(right);
+	a->order = ORDER_UNKNOWN;
 
 	return 1;
 }
@@ -874,9 +875,13 @@ ason_reduce_union(ason_t *a)
 	int found_uni = 0;
 	int found_wild = 0;
 	int found_null = 0;
+	int max_order = 1;
 
 	for (pos = new_count = 0; pos < a->count; pos++) {
-		if (ason_reduce(a->items[pos]) != ORDER_OF_EMPTY) {
+		if (a->items[pos]->order > max_order)
+			max_order = a->items[pos]->order;
+
+		if (a->items[pos]->type != ASON_TYPE_EMPTY) {
 			a->items[new_count++] = a->items[pos];
 		} else {
 			ason_destroy(a->items[pos]);
@@ -900,9 +905,14 @@ ason_reduce_union(ason_t *a)
 	if (found_uni) {
 		ason_make_empty(a);
 		a->type = ASON_TYPE_UNIVERSE;
+		a->order = 2;
+		return;
 	} else if (! new_count) {
 		ason_make_empty(a);
+		return;
 	}
+
+	a->order = max_order;
 }
 
 /**
