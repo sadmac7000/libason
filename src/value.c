@@ -631,6 +631,8 @@ ason_reduce_object_intersect_join(ason_t *a, int is_join)
 	ason_type_t type = ASON_TYPE_OBJECT;
 	struct kv_pair *buf = xcalloc(a->items[0]->count + a->items[1]->count,
 				      sizeof(struct kv_pair));
+	int max_order = 1;
+	int order;
 
 	if (a->items[0]->type == ASON_TYPE_UOBJECT &&
 	    a->items[1]->type == ASON_TYPE_UOBJECT)
@@ -640,6 +642,9 @@ ason_reduce_object_intersect_join(ason_t *a, int is_join)
 		type = ASON_TYPE_UOBJECT;
 	if (is_join && a->items[1]->type == ASON_TYPE_UOBJECT)
 		type = ASON_TYPE_UOBJECT;
+
+	if (type == ASON_TYPE_UOBJECT)
+		max_order = 3;
 
 	ason_coiterator_init(&iter, a->items[0], a->items[1]);
 	ason_make_empty(a);
@@ -655,18 +660,24 @@ ason_reduce_object_intersect_join(ason_t *a, int is_join)
 		else
 			tmp = ason_intersect(left, right);
 
-		if (ason_reduce(tmp) == ORDER_OF_EMPTY) {
+		order = ason_reduce(tmp);
+
+		if (order == ORDER_OF_EMPTY) {
 			ason_destroy(tmp);
 			ason_make_empty(a);
 			ason_coiterator_release(&iter);
 			return;
 		}
 
+		if (order > max_order)
+			max_order = order;
+
 		a->kvs[a->count].key = xstrdup(key);
 		a->kvs[a->count].value = tmp;
 		a->count++;
 	}
 
+	a->order = max_order;
 	ason_coiterator_release(&iter);
 }
 
