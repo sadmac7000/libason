@@ -679,6 +679,8 @@ ason_reduce_list_intersect(ason_t *a)
 	ason_t *left;
 	ason_t *right;
 	ason_t *tmp;
+	int max_order = 0;
+	int order;
 
 	if (a->items[0]->count != a->items[1]->count) {
 		ason_make_empty(a);
@@ -696,14 +698,21 @@ ason_reduce_list_intersect(ason_t *a)
 		tmp = ason_intersect(left->items[a->count],
 				     right->items[a->count]);
 
-		if (ason_reduce(tmp) == ORDER_OF_EMPTY) {
+		order = ason_reduce(tmp);
+
+		if (order == ORDER_OF_EMPTY) {
 			ason_destroy(tmp);
 			ason_make_empty(a);
 			return;
 		}
 
+		if (order > max_order)
+			max_order = order;
+
 		a->items[a->count] = tmp;
 	}
+
+	a->order = max_order;
 }
 
 /**
