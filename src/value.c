@@ -737,8 +737,8 @@ ason_reduce_intersect(ason_t *a)
 	char *string;
 	int64_t n;
 
-	if (ason_reduce(a->items[0]) == ORDER_OF_EMPTY ||
-	    ason_reduce(a->items[1]) == ORDER_OF_EMPTY) {
+	if (a->items[0]->type == ASON_TYPE_EMPTY ||
+	    a->items[1]->type == ASON_TYPE_EMPTY) {
 		ason_make_empty(a);
 	} else if (ason_distribute(a)) {
 		ason_reduce(a);
@@ -748,8 +748,10 @@ ason_reduce_intersect(ason_t *a)
 		other = a->items[1]->type;
 		ason_make_empty(a);
 
-		if (other == ASON_TYPE_NULL || other == ASON_TYPE_UNIVERSE)
+		if (other == ASON_TYPE_NULL || other == ASON_TYPE_UNIVERSE) {
 			a->type = ASON_TYPE_NULL;
+			a->order = 0;
+		}
 	} else if (a->items[0]->type == ASON_TYPE_UNIVERSE) {
 		ason_clone_into(a, a->items[1]);
 	} else if (a->items[1]->type == ASON_TYPE_UNIVERSE) {
@@ -767,11 +769,15 @@ ason_reduce_intersect(ason_t *a)
 			other = ASON_TYPE_EMPTY;
 		ason_make_empty(a);
 		a->type = other;
+
+		if (a->type != ASON_TYPE_EMPTY)
+			a->order = 0;
 	} else if (a->items[0]->type == ASON_TYPE_TRUE ||
 		   a->items[0]->type == ASON_TYPE_FALSE) {
 		other = a->items[0]->type;
 		ason_make_empty(a);
 		a->type = other;
+		a->order = 0;
 	} else if (a->items[0]->type == ASON_TYPE_STRING) {
 		string = NULL;
 
@@ -783,6 +789,7 @@ ason_reduce_intersect(ason_t *a)
 		if (string) {
 			a->string = string;
 			a->type = ASON_TYPE_STRING;
+			a->order = 0;
 		}
 	} else if (a->items[0]->type == ASON_TYPE_NUMERIC) {
 		n = a->items[1]->n;
@@ -800,6 +807,10 @@ ason_reduce_intersect(ason_t *a)
 		a->count = 1;
 		a->items = xmalloc(sizeof(ason_t *));
 		a->items[0] = tmp;
+		a->order = tmp->order;
+
+		if (a->order < 2)
+			a->order = 2;
 	} else {
 		ason_make_empty(a);
 	}
