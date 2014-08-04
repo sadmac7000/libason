@@ -550,6 +550,83 @@ ason_clone_into_d(ason_t *target, ason_t *src)
 int ason_reduce(ason_t *a);
 
 /**
+ * Compare two ASON values. Beyond equality, the ordering doesn't mean much,
+ * but is total, which is useful. Returns an integer a la strcmp.
+ **/
+static int
+ason_compare(ason_t *a, ason_t *b)
+{
+	int ret;
+	size_t i;
+
+	ason_reduce(a);
+	ason_reduce(b);
+
+	if (a->order != b->order)
+		return a->order - b->order;
+
+	if (a->type != b->type)
+		return a->type - b->type;
+
+	if (a->count != b->count)
+		return a->count - b->count;
+
+	switch (a->type) {
+	case ASON_TYPE_EMPTY:
+	case ASON_TYPE_NULL:
+	case ASON_TYPE_UNIVERSE:
+	case ASON_TYPE_WILD:
+	case ASON_TYPE_TRUE:
+	case ASON_TYPE_FALSE:
+		return 0;
+
+	case ASON_TYPE_NUMERIC:
+		return a->n - b->n;
+
+	case ASON_TYPE_STRING:
+		return strcmp(a->string, b->string);
+
+	case ASON_TYPE_COMP:
+		return ason_compare(a->items[0], b->items[0]);
+
+	case ASON_TYPE_UNION:
+	case ASON_TYPE_LIST:
+		for (i = 0; i < a->count; i++) {
+			ret = ason_compare(a->items[i], b->items[i]);
+
+			if (ret)
+				return ret;
+		}
+
+		return 0;
+
+	case ASON_TYPE_OBJECT:
+	case ASON_TYPE_UOBJECT:
+		for (i = 0; i < a->count; i++) {
+			ret = strcmp(a->kvs[i].key, b->kvs[i].key);
+
+			if (ret)
+				return ret;
+
+			ret = ason_compare(a->kvs[i].value, b->kvs[i].value);
+
+			if (ret)
+				return ret;
+		}
+
+		return 0;
+
+	case ASON_TYPE_REPR:
+	case ASON_TYPE_EQUAL:
+	case ASON_TYPE_JOIN:
+	case ASON_TYPE_INTERSECT:
+		errx(1, "Unsimplified type in reduced object");
+	default:
+		errx(1, "Unknown type");
+	}
+}
+
+/**
  * Reduce a complement.
  **/
 static void
@@ -888,54 +965,90 @@ ason_reduce_list(ason_t *a)
 }
 
 /**
+ * Sort the items in a union.
+ **/
+static void
+ason_union_sort(ason_t *a, size_t start, size_t count)
+{
+	size_t i;
+	size_t pivot = start;
+	ason_t *tmp;
+
+	if (count == 0)
+		return;
+
+	for (i = start; i < count; i++) {
+		if (ason_compare(a->items[pivot], a->items[i]) <= 0)
+			continue;
+
+		tmp = a->items[pivot + 1];
+		a->items[pivot + 1] = a->items[i];
+		a->items[i] = tmp;
+
+		tmp = a->items[pivot];
+		a->items[pivot] = a->items[pivot + 1];
+		a->items[pivot + 1] = tmp;
+
+		pivot++;
+	}
+
+	ason_union_sort(a, start, pivot - start);
+	ason_union_sort(a, pivot + 1, start + count - 1 - pivot);
+}
+
+/**
  * Reduce a union.
  **/
 static void
 ason_reduce_union(ason_t *a)
 {
-	size_t new_count;
-	size_t pos;
-	int found_uni = 0;
-	int found_wild = 0;
-	int found_null = 0;
-	int max_order = 1;
+	size_t i;
+	size_t j;
+	ason_t *sub;
 
-	for (pos = new_count = 0; pos < a->count; pos++) {
-		if (a->items[pos]->order > max_order)
-			max_order = a->items[pos]->order;
+	for (i = 0; i < a->count; i++) {
+		sub = a->items[i];
 
-		if (a->items[pos]->type != ASON_TYPE_EMPTY) {
-			a->items[new_count++] = a->items[pos];
-		} else {
-			ason_destroy(a->items[pos]);
-		}
+		if (sub->type != ASON_TYPE_UNION)
+			continue;
+
+		a->items = xrealloc(a->items, (a->count + sub->count) *
+				    sizeof(ason_t *));
+
+		memmove(&a->items[i + sub->count], &a->items[i + 1],
+			(a->count - i - 1) * sizeof(ason_t *));
+
+		for (j = 0; j < sub->count; j++)
+			a->items[i + j] = ason_copy(sub->items[j]);
+
+		a->count += sub->count - 1;
+		i += sub->count - 1;
+
+		ason_destroy(sub);
 	}
 
-	a->count = new_count;
+	ason_union_sort(a, 0, a->count);
 
-	for (pos = 0; pos < a->count; pos++) {
-		if (a->items[pos]->type == ASON_TYPE_UNIVERSE) {
-			found_uni = 1;
-		} else if (a->items[pos]->type == ASON_TYPE_WILD) {
-			found_wild = 1;
-		} else if (a->items[pos]->type == ASON_TYPE_NULL) {
-			found_null = 1;
-		}
+	for (i = 1; i < a->count; i++) {
+		if (ason_compare(a->items[i - 1], a->items[i]) &&
+		    a->items[i]->type != ASON_TYPE_EMPTY)
+			continue;
+
+		ason_destroy(a->items[i]);
+
+		memmove(&a->items[i], &a->items[i + 1], (a->count - i - 1) *
+			sizeof(ason_t *));
+
+		i--;
+		a->count--;
 	}
 
-	found_uni = found_uni || (found_null && found_wild);
-
-	if (found_uni) {
+	if (a->count == 1)
+		ason_clone_into(a, a->items[0]);
+	else if (! a->count)
 		ason_make_empty(a);
-		a->type = ASON_TYPE_UNIVERSE;
-		a->order = 2;
-		return;
-	} else if (! new_count) {
-		ason_make_empty(a);
-		return;
-	}
-
-	a->order = max_order;
+	else
+		a->order = a->items[a->count - 1]->order ?: 1;
 }
 
 /**
