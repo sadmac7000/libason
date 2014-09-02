@@ -1060,7 +1060,6 @@ ason_reduce_union(ason_t *a)
 int
 ason_reduce(ason_t *a)
 {
-	ason_t *tmp;
 	size_t i;
 
 	if (a->type == ASON_TYPE_EMPTY)
@@ -1090,22 +1089,13 @@ ason_reduce(ason_t *a)
 			ason_reduce(a->items[i]);
 	}
 
-
 	if (a->type == ASON_TYPE_EQUAL) {
-		tmp = ason_representation_in(a->items[0], a->items[1]);
-		ason_reduce(tmp);
+		if (ason_check_equal(a->items[0], a->items[1]))
+			ason_clone_into(a, ASON_TRUE);
+		else
+			ason_clone_into(a, ASON_FALSE);
 
-		if (tmp->type == ASON_TYPE_TRUE) {
-			ason_destroy(tmp);
-			tmp = ason_representation_in(a->items[1], a->items[0]);
-			ason_reduce(tmp);
-		}
-
-		ason_make_empty(a);
-		a->type = tmp->type;
-		a->order = tmp->order;
-		ason_destroy(tmp);
-		return a->order;
+		return 0;
 	}
 
 	if (a->type == ASON_TYPE_REPR) {
