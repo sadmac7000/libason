@@ -1172,12 +1172,5 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 API_EXPORT int
 ason_check_equal(ason_t *a, ason_t *b)
 {
-	ason_t *inter = ason_equality(a, b);
-	int ret;
-
-	ason_reduce(inter);
-	ret = inter->type == ASON_TYPE_TRUE;
-
-	ason_destroy(inter);
-	return ret;
+	return !ason_compare(a, b);
 }
