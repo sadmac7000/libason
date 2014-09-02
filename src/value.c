@@ -1099,16 +1099,12 @@ ason_reduce(ason_t *a)
 	}
 
 	if (a->type == ASON_TYPE_REPR) {
-		a->type = ASON_TYPE_INTERSECT;
-		a->items[1] = ason_complement_d(a->items[1]);
-
-		if (ason_reduce(a) == ORDER_OF_EMPTY)
-			a->type = ASON_TYPE_TRUE;
+		if (ason_check_represented_in(a->items[0], a->items[1]))
+			ason_clone_into(a, ASON_TRUE);
 		else
-			a->type = ASON_TYPE_FALSE;
+			ason_clone_into(a, ASON_FALSE);
 
-		a->order = 0;
-		return a->order;
+		return 0;
 	}
 
 	if (IS_OBJECT(a))
@@ -1146,14 +1142,61 @@ ason_check_intersects(ason_t *a, ason_t *b)
 API_EXPORT int
 ason_check_represented_in(ason_t *a, ason_t *b)
 {
-	ason_t *inter = ason_representation_in(a, b);
-	int ret;
+	size_t i;
 
-	ason_reduce(inter);
-	ret = inter->type == ASON_TYPE_TRUE;
+	ason_reduce(a);
+	ason_reduce(b);
 
-	ason_destroy(inter);
-	return ret;
+	if (a->order > b->order) {
+		if (a->order != 3)
+			return 0;
+		if (b->order != 2)
+			return 0;
+	}
+
+	if (b->type == ASON_TYPE_UNIVERSE)
+		return 1;
+	if (b->type == ASON_TYPE_WILD)
+		return ! ason_check_equal(a, ASON_NULL);
+
+	if (b->order == 0)
+		return ason_check_equal(a, b);
+
+	if (a->type == ASON_TYPE_UNION) {
+		for (i = 0; i < a->count; i++)
+			if (! ason_check_represented_in(a->items[i], b))
+				return 0;
+		return 1;
+	}
+
+	if (b->order == 1) {
+		for (i = 0; i < b->count; i++)
+			if (ason_check_equal(a, b->items[i]))
+				return 1;
+		return 0;
+	}
+
+	if (b->order == 2)
+		return ! ason_check_intersects(a, b->items[0]);
+
+	if (b->order == 3) {
+		if (! IS_OBJECT(a))
+			return 0;
+
+		/* FIXME: This might not work if we're checking to see if a
+		 * universal object is represented in a union of two or more
+		 * universal objects. We'll need to either fix that or (more
+		 * likely) ensure reduction merges unioned universal objects if
+		 * they can be merged.
+		 */
+		if (b->type == ASON_TYPE_UNION)
+			for (i = 0; i < b->count; i++)
+				if (ason_check_represented_in(a, b->items[i]))
+					return 1;
+		return 0;
+	}
+
+	errx(1, "Unknown order in ason_check_represented_in");
 }
 
 /**
