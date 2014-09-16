@@ -19,10 +19,10 @@ dist_man3_MANS =		\
 	ason_values.3
 
 ason_spec.aux: ason_spec.tex
-	$(pdflatex) -draftmode $< >/dev/null
+	$(pdflatex) -halt-on-error -draftmode $< | grep '^!' && exit 1 || exit 0
 
 ason_spec.pdf: ason_spec.tex ason_spec.aux
-	$(pdflatex) $< >/dev/null
+	$(pdflatex) -halt-on-error $< | grep '^!' && exit 1 || exit 0
 
 install-exec-hook:
 	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_create_number.3
