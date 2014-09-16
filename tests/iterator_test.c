@@ -47,7 +47,7 @@ TEST_MAIN("Iteration")
 
 	TEST("Object Iteration") {
 		struct {
-			char name[3];
+			char name[4];
 			int value;
 			int seen;
 		} items[3] = {
@@ -90,7 +90,7 @@ TEST_MAIN("Iteration")
 
 	TEST("Universal Object Iteration") {
 		struct {
-			char name[3];
+			char name[4];
 			int value;
 			int seen;
 		} items[3] = {
