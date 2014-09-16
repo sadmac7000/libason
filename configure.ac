@@ -2,6 +2,7 @@ AC_INIT([libason], [0.0.1], [casey.dahlin@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror -Wno-portability foreign
                   parallel-tests subdir-objects])
 AM_SILENT_RULES([yes])
+AM_EXTRA_RECURSIVE_TARGETS([gcov])
 AC_PROG_CC
 m4_pattern_allow([AM_PROG_AR])
 AM_PROG_AR
@@ -14,10 +15,14 @@ AC_ARG_ENABLE([gcov], [AS_HELP_STRING(
 
 gcov_CFLAGS=
 
+AC_PATH_PROG([GCOV], [gcov], [no])
 AS_IF([test "x$enable_gcov" = xyes], [
        gcov_CFLAGS="-fprofile-arcs -ftest-coverage"
        ], [])
 AC_ARG_VAR([gcov_CFLAGS], [C compiler flags for gcov])
+
+test "x$GCOV" = "xno" -a "x$enable_gcov" = xyes && \
+	AC_MSG_ERROR([Lemon parser generator not found])
 
 AC_ARG_WITH([asonq], [AS_HELP_STRING(
 	     [--with-asonq],
