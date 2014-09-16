@@ -5,6 +5,12 @@ expressions that can specify or match groups of JSON values. libason is a
 simple library for manipulating ASON programmatically in C.
 
 ## Installation ##
+Dependencies:
+readline-devel
+texlive-latex-bin-bin
+texlive-texconfig
+texlive-texconfig-bin
+
 libason can be built and installed with the usual commands:
 
 ~~~
