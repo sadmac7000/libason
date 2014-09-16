@@ -18,7 +18,10 @@ dist_man3_MANS =		\
 	ason_read.3		\
 	ason_values.3
 
-ason_spec.pdf: ason_spec.tex
+ason_spec.aux: ason_spec.tex
+	$(pdflatex) -draftmode $< >/dev/null
+
+ason_spec.pdf: ason_spec.tex ason_spec.aux
 	$(pdflatex) $< >/dev/null
 
 install-exec-hook:
