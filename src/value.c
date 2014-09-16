@@ -943,6 +943,9 @@ ason_reduce_object(ason_t *a)
 		return;
 	}
 
+	if (max_order > 1)
+		max_order = 3;
+
 	a->order = max_order;
 }
 
