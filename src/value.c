@@ -1041,17 +1041,18 @@ ason_reduce_union(ason_t *a)
 
 	ason_union_sort(a, 0, a->count);
 
-	for (i = 1; i < a->count; i++) {
-		if (ason_compare(a->items[i - 1], a->items[i]) &&
-		    a->items[i]->type != ASON_TYPE_EMPTY)
+	for (i = 0; i < a->count; ) {
+		if (a->items[i]->type != ASON_TYPE_EMPTY &&
+		    ( i == 0 || ason_compare(a->items[i - 1], a->items[i]))) {
+			i++;
 			continue;
+		}
 
 		ason_destroy(a->items[i]);
 
 		memmove(&a->items[i], &a->items[i + 1], (a->count - i - 1) *
 			sizeof(ason_t *));
 
-		i--;
 		a->count--;
 	}
 
