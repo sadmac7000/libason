@@ -1,7 +1,7 @@
 \documentclass[letterpaper]{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{amsthm,amssymb,amsmath}
-\title{ASON: A semantically complete superset of JSON\\\normalsize\vspace{5mm} Version 0.2}
+\usepackage{amsthm,amssymb,amsmath,mathtools}
+\title{ASON: A semantically complete superset of JSON\\\normalsize\vspace{5mm} Version 0.3}
 \author{Casey Dahlin}
 \begin{document}
 \setlength{\parskip}{1em}
@@ -266,8 +266,8 @@ becomes obvious.
 \end{equation}
 
 The intersection of any two values which are not equal, and of which neither
-can be expressed as a union of two or more non-equal, non-empty values, is
-\(\emptyset\).
+can be expressed as a union of two or more non-equal, non-empty values, and
+where both values are not objects, or equally-lengthed lists, is \(\emptyset\).
 \end{prule}
 
 This is a necessarily complex way of specifying what is ultimately a simple
@@ -398,7 +398,7 @@ b: e,\quad c: f] \\
 \end{equation}
 
 The join of any two lists of the same length can be reduced to a list
-which is also that length and where each element is the intersection of the
+which is also that length and where each element is the join of the
 corresponding two elements in the operand lists.
 \end{prule}
 
@@ -522,6 +522,28 @@ U = &!\emptyset \\
 With complementation defined, the two constant values are easily expressed. In
 fact they are revealed as syntactic sugar.
 
+\section{The Representation Relationship}
+\label{sec:representation}
+Representation is intuitively simple. It is a relationship between ASON values,
+rendered as \(\subseteq\) or the keyword \(in\), which states that all
+values represented by the left operand are represented by the right (but not
+necessarily the other way around).
+
+Formally we say that:
+
+\begin{equation}
+a \subseteq b
+\end{equation}
+
+When and only when:
+
+\begin{equation}
+a \cap b = a
+\end{equation}
+
+It is worth noting that \(\emptyset\) Is represented in all valid ASON values
+by this logic.
+
 \section{Orders}
 
 One of the most important reasons to transform an ASON value is to place it in
@@ -545,8 +567,8 @@ intersection.
 
 In addition to the four ASON operators, we will also discuss whether values are
 closed under \textit{containment}, that is, does using a value of a given order
-as an element of a list or object also yield a value of that order. If so, that
-order is closed under containment.
+as the only element of a list or object also yield a value of that order. If
+so, that order is closed under containment.
 
 \subsubsection{Closure and Join}
 
@@ -558,29 +580,88 @@ ignore closure under join and simply discuss closure under intersection.
 
 \subsection{Order 0}
 
-Order 0 is the simplest order. We define it as follows:
+Order 0 is the simplest order. We define that for any values \(a\) and \(b\)
+such that:
 
-\begin{itemize}
-	\item All ASON values which are representable as valid JSON values are
-		order 0.
-	\item \(\emptyset\) is order 0.
-\end{itemize}
+\begin{equation}
+a \subseteq b_0
+\end{equation}
+
+The value \(b_0\) is order 0 if and only if one of the following is true:
+\begin{equation}
+\begin{split}
+	a &= b_0 \\
+	a &= \emptyset \\
+\end{split}
+\end{equation}
+
+It should be noted that \(\emptyset\) trivially satisfies both requirements and
+is thus order 0.
 
 \subsubsection{Closure under containment}
 
-We take it as trivial that any JSON value can also be a value within another
-containing JSON value, so closure under containment for JSON is trivial.
-
 Rule \ref{sec:oblit} proves that containment of \(\emptyset\) must result in
-\(\emptyset\), so containing \(\emptyset\) is also closed.
+\(\emptyset\), so containing \(\emptyset\) is closed.
+
+Containment for other order 0 values is fairly easy to see. We will prove it
+here only for lists, though a similar proof works for objects as well.
+
+Consider \(a_0\) to be an order 0 object. Let's assume that \([a_0]\) is
+not an order 0 object. That means there must be some value \(c\) that satisfies
+all three of the following:
+
+\begin{equation}
+\begin{split}
+c &\subseteq [a_0] \\
+c &\neq [a_0] \\
+c &\neq \emptyset \\
+\end{split}
+\end{equation}
+
+We can substitute our definition of representation from section
+\ref{sec:representation} to get:
+
+\begin{equation}
+\begin{split}
+c &= c \cap [a_0] \\
+c &\neq [a_0] \\
+c &\neq \emptyset \\
+\end{split}
+\end{equation}
+
+Rules \ref{sec:interelim} and \ref{sec:interlist} imply that anything we
+intersect with a list of length 1 must also be a list of length 1, or the
+result will be \(\emptyset\), so we can rewrite \(c\) as follows:
+
+\begin{equation}
+\begin{split}
+[d] &= [d] \cap [a_0] \\
+[d] &\neq [a_0] \\
+[d] &\neq \emptyset \\
+\end{split}
+\end{equation}
+
+Rule \ref{sec:interlist} also lets us rewrite the first premise:
+
+\begin{equation}
+\begin{split}
+[d] &= [d \cap a_0] \\
+[d] &\neq [a_0] \\
+[d] &\neq \emptyset \\
+\end{split}
+\end{equation}
+
+We know from the definition of the order that \([d \cap a_0]\) must be either
+\([\emptyset]\) or \([a_0]\). In the first case, rule \ref{sec:oblit} would
+make the whole value equal to \(\emptyset\), violating the third premise. In
+the second case we violate the second premise plainly.
 
 \subsubsection{Closure under intersection}
 
-Rule \ref{sec:interelim} implies that intersecting two order 0 values will
-either yield \(\emptyset\) if they are unequal, or their mutual value if they
-are equal. The excepted case is if either can be expressed as a union of two
-non-equal, non-empty values, which we take as trivially impossible for
-JSON-equivalent values.
+The proof of closure under intersection for order 0 very nearly restates the
+definition of the order. The value of \(a_0 \cap b_0\) must be represented in
+both \(a_0\) and \(b_0\), which limits it to being equal to them both, or
+\(\emptyset\).
 
 \subsection{Order 1}
 
@@ -620,8 +701,11 @@ intersection so the result is simply a union of order 0 values, which is order
 1.
 
 \subsection{Order 2}
-Order 2 contains order 1, as well as the complement of all order 1 values, and
-the union of any other order 2 values.
+Order 2 contains any value expressable as:
+
+\begin{equation}
+!a_1
+\end{equation}
 
 \subsubsection{Closure under union}
 
