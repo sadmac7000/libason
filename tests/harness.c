@@ -121,8 +121,10 @@ main(int argc, char **argv)
 	int idx;
 	FILE *trs_fp = stdout;
 	int xfail = 0;
+#if 0 /* unused */
 	int color = 0;
 	int enable_hard = 1;
+#endif
 	int pass = 1;
 	size_t i;
 
@@ -157,12 +159,16 @@ main(int argc, char **argv)
 				err(1, "FATAL: Could not create buffer for TRS %s", optarg);
 		}
 
+#if 0 /* unused */
 		if (idx == 3 && !strcmp("yes", optarg))
 			color = 1;
+#endif
 		if (idx == 4 && !strcmp("yes", optarg))
 			xfail = 1;
+#if 0 /* unused */
 		if (idx == 5 && !strcmp("no", optarg))
 			enable_hard = 0;
+#endif
 
 		if (idx == 6)
 			exit(test_main());
