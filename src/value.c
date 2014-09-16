@@ -708,7 +708,7 @@ ason_reduce_object_intersect_join(ason_t *a, int is_join)
 	ason_type_t type = ASON_TYPE_OBJECT;
 	struct kv_pair *buf = xcalloc(a->items[0]->count + a->items[1]->count,
 				      sizeof(struct kv_pair));
-	int max_order = 1;
+	int max_order = 0;
 	int order;
 
 	if (a->items[0]->type == ASON_TYPE_UOBJECT &&
