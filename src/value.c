@@ -957,14 +957,23 @@ ason_reduce_list(ason_t *a)
 {
 	int ret = 0;
 	size_t i;
+	int max_order = 0;
 
 	for (i = 0; !ret && i < a->count; i++) {
+		if (a->items[i]->order > max_order)
+			max_order = a->items[i]->order;
+
 		if (a->items[i]->type != ASON_TYPE_EMPTY)
 			continue;
 
 		ason_make_empty(a);
 		return;
 	}
+
+	if (max_order > 1)
+		max_order = 3;
+
+	a->order = max_order;
 }
 
 /**
