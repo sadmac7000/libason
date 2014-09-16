@@ -65,7 +65,7 @@ TEST_MAIN("Blockfiles")
 	void *raw_mapping;
 	off_t seek;
 	ssize_t got;
-	unsigned char *loc = buf;
+	unsigned char *loc = (unsigned char *)buf;
 	size_t i;
 
 	unlink(TMPFILE);
