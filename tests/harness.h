@@ -21,6 +21,8 @@
 #define TEST_HARNESS_H
 
 #include <setjmp.h>
+#include <string.h>
+#include <err.h>
 
 #include <ason/value.h>
 
