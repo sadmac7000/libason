@@ -527,7 +527,7 @@ static void
 colormap_get_max_region(void *colormap, bfsize_t *max_start, bfsize_t *max_count)
 {
 	bfsize_t count = 0;
-	bfsize_t start;
+	bfsize_t start = 0xdeadbeef; /* Makes compiler happy */
 	bfsize_t i;
 
 	*max_start = 0;
