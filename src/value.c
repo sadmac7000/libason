@@ -940,7 +940,7 @@ ason_reduce_object(ason_t *a)
 			continue;
 
 		ason_make_empty(a);
-		break;
+		return;
 	}
 
 	a->order = max_order;
