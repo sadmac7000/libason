@@ -7,6 +7,18 @@ m4_pattern_allow([AM_PROG_AR])
 AM_PROG_AR
 AC_PROG_LN_S
 
+AC_ARG_ENABLE([gcov], [AS_HELP_STRING(
+	       [--enable-gcov],
+	       [Compile in gcov support])
+], [], [enable_gcov=yes])
+
+gcov_CFLAGS=
+
+AS_IF([test "x$enable_gcov" = xyes], [
+       gcov_CFLAGS="-fprofile-arcs -ftest-coverage"
+       ], [])
+AC_ARG_VAR([gcov_CFLAGS], [C compiler flags for gcov])
+
 AC_ARG_WITH([asonq], [AS_HELP_STRING(
 	     [--with-asonq],
 	 [Build the asonq binary])

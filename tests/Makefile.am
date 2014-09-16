@@ -1,3 +1,5 @@
+AM_CFLAGS = --std=gnu99 -Wall -Wextra -D_GNU_SOURCE -fvisibility=hidden $(gcov_CFLAGS)
+
 TESTS = parser_test	  \
 	esc_parser_test	  \
 	print_object	  \
