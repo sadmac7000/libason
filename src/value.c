@@ -809,87 +809,65 @@ ason_reduce_list_intersect(ason_t *a)
 static void
 ason_reduce_intersect(ason_t *a)
 {
-	ason_type_t other;
 	ason_t *tmp;
-	char *string;
-	int64_t n;
 
 	if (a->items[0]->type == ASON_TYPE_EMPTY ||
 	    a->items[1]->type == ASON_TYPE_EMPTY) {
 		ason_make_empty(a);
-	} else if (ason_distribute(a)) {
-		ason_reduce(a);
-	} else if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1])) {
-		ason_reduce_object_intersect_join(a, 0);
-	} else if (a->items[0]->type == ASON_TYPE_NULL) {
-		other = a->items[1]->type;
-		ason_make_empty(a);
+		return;
+	}
 
-		if (other == ASON_TYPE_NULL || other == ASON_TYPE_UNIVERSE) {
-			a->type = ASON_TYPE_NULL;
-			a->order = 0;
-		}
-	} else if (a->items[0]->type == ASON_TYPE_UNIVERSE) {
-		ason_clone_into(a, a->items[1]);
-	} else if (a->items[1]->type == ASON_TYPE_UNIVERSE) {
-		ason_clone_into(a, a->items[0]);
-	} else if (a->items[0]->type == ASON_TYPE_WILD &&
-		   a->items[1]->type != ASON_TYPE_NULL) {
-		ason_clone_into(a, a->items[1]);
-	} else if (a->items[1]->type == ASON_TYPE_WILD &&
-		   a->items[0]->type != ASON_TYPE_NULL) {
-		ason_clone_into(a, a->items[0]);
-	} else if (a->items[0]->type != a->items[1]->type) {
-		if (IS_BOOL(a->items[0]) && IS_BOOL(a->items[1]))
-			other = ASON_TYPE_FALSE;
+	/* The more complex object will always be on the right */
+	if (a->items[0]->order < a->items[1]->order) {
+		tmp = a->items[0];
+		a->items[0] = a->items[1];
+		a->items[1] = tmp;
+	}
+
+	if (a->items[0]->order == 0) {
+		if (ason_check_represented_in(a->items[0], a->items[1]))
+			ason_clone_into(a, a->items[0]);
 		else
-			other = ASON_TYPE_EMPTY;
-		ason_make_empty(a);
-		a->type = other;
-
-		if (a->type != ASON_TYPE_EMPTY)
-			a->order = 0;
-	} else if (a->items[0]->type == ASON_TYPE_TRUE ||
-		   a->items[0]->type == ASON_TYPE_FALSE) {
-		other = a->items[0]->type;
-		ason_make_empty(a);
-		a->type = other;
-		a->order = 0;
-	} else if (a->items[0]->type == ASON_TYPE_STRING) {
-		string = NULL;
-
-		if (! strcmp(a->items[0]->string, a->items[1]->string))
-			string = xstrdup(a->items[0]->string);
-
-		ason_make_empty(a);
-
-		if (string) {
-			a->string = string;
-			a->type = ASON_TYPE_STRING;
-			a->order = 0;
-		}
-	} else if (a->items[0]->type == ASON_TYPE_NUMERIC) {
-		n = a->items[1]->n;
-
-		ason_clone_into(a, a->items[0]);
-
-		if (a->n != n)
 			ason_make_empty(a);
-	} else if (a->items[0]->type == ASON_TYPE_LIST) {
-		ason_reduce_list_intersect(a);
-	} else if (a->items[0]->type == ASON_TYPE_COMP) {
-		tmp = ason_union(a->items[0]->items[0], a->items[1]->items[0]);
+
+		return;
+	}
+
+	if (ason_distribute(a)) {
+		ason_reduce(a);
+		return;
+	}
+
+	/* Distribute took care of order 1 objects. We cleared up order 0
+	 * objects earlier. Everything left is order 2 or 3.
+	 */
+
+	if (a->items[1]->order == 2 || (a->items[0]->type == ASON_TYPE_COMP &&
+					a->items[1]->type == ASON_TYPE_COMP)) {
+		a->items[0] = ason_complement_d(a->items[0]);
+		a->items[1] = ason_complement_d(a->items[1]);
+		tmp = ason_union(a->items[0], a->items[1]);
 		ason_make_empty(a);
 		a->type = ASON_TYPE_COMP;
 		a->count = 1;
 		a->items = xmalloc(sizeof(ason_t *));
 		a->items[0] = tmp;
-		a->order = tmp->order;
+		a->order = 5;
+		ason_reduce(a);
+	}
 
-		if (a->order < 2)
-			a->order = 2;
+	/* At least one of the parameters is now order 3. God help us. */
+
+	if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1])) {
+		ason_reduce_object_intersect_join(a, 0);
+	} else if (a->items[0]->type == ASON_TYPE_UNIVERSE ||
+		   a->items[0]->type == ASON_TYPE_WILD) {
+		ason_clone_into(a, a->items[1]);
+	} else if (a->items[0]->type == ASON_TYPE_LIST) {
+		ason_reduce_list_intersect(a);
 	} else {
-		ason_make_empty(a);
+		/* We're still punting for a lot of cases */
+		a->order = 3;
 	}
 }
 
