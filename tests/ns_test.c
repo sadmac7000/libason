@@ -48,7 +48,6 @@ TEST_MAIN("Namespaces")
 	ason_ns_t *root;
 	ason_ns_t *sub1;
 	ason_ns_t *sub2;
-	ason_ns_t *sub1_sub;
 
 	a = ason_read("{ \"foo\": 6, \"bar\": 7, \"baz\": 8 }", NULL);
 	b = ason_read("\"stringval\"", NULL);
