@@ -49,12 +49,12 @@ TEST_MAIN("Blockfiles")
 	int fd = -1;
 	char buf[BLOCK_SIZE * 2];
 	bfsize_t to_read;
-	block_t region;
-	block_t region_b;
+	block_t region = BLOCK_BAD_MISSING;
+	block_t region_b = BLOCK_BAD_MISSING;
 	void *mapping;
 	void *mapping_b;
-	void *raw_mapping;
-	off_t seek;
+	void *raw_mapping = NULL;
+	off_t seek = 0;
 	ssize_t got;
 	unsigned char *loc = (unsigned char *)buf;
 	size_t i;
