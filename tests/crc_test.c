@@ -38,9 +38,8 @@ TEST_MAIN("CRC")
 	}
 
 	TEST("Irregular CRC") {
-		unsigned char buf[21] = "Hello, world!";
-
-		*(uint64_t *)&buf[13] = htobe64(0x1f73c2abcf65431e);
+		unsigned char buf[21] =
+			"Hello, world!\x1f\x73\xc2\xab\xcf\x65\x43\x1e";
 
 		REQUIRE(crc64(buf, 21) == 0);
 	}
