@@ -28,12 +28,7 @@
 
 #include "harness.h"
 
-TESTS("Value storage",
-      "Loading of non-existent value",
-      "Storing to non-existent value",
-      "Clobbering value",
-      "Subspace attachment",
-      "Subspace storage");
+TESTS(6);
 
 /**
  * Basic exercise of the parser.

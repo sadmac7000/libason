@@ -34,36 +34,35 @@ typedef enum {
 } test_state_t;
 
 struct test_info {
-	test_state_t state[2048];
+	test_state_t state[128];
+	char test_name[128][41];
 	size_t current;
-	size_t to_go;
+	size_t count;
+	void *abort_point;
 };
 
 extern struct test_info *test_info;
 
-#define TESTS(...) \
-	const char *test_list[] = { __VA_ARGS__ }; \
-	const size_t test_count = sizeof(test_list) / sizeof(char *)
+#define TESTS(count) \
+	const size_t test_count = count; \
 
-#define TEST_INIT() ({ test_info->to_go = test_count; })
+#define TEST_INIT() ({ test_info->count = test_count; test_info->current = 0;})
 
-#define TEST_LOOKUP_NAME(_name) ({					\
-	const char *name = (_name);					\
-	size_t i;							\
-	for (i = 0; i < test_count && strcmp(test_list[i], name); i++); \
-	if (i == test_count)						\
-		errx(1, "No such test: %s", name);			\
-	i;								\
-})
+#define TEST_UPDATE_STATE() ({ \
+	if (test_info->state[test_info->current] == TEST_PENDING) \
+		test_info->state[test_info->current] = TEST_PASSED; })
+
+#define JUMP_NAME_EXPAND(x) jump ## x
+#define JUMP_NAME(x) JUMP_NAME_EXPAND(x)
 
 #define TEST(_name) \
-	test_info->current = TEST_LOOKUP_NAME(_name); \
 	test_info->state[test_info->current] = TEST_PENDING; \
-	setjmp(test_abort); \
+	strcpy(test_info->test_name[test_info->current], _name); \
+	JUMP_NAME(__LINE__): test_info->abort_point = &&JUMP_NAME(__LINE__); \
 	for (; \
 	     test_info->state[test_info->current] == TEST_PENDING; \
-	     test_info->state[test_info->current] = TEST_PASSED, \
-	     test_info->to_go--)
+	     TEST_UPDATE_STATE(), \
+	     test_info->current++)
 
 #define TEST_MAIN(name) \
 	const char *test_name = (name); \
@@ -75,8 +74,8 @@ extern struct test_info *test_info;
 	printf("Failed: %s: %s:%d\n", #x, __FILE__, __LINE__); \
 	fflush(stdout); \
 	test_info->state[test_info->current] = TEST_FAILED; \
-	test_info->to_go--; \
-	longjmp(test_abort, 1); }
+	test_info->current++; \
+	goto *test_info->abort_point;  }
 
 #ifdef __cplusplus
 extern "C" {

@@ -26,7 +26,7 @@
 
 #include "harness.h"
 
-TESTS("ASCII printing", "Unicode printing");
+TESTS(2);
 
 /**
  * A test which does nothing.

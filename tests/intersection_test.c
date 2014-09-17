@@ -26,8 +26,7 @@
 
 #include "harness.h"
 
-TESTS("Union Intersection",
-      "Parsed Union Intersection");
+TESTS(2);
 
 /**
  * Basic exercise of the parser.

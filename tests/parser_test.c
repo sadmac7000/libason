@@ -26,21 +26,7 @@
 
 #include "harness.h"
 
-TESTS("Parse parameter",
-      "Union value",
-      "Truth",
-      "Falsehood",
-      "String",
-      "Number",
-      "Equivalence (true)",
-      "Equivalence (false)",
-      "Representation (true)",
-      "Representation (false)",
-      "Unexpected token",
-      "Unexpected token (trailing)",
-      "Non-token",
-      "Non-token (trailing)",
-      );
+TESTS(14);
 
 /**
  * Basic exercise of the parser.

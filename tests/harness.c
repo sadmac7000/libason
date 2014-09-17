@@ -48,7 +48,6 @@ struct test_info *test_info;
  **/
 extern const char *test_name;
 extern const size_t test_count;
-extern const char *test_list[];
 
 #ifdef __cplusplus
 extern "C" {
@@ -222,12 +221,12 @@ main(int argc, char **argv)
 		if (test_info->state[i] != TEST_PASSED)
 			pass = 0;
 
-		record_test(test_list[i], trs_fp, info.si_code,
+		record_test(test_info->test_name[i], trs_fp, info.si_code,
 			    info.si_status, test_info->state[i],
 			    xfail);
 	}
 
-	if (! test_info->to_go) {
+	if (test_info->current == test_info->count) {
 		if (pass) {
 			fprintf(trs_fp, ":test-global-result: PASS %s\n", test_name);
 			printf("TEST: %sPASS\n", test_name_field);

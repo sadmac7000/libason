@@ -28,16 +28,7 @@
 
 #include "harness.h"
 
-TESTS(	"Order 0 integer",
-	"Order 0 boolean",
-	"Order 0 string",
-	"Order 0 object",
-	"Order 0 nested object",
-	"Order 0 list",
-	"Order 0 nested list",
-	"Order 0 list with object",
-	"Order 0 object with list"
-     );
+TESTS(9);
 
 /**
  * Basic exercise of the parser.

@@ -32,16 +32,7 @@
 #include "../src/crc.h"
 #include "harness.h"
 
-TESTS("Initialization",
-      "Allocation",
-      "False free",
-      "Free",
-      "Mapping",
-      "Annotation",
-      "Removing annotation",
-      "Checking annotation",
-      "Big regions",
-      "Colormap journal");
+TESTS(10);
 
 /* TODO: Make autoconf set this for us */
 #define TMPDIR "/tmp"

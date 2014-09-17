@@ -24,8 +24,7 @@
 #include "../src/crc.h"
 #include "harness.h"
 
-TESTS("Single-word CRC",
-      "Irregular CRC");
+TESTS(2);
 
 /**
  * Basic exercise of the parser.

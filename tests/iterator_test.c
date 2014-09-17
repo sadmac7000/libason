@@ -27,9 +27,7 @@
 
 #include "harness.h"
 
-TESTS("Object Iteration",
-      "Universal Object Iteration",
-      "List Iteration");
+TESTS(3);
 
 /**
  * Basic exercise of the parser.

@@ -26,7 +26,7 @@
 
 #include "harness.h"
 
-TESTS("Escape sequences");
+TESTS(1);
 
 /**
  * Basic exercise of the parser.
