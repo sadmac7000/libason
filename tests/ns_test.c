@@ -31,7 +31,7 @@
 TESTS(6);
 
 /**
- * Basic exercise of the parser.
+ * Basic exercise of namespaces.
  **/
 TEST_MAIN("Namespaces")
 {
