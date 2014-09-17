@@ -13,11 +13,11 @@ EXTRA_DIST=README.md NEWS.md
 .PHONY: lcov
 lcov: coverage
 
-coverage.info:
-	lcov --capture --directory . --output-file $@
+coverage.info: tests/test-suite.log
+	$(lcov) --capture --directory . $(LCOV_FLAGS) --output-file $@
 
 coverage: coverage.info
-	genhtml $^ --output-dir $@
+	$(genhtml) $^ $(GENHTML_FLAGS) --output-dir $@
 
 MOSTLYCLEANFILES = coverage.info
 
