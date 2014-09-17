@@ -34,9 +34,9 @@ TESTS(2);
 TEST_MAIN("Complementation")
 {
 	TEST_INIT();
-	ason_t *a;
-	ason_t *b;
-	ason_t *c;
+	ason_t *a = NULL;
+	ason_t *b = NULL;
+	ason_t *c = NULL;
 
 	TEST("Comparison/Identity") {
 		a = ason_create_number(6);
