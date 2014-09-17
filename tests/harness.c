@@ -134,6 +134,8 @@ main(int argc, char **argv)
 	test_info = mmap(NULL, sizeof(struct test_info), PROT_READ | PROT_WRITE,
 			 MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
+	memset(test_info, 0, sizeof(*test_info));
+
 	if (! test_info)
 		err(1, "FATAL: Could not map shared segment");
 

@@ -27,10 +27,10 @@
 #include <ason/value.h>
 
 typedef enum {
+	TEST_SKIPPED = 0,
 	TEST_PASSED,
 	TEST_FAILED,
 	TEST_PENDING,
-	TEST_SKIPPED,
 } test_state_t;
 
 struct test_info {
@@ -45,9 +45,7 @@ extern struct test_info *test_info;
 	const char *test_list[] = { __VA_ARGS__ }; \
 	const size_t test_count = sizeof(test_list) / sizeof(char *)
 
-#define TEST_INIT() ({ size_t i; test_info->to_go = test_count; \
-	for (i = 0; i < test_count; i++) \
-		test_info->state[i] = TEST_SKIPPED; })
+#define TEST_INIT() ({ test_info->to_go = test_count; })
 
 #define TEST_LOOKUP_NAME(_name) ({					\
 	const char *name = (_name);					\
