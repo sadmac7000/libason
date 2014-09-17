@@ -157,7 +157,6 @@ ason_ns_destroy(ason_ns_t *ns)
 
 	for (i = 0; i < ns->subns_count; i++) {
 		free(ns->subns[i].name);
-		ns->subns[i].space= NULL;
 		ason_ns_destroy(ns->subns[i].space);
 	}
 	
