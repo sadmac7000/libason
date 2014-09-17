@@ -25,4 +25,4 @@ libtool
 *.gcov
 *.gcov_report
 coverage
-coverage.info
+coverage.info*
