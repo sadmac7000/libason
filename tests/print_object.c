@@ -39,9 +39,9 @@ TEST_MAIN("Object printing")
 	ason_t *eight = ason_create_number(8);
 	ason_t *list = ason_create_list(six);
 	ason_t *object = ason_create_object("first", six);
-	ason_t *test;
+	ason_t *test = NULL;
 	ason_t *a, *b;
-	char *out;
+	char *out = NULL;
 
 	a = ason_create_list(seven);
 	b = ason_join(list, a);
