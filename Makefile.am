@@ -6,6 +6,9 @@ genhtml = $(genhtml_$(V))$(GENHTML)
 genhtml_ = $(genhtml_$(AM_DEFAULT_VERBOSITY))
 genhtml_0 = @echo "  GENHTML " $@;
 
+GENHTML_FLAGS=--branch-coverage --rc lcov_branch_coverage=1
+LCOV_FLAGS=--rc lcov_branch_coverage=1
+
 ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = src include tests doc
 EXTRA_DIST=README.md NEWS.md
