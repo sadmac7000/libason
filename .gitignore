@@ -24,3 +24,5 @@ libtool
 *.gcno
 *.gcov
 *.gcov_report
+coverage
+coverage.info

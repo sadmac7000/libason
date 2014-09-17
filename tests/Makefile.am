@@ -1,4 +1,4 @@
-AM_CFLAGS = --std=gnu99 -Wall -Wextra -D_GNU_SOURCE -fvisibility=hidden $(gcov_CFLAGS)
+AM_CFLAGS = --std=gnu99 -Wall -Wextra -D_GNU_SOURCE -fvisibility=hidden $(lcov_CFLAGS)
 
 TESTS = parser_test	  \
 	esc_parser_test	  \

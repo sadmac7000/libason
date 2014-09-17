@@ -2,27 +2,29 @@ AC_INIT([libason], [0.0.1], [casey.dahlin@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror -Wno-portability foreign
                   parallel-tests subdir-objects])
 AM_SILENT_RULES([yes])
-AM_EXTRA_RECURSIVE_TARGETS([gcov])
 AC_PROG_CC
 m4_pattern_allow([AM_PROG_AR])
 AM_PROG_AR
 AC_PROG_LN_S
 
-AC_ARG_ENABLE([gcov], [AS_HELP_STRING(
-	       [--enable-gcov],
-	       [Compile in gcov support])
-], [], [enable_gcov=yes])
+AC_ARG_ENABLE([lcov], [AS_HELP_STRING(
+	       [--enable-lcov],
+	       [Compile in lcov support])
+], [], [enable_lcov=yes])
 
-gcov_CFLAGS=
+lcov_CFLAGS=
 
-AC_PATH_PROG([GCOV], [gcov], [no])
-AS_IF([test "x$enable_gcov" = xyes], [
-       gcov_CFLAGS="-fprofile-arcs -ftest-coverage"
+AC_PATH_PROG([LCOV], [lcov], [no])
+AC_PATH_PROG([GENHTML], [genhtml], [no])
+AS_IF([test "x$enable_lcov" = xyes], [
+       lcov_CFLAGS="-O0 -fprofile-arcs -ftest-coverage"
        ], [])
-AC_ARG_VAR([gcov_CFLAGS], [C compiler flags for gcov])
+AC_ARG_VAR([lcov_CFLAGS], [C compiler flags for lcov])
 
-test "x$GCOV" = "xno" -a "x$enable_gcov" = xyes && \
-	AC_MSG_ERROR([Lemon parser generator not found])
+test "x$LCOV" = "xno" -a "x$enable_lcov" = xyes && \
+	AC_MSG_ERROR([lcov command not found])
+test "x$GENHTML" = "xno" -a "x$enable_lcov" = xyes && \
+	AC_MSG_ERROR([genhtml command (part of lcov) not found])
 
 AC_ARG_WITH([asonq], [AS_HELP_STRING(
 	     [--with-asonq],
