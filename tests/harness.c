@@ -213,6 +213,9 @@ main(int argc, char **argv)
 	if (ret)
 		err(1, "FATAL: Could not gather child");
 
+	if (info.si_code != CLD_EXITED || info.si_status)
+		pass = 0;
+
 	for (i = 0; i < test_count; i++) {
 		if (test_info->state[i] != TEST_PASSED)
 			pass = 0;
@@ -226,6 +229,9 @@ main(int argc, char **argv)
 		if (pass) {
 			fprintf(trs_fp, ":test-global-result: PASS %s\n", test_name);
 			printf("TEST: %sPASS\n", test_name_field);
+		} else if (info.si_code != CLD_EXITED || info.si_status) {
+			fprintf(trs_fp, ":test-global-result: TEARDOWN-ERROR %s\n", test_name);
+			printf("TEST: %sTEARDOWN-ERROR\n", test_name_field);
 		} else {
 			fprintf(trs_fp, ":test-global-result: FAIL %s\n", test_name);
 			printf("TEST: %sFAIL\n", test_name_field);
