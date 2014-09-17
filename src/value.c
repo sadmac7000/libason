@@ -276,6 +276,9 @@ ason_destroy(ason_t *a)
 {
 	size_t i;
 
+	if (! a)
+		return;
+
 	if (a == ASON_EMPTY	||
 	    a == ASON_NULL	||
 	    a == ASON_UNIVERSE	||
