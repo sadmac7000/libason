@@ -39,10 +39,10 @@ TEST_MAIN("Namespaces")
 	ason_t *a;
 	ason_t *b;
 	ason_t *c;
-	ason_t *d;
+	ason_t *d = NULL;
 	ason_ns_t *root;
-	ason_ns_t *sub1;
-	ason_ns_t *sub2;
+	ason_ns_t *sub1 = NULL;
+	ason_ns_t *sub2 = NULL;
 
 	a = ason_read("{ \"foo\": 6, \"bar\": 7, \"baz\": 8 }", NULL);
 	b = ason_read("\"stringval\"", NULL);
@@ -58,6 +58,7 @@ TEST_MAIN("Namespaces")
 	}
 
 	ason_destroy(d);
+	d = NULL;
 
 	TEST("Loading of non-existent value") {
 		REQUIRE(! ason_ns_load(root, "nothing_here"));
@@ -75,6 +76,8 @@ TEST_MAIN("Namespaces")
 	}
 
 	ason_destroy(d);
+	d = NULL;
+
 	ason_ns_destroy(root);
 
 	root = ason_ns_create(ASON_NS_RAM, NULL);
