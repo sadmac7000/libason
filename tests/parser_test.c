@@ -35,12 +35,12 @@ TEST_MAIN("Parse values")
 {
 	TEST_INIT();
 
-	ason_t *test_value;
+	ason_t *test_value = NULL;
 	ason_t *a;
-	ason_t *b;
-	ason_t *c;
+	ason_t *b = NULL;
+	ason_t *c = NULL;
 	ason_t *d;
-	char *str;
+	char *str = NULL;
 
 	a = ason_create_number(6);
 
@@ -127,6 +127,7 @@ TEST_MAIN("Parse values")
 
 	ason_destroy(test_value);
 	free(str);
+	str = NULL;
 
 	TEST("Equivalence (true)") {
 		test_value = ason_read("1 = 1", NULL);
