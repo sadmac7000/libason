@@ -307,7 +307,7 @@ blockfile_close(blockfile_t *blockfile)
 
 	munmap(blockfile->metapage, BLOCK_SIZE);
 
-	for (i = 0; i < blockfile->colormap_count; i++);
+	for (i = 0; i < blockfile->colormap_count; i++)
 		munmap(blockfile->colormaps[i], BLOCK_SIZE);
 
 	free(blockfile->colormaps);
