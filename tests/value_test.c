@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(8);
+TESTS(1);
 
 /**
  * Full exercise of value reduction.
