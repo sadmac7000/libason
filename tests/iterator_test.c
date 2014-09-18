@@ -34,7 +34,6 @@ TESTS(3);
  **/
 TEST_MAIN("Iteration")
 {
-	TEST_INIT();
 	ason_t *a;
 	char *str;
 	ason_iter_t *iter;

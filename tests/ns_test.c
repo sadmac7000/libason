@@ -35,7 +35,6 @@ TESTS(8);
  **/
 TEST_MAIN("Namespaces")
 {
-	TEST_INIT();
 	ason_t *a;
 	ason_t *b;
 	ason_t *c;

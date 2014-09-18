@@ -44,7 +44,6 @@ TESTS(10);
  **/
 TEST_MAIN("Blockfiles")
 {
-	TEST_INIT();
 	blockfile_t *bf;
 	int fd = -1;
 	char buf[BLOCK_SIZE * 2];

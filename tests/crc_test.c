@@ -31,8 +31,6 @@ TESTS(2);
  **/
 TEST_MAIN("CRC")
 {
-	TEST_INIT();
-
 	TEST("Single-word CRC") {
 		REQUIRE(crc64_8h(0x123456789abcdef0) == 0x13e76db181b0d129);
 	}

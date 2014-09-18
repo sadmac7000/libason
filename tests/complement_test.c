@@ -33,7 +33,6 @@ TESTS(2);
  **/
 TEST_MAIN("Complementation")
 {
-	TEST_INIT();
 	ason_t *a = NULL;
 	ason_t *b = NULL;
 	ason_t *c = NULL;

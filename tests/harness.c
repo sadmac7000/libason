@@ -134,6 +134,8 @@ main(int argc, char **argv)
 			 MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
 	memset(test_info, 0, sizeof(*test_info));
+	test_info->count = test_count;
+	test_info->current = 0;
 
 	if (! test_info)
 		err(1, "FATAL: Could not map shared segment");

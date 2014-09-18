@@ -33,8 +33,6 @@ TESTS(14);
  **/
 TEST_MAIN("Parse values")
 {
-	TEST_INIT();
-
 	ason_t *test_value = NULL;
 	ason_t *a;
 	ason_t *b = NULL;

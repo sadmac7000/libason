@@ -33,7 +33,6 @@ TESTS(2);
  **/
 TEST_MAIN("Object printing")
 {
-	TEST_INIT();
 	ason_t *six = ason_create_number(6);
 	ason_t *seven = ason_create_number(7);
 	ason_t *eight = ason_create_number(8);

@@ -35,9 +35,7 @@ TESTS(9);
  **/
 TEST_MAIN("Correctly determine order")
 {
-	TEST_INIT();
 	ason_t *a;
-
 
 	a = ason_read("6", NULL);
 	TEST("Order 0 integer") {

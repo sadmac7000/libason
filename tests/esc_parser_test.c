@@ -33,7 +33,6 @@ TESTS(1);
  **/
 TEST_MAIN("Parse a value with string escapes")
 {
-	TEST_INIT();
 	ason_t *test_value = ason_read("{ \"\\u2122\\t\\v\\r\": 6 }", NULL);
 	ason_t *check_value = ason_create_object_d("™\t\v\r",
 						   ason_create_number(6));

@@ -46,8 +46,6 @@ extern struct test_info *test_info;
 #define TESTS(count) \
 	const size_t test_count = count; \
 
-#define TEST_INIT() ({ test_info->count = test_count; test_info->current = 0;})
-
 #define TEST_UPDATE_STATE() ({ \
 	if (test_info->state[test_info->current] == TEST_PENDING) \
 		test_info->state[test_info->current] = TEST_PASSED; })

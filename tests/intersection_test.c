@@ -33,7 +33,6 @@ TESTS(2);
  **/
 TEST_MAIN("Intersection")
 {
-	TEST_INIT();
 	ason_t *a;
 	ason_t *b;
 	ason_t *c;
