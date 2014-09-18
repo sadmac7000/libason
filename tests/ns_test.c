@@ -28,7 +28,7 @@
 
 #include "harness.h"
 
-TESTS(6);
+TESTS(8);
 
 /**
  * Basic exercise of namespaces.
@@ -118,6 +118,29 @@ TEST_MAIN("Namespaces")
 	ason_destroy(b);
 	ason_destroy(c);
 	ason_destroy(d);
+
+	ason_ns_destroy(root);
+
+	root = ason_ns_create(ASON_NS_RAM, NULL);
+
+	TEST("Variable safety") {
+		REQUIRE(ason_ns_mkvar(root, "") == -EINVAL);
+		REQUIRE(ason_ns_mkvar(root, "3mium") == -EINVAL);
+		REQUIRE(ason_ns_mkvar(root, "v@riable") == -EINVAL);
+		REQUIRE(ason_ns_mkvar(root, "v@riable") == -EINVAL);
+		REQUIRE(ason_ns_mkvar(root, "value_3") == 0);
+		REQUIRE(ason_ns_mkvar(root, "value_4") == 0);
+		REQUIRE(ason_ns_mkvar(root, "value_3") == -EEXIST);
+	}
+
+	TEST("Unsupported calls") {
+		char *random_pointer = "POISONNN";
+
+		REQUIRE(ason_ns_set_meta(root, "value_2", random_pointer) == -ENOTSUP);
+		REQUIRE(ason_ns_set_meta(root, "value_3", random_pointer) == -ENOTSUP);
+		REQUIRE(*ason_ns_get_meta(root, "value_2") == '\0');
+		REQUIRE(*ason_ns_get_meta(root, "value_3") == '\0');
+	}
 
 	ason_ns_destroy(root);
 
