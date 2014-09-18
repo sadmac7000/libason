@@ -757,6 +757,9 @@ ason_reduce_object_intersect_join(ason_t *a, int is_join)
 		a->count++;
 	}
 
+	if (max_order > 1)
+		max_order = 3;
+
 	a->order = max_order;
 	ason_coiterator_release(&iter);
 }
