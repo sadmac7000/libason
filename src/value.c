@@ -1134,12 +1134,59 @@ ason_check_intersects(ason_t *a, ason_t *b)
 }
 
 /**
+ * Check whether ASON value a is represented in b, where both are objects.
+ **/
+static int
+ason_check_object_represented_in(ason_t *a, ason_t *b)
+{
+	struct ason_coiterator iter;
+	int ret = 1;
+	ason_t *left;
+	ason_t *right;
+
+	if (a->type == ASON_TYPE_UOBJECT && b->type == ASON_TYPE_OBJECT)
+		return 0;
+
+	ason_coiterator_init(&iter, a, b);
+
+	while (ason_coiterator_next(&iter, &left, &right)) {
+		if (ason_check_represented_in(left, right))
+			continue;
+
+		ret = 0;
+		break;
+	}
+
+	ason_coiterator_release(&iter);
+	return ret;
+}
+
+/**
+ * Check whether ASON value a is represented in b, where both are lists.
+ **/
+static int
+ason_check_list_represented_in(ason_t *a, ason_t *b)
+{
+	size_t i;
+
+	if (a->count != b->count)
+		return 0;
+
+	for (i = 0; i < a->count; i++)
+		if (! ason_check_represented_in(a->items[i], b->items[i]))
+			return 0;
+
+	return 1;
+}
+
+/**
  * Check whether ASON value a is represented in b.
  **/
 API_EXPORT int
 ason_check_represented_in(ason_t *a, ason_t *b)
 {
 	size_t i;
+	int ret;
 
 	ason_reduce(a);
 	ason_reduce(b);
@@ -1151,10 +1198,15 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 			return 0;
 	}
 
+	if (a->order == ORDER_OF_EMPTY)
+		return 1;
+	if (b->order == ORDER_OF_EMPTY)
+		return 0;
+
 	if (b->type == ASON_TYPE_UNIVERSE)
 		return 1;
 	if (b->type == ASON_TYPE_WILD)
-		return ! ason_check_equal(a, ASON_NULL);
+		return a->type != ASON_TYPE_NULL;
 
 	if (b->order == 0)
 		return ason_check_equal(a, b);
@@ -1173,27 +1225,47 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 		return 0;
 	}
 
-	if (b->order == 2)
-		return ! ason_check_intersects(a, b->items[0]);
+	if (b->order == 2) {
+		for (i = 0; i < b->items[0]->count; i++)
+			if (ason_check_represented_in(b->items[0]->items[i],
+						      a))
+				return 0;
+		return 1;
+	}
 
-	if (b->order == 3) {
-		if (! IS_OBJECT(a))
-			return 0;
+	/* b->order == 3 */
+	if (b->order != 3)
+		errx(1, "Unknown order in ason_check_represented_in");
 
-		/* FIXME: This might not work if we're checking to see if a
-		 * universal object is represented in a union of two or more
-		 * universal objects. We'll need to either fix that or (more
-		 * likely) ensure reduction merges unioned universal objects if
-		 * they can be merged.
-		 */
-		if (b->type == ASON_TYPE_UNION)
-			for (i = 0; i < b->count; i++)
-				if (ason_check_represented_in(a, b->items[i]))
-					return 1;
+	/* I haven't quite proved this yet, but it seems to check out. */
+	if (a->order == 2)
+		return 0;
+
+	if (b->type == ASON_TYPE_UNION)
+		errx(1, "We can't handle this case yet");
+
+	if (a->type == ASON_TYPE_COMP) {
+		a = ason_complement(a);
+		b = ason_complement(b);
+
+		ret = ason_check_represented_in(b, a);
+
+		ason_destroy(a);
+		ason_destroy(b);
+
+		return ret;
+	}
+
+	if (b->type != ASON_TYPE_COMP) {
+		if (IS_OBJECT(a) && IS_OBJECT(b))
+			return ason_check_object_represented_in(a, b);
+		if (a->type == ASON_TYPE_LIST && b->type == ASON_TYPE_LIST)
+			return ason_check_list_represented_in(a, b);
+
 		return 0;
 	}
 
-	errx(1, "Unknown order in ason_check_represented_in");
+	errx(1, "We can't handle this case yet");
 }
 
 /**
