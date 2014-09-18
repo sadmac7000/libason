@@ -18,7 +18,8 @@ EXTRA_DIST=README.md NEWS.md
 .PHONY: lcov
 lcov: coverage
 
-tests/test-suite.log: check
+tests/test-suite.log:
+	-$(MAKE) check
 
 coverage.info.raw: tests/test-suite.log
 	$(lcov) --capture --directory . $(LCOV_FLAGS) --output-file $@
