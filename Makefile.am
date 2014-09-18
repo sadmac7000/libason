@@ -26,7 +26,7 @@ coverage.info.raw: tests/test-suite.log
 coverage.info.all_code: coverage.info.raw
 	$(lcov) --directory . --extract $< $(abs_top_builddir)/src/\* $(LCOV_FLAGS) --output-file $@
 coverage.info: coverage.info.all_code
-	$(lcov) --directory . --remove $< $(abs_top_builddir)/src/parse.c $(LCOV_FLAGS) --output-file $@
+	$(lcov) --directory . --remove $< $(abs_top_builddir)/src/btree.c $(abs_top_builddir)/src/parse.c $(LCOV_FLAGS) --output-file $@
 
 coverage: coverage.info
 	$(genhtml) $^ $(GENHTML_FLAGS) --output-dir $@
