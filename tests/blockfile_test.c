@@ -95,7 +95,6 @@ TEST_MAIN("Blockfiles")
 
 	if (fd > 0)
 		close(fd);
-
 	fd = -1;
 
 	bf = blockfile_open(TMPFILE);
@@ -385,7 +384,7 @@ TEST_MAIN("Blockfiles")
 	blockfile_close(bf);
 
 	if (raw_mapping)
-		munmap(raw_mapping, seek);
+		munmap(raw_mapping, BLOCK_SIZE * 2);
 
 	if (fd >= 0)
 		close(fd);
