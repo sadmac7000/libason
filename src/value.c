@@ -1320,6 +1320,7 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 {
 	size_t i;
 	int ret;
+	ason_t *tmp;
 
 	ason_reduce(a);
 	ason_reduce(b);
@@ -1354,11 +1355,11 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 	}
 
 	if (b->order == 2) {
-		for (i = 0; i < b->items[0]->count; i++)
-			if (ason_check_represented_in(b->items[0]->items[i],
-						      a))
-				return 0;
-		return 1;
+		tmp = ason_complement(a);
+		ason_reduce(tmp);
+		ret = ason_check_represented_in(b->items[0], tmp);
+		ason_destroy(tmp);
+		return ret;
 	}
 
 	/* b->order == 3 */
