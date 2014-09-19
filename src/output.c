@@ -273,10 +273,6 @@ ason_do_asprint(ason_t *value, int use_unicode)
 		ret = xasprintf("\"%s\"", tmp);
 		free(tmp);
 		return ret;
-	case ASON_TYPE_UNIVERSE:
-		return xasprintf("U");
-	case ASON_TYPE_WILD:
-		return xasprintf("*");
 	case ASON_TYPE_INTERSECT:
 	case ASON_TYPE_JOIN:
 	case ASON_TYPE_REPR:
@@ -290,6 +286,10 @@ ason_do_asprint(ason_t *value, int use_unicode)
 	case ASON_TYPE_LIST:
 		return ason_asprint_list(value, use_unicode);
 	case ASON_TYPE_COMP:
+		if (value->items[0]->type == ASON_TYPE_NULL)
+			return xasprintf("*");
+		if (value->items[0]->type == ASON_TYPE_EMPTY)
+			return xasprintf("U");
 		tmp = ason_do_asprint(value->items[0], use_unicode);
 		if (ason_get_precedence(value->items[0]->type) < INT_MAX)
 			ret = xasprintf("!( %s )", tmp);
