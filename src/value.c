@@ -824,7 +824,7 @@ ason_reduce_intersect(ason_t *a)
 	}
 
 	/* The more complex object will always be on the right */
-	if (a->items[0]->order < a->items[1]->order) {
+	if (a->items[0]->order > a->items[1]->order) {
 		tmp = a->items[0];
 		a->items[0] = a->items[1];
 		a->items[1] = tmp;
