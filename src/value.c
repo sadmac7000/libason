@@ -1399,6 +1399,7 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 	if (a->order == 2)
 		return 0;
 
+	/* FIXME */
 	if (b->type == ASON_TYPE_UNION)
 		errx(1, "We can't handle this case yet");
 
@@ -1423,6 +1424,7 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 		return 0;
 	}
 
+	/* FIXME */
 	errx(1, "We can't handle this case yet");
 }
 
