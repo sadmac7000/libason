@@ -1152,8 +1152,9 @@ return_wild:
 		ason_remove_items(a,0,i,0);
 		i = 0;
 
-		/* The delete of items[0] is tricky, but works */
-		a->items[0] = ason_intersect_d(tmp, a->items[0]);
+		/* The delete of items[0]->items[0] is tricky, but works */
+		a->items[0]->items[0] =
+			ason_intersect_d(tmp, a->items[0]->items[0]);
 		ason_reduce(a->items[0]);
 	}
 
