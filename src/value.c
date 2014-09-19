@@ -993,10 +993,11 @@ ason_union_sort(ason_t *a, size_t start, size_t count)
 }
 
 /**
- * Reduce a union.
+ * Turn a union of unions into a single union, or otherwise promote children in
+ * union members of unions.
  **/
 static void
-ason_reduce_union(ason_t *a)
+ason_union_make_level(ason_t *a)
 {
 	size_t i;
 	size_t j;
@@ -1022,10 +1023,44 @@ ason_reduce_union(ason_t *a)
 
 		ason_destroy(sub);
 	}
+}
 
+/**
+ * Turn a union of zero or one values into a simpler value. Return true if the
+ * change was made.
+ **/
+static int
+ason_union_collapse(ason_t *a)
+{
+	if (a->count > 1)
+		return 0;
+
+	if (a->count)
+		ason_clone_into(a, a->items[0]);
+	else
+		ason_make_empty(a);
+
+	return 1;
+}
+
+/**
+ * Reduce a union.
+ **/
+static void
+ason_reduce_union(ason_t *a)
+{
+	size_t i;
+	size_t j;
+	size_t k;
+	ason_t *tmp;
+
+	ason_union_make_level(a);
 	ason_union_sort(a, 0, a->count);
 
 	for (i = 0; i < a->count; ) {
+		if (a->items[i]->order >= 2)
+			break;
+
 		if (a->items[i]->type != ASON_TYPE_EMPTY &&
 		    ( i == 0 || ason_compare(a->items[i - 1], a->items[i]))) {
 			i++;
@@ -1040,12 +1075,135 @@ ason_reduce_union(ason_t *a)
 		a->count--;
 	}
 
-	if (a->count == 1)
-		ason_clone_into(a, a->items[0]);
-	else if (! a->count)
-		ason_make_empty(a);
-	else
-		a->order = a->items[a->count - 1]->order ?: 1;
+	if (ason_union_collapse(a))
+		return;
+
+	if (i == a->count) {
+		a->order = 1;
+		return;
+	}
+
+	while (i < (a->count - 1) && a->items[i + 1]->order == 2) {
+		if (a->items[i + 1]->type == ASON_TYPE_UNIVERSE) {
+return_uni:
+			ason_make_empty(a);
+			a->order = 2;
+			a->type = ASON_TYPE_UNIVERSE;
+			return;
+		}
+
+		if (a->items[i + 1]->type == ASON_TYPE_WILD) {
+return_wild:
+			for(i = 0; i < a->count; i++)
+				if (ason_check_represented_in(ASON_NULL,
+							      a->items[i]))
+					goto return_uni;
+
+			ason_make_empty(a);
+			a->order = 2;
+			a->type = ASON_TYPE_WILD;
+			return;
+		}
+
+
+		tmp = ason_intersect(a->items[i]->items[0],
+				     a->items[i + 1]->items[0]);
+		ason_reduce(tmp);
+		ason_destroy(a->items[i]->items[0]);
+		a->items[i]->items[0] = tmp;
+		ason_reduce(a->items[i]);
+
+		ason_destroy(a->items[i + 1]);
+
+		memmove(&a->items[i + 1], &a->items[i + 2],
+			(a->count - i - 2) * sizeof(ason_t *));
+
+		a->count--;
+		if (a->items[i]->type == ASON_TYPE_UNIVERSE)
+			goto return_uni;
+		if (a->items[i]->type == ASON_TYPE_WILD)
+			goto return_wild;
+	}
+
+	if (ason_union_collapse(a))
+		return;
+
+	if (i && a->items[i]->order == 2) {
+		tmp = ason_create(ASON_TYPE_UNION, i);
+
+		memcpy(tmp->items, a->items, i * sizeof(ason_t *));
+		memmove(a->items, &a->items[i],
+			(a->count - i) * sizeof(ason_t *));
+
+		a->count -= i;
+		i = 0;
+
+		/* The delete of items[0] is tricky, but works */
+		a->items[0] = ason_intersect_d(tmp, a->items[0]);
+		ason_reduce(a->items[0]);
+	}
+
+	if (ason_union_collapse(a))
+		return;
+
+	/* Two cases left: a bunch of order 0s and order 3s, or an order 2 and
+	 * some order 3s.
+	 */
+
+	for (j = 0; j < i;) {
+		for (k = i; k < a->count; k++)
+			if (ason_check_represented_in(a->items[j],
+						      a->items[k]))
+				break;
+
+		if (k == a->count) {
+			j++;
+			continue;
+		}
+
+		ason_destroy(a->items[j]);
+		memmove(&a->items[j], &a->items[j + 1],
+			(a->count - j - 1) * sizeof(ason_t *));
+		a->count--;
+		i--;
+	}
+
+	if (ason_union_collapse(a))
+		return;
+
+	/* FIXME We could do more to crunch order 3 values here. */
+	if (a->items[0]->order != 2)
+		return;
+
+	tmp = a->items[0]->items[0];
+
+	if (! tmp->order)
+		for (j = 1; j < a->count; j++)
+			if (ason_check_represented_in(tmp, a->items[j]))
+				goto return_uni;
+
+	for (i = 0; i < tmp->count;) {
+		for (j = 1; j < a->count; j++)
+			if (ason_check_represented_in(tmp->items[i],
+						      a->items[j]))
+				break;
+
+		if (j == a->count) {
+			i++;
+			continue;
+		}
+
+		ason_destroy(tmp->items[i]);
+
+		memmove(&tmp->items[i], &tmp->items[i + 1],
+			(tmp->count - i - 1) * sizeof(ason_t *));
+		tmp->count--;
+	}
+
+	if (! tmp->count)
+		goto return_uni;
+
+	ason_clone_into(a, tmp);
 }
 
 /**
