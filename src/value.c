@@ -923,6 +923,76 @@ ason_reduce_join(ason_t *a)
 }
 
 /**
+ * Split an object with union elements into many objects with non-union
+ * elements.
+ **/
+static void
+ason_object_splay(ason_t *a)
+{
+	size_t i,j;
+	size_t union_count = 0;
+	size_t curr_union;
+	size_t results_count = 1;
+	ason_t **results;
+	size_t *positions;
+
+	for (i = 0; i < a->count; i++) {
+		if (a->kvs[i].value->type != ASON_TYPE_UNION)
+			continue;
+
+		union_count++;
+		results_count *= a->kvs[i].value->count;
+	}
+
+	if (! union_count)
+		return;
+
+	positions = xcalloc(union_count, sizeof(size_t));
+	results = xcalloc(results_count, sizeof(ason_t *));
+
+	for (i = 0; i < results_count; i++) {
+		results[i] = ason_create(ASON_TYPE_EMPTY, 0);
+		ason_clone_into(results[i], a);
+	}
+
+	for (i = 0; i < results_count; i++) {
+		curr_union = 0;
+
+		for (j = 0; j < a->count; j++) {
+			if (a->kvs[j].value->type != ASON_TYPE_UNION)
+				continue;
+
+			ason_destroy(results[i]->kvs[j].value);
+			results[i]->kvs[j].value =
+				ason_copy(a->kvs[j].value->
+					  items[positions[curr_union++]]);
+		}
+
+		curr_union = 0;
+
+		for (j = 0; j < a->count; j++) {
+			if (a->kvs[j].value->type != ASON_TYPE_UNION)
+				continue;
+
+			positions[curr_union]++;
+
+			if (a->kvs[j].value->count > positions[curr_union])
+				break;
+
+			positions[curr_union++] = 0;
+		}
+	}
+
+	free(positions);
+	ason_make_empty(a);
+	a->type = ASON_TYPE_UNION;
+	a->items = results;
+	a->count = results_count;
+	a->order = 5;
+	ason_reduce(a);
+}
+
+/**
  * Reduce an object.
  **/
 static void
@@ -949,6 +1019,8 @@ ason_reduce_object(ason_t *a)
 		max_order = 3;
 
 	a->order = max_order;
+
+	ason_object_splay(a);
 }
 
 /**

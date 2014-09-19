@@ -26,7 +26,7 @@
 
 #include "harness.h"
 
-TESTS(1);
+TESTS(2);
 
 /**
  * Full exercise of value reduction.
@@ -38,6 +38,17 @@ TEST_MAIN("Value Reduction")
 	TEST("Order 3 on order 3 representation") {
 		a = ason_read("{\"foo\": 6, \"bar\": !7} in "
 			      "{\"foo\": 6, \"bar\": !7 | 8, *}", NULL);
+
+		REQUIRE(ason_check_equal(a, ASON_TRUE));
+	}
+
+	ason_destroy(a);
+
+	TEST("Object redistribution") {
+		a = ason_read("{\"foo\": 6 | 7 | 8, \"bar\": 9}  = "
+			      "{\"foo\": 6, \"bar\": 9}  | "
+			      "{\"foo\": 7, \"bar\": 9}  | "
+			      "{\"foo\": 8, \"bar\": 9}", NULL);
 
 		REQUIRE(ason_check_equal(a, ASON_TRUE));
 	}
