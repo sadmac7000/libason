@@ -23,7 +23,6 @@
 
 #include <ason/value.h>
 #include <ason/read.h>
-#include <ason/iter.h>
 
 #include "harness.h"
 
@@ -35,18 +34,15 @@ TESTS(1);
 TEST_MAIN("Value Reduction")
 {
 	ason_t *a = NULL;
-	ason_iter_t *iter = NULL;
 
 	TEST("Order 3 on order 3 representation") {
 		a = ason_read("{\"foo\": 6, \"bar\": !7} in "
 			      "{\"foo\": 6, \"bar\": !7 | 8, *}", NULL);
 
-		iter = ason_iterate(a);
-		REQUIRE(ason_iter_type(iter) == ASON_TYPE_TRUE);
+		REQUIRE(ason_check_equal(a, ASON_TRUE));
 	}
 
 	ason_destroy(a);
-	ason_iter_destroy(iter);
 
 	return 0;
 }
