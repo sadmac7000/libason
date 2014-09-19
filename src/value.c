@@ -131,6 +131,33 @@ kv_pair_quicksort(struct kv_pair *kvs, size_t count)
 }
 
 /**
+ * Remove some items from an ASON object. This is generally a mutating operation
+ * so it must be done with care so as not to break value-immutability.
+ **/
+static void
+ason_remove_items(ason_t *a, size_t idx, size_t count, int destroy_removed)
+{
+	size_t i;
+	size_t stop_idx = idx + count;
+
+	if (IS_OBJECT(a))
+		errx(1, "Tried to remove items from value with KV pairs");
+
+	if (idx >= a->count)
+		errx(1, "Tried to remove item that was not present");
+
+	if (stop_idx > a->count)
+		errx(1, "Tried to remove item that was not present");
+
+	for (i = idx; i < stop_idx && destroy_removed; i++)
+		ason_destroy(a->items[i]);
+
+	memmove(&a->items[idx], &a->items[stop_idx],
+		(a->count - stop_idx) * sizeof(ason_t *));
+	a->count -= count;
+}
+
+/**
  * Sort the KV pairs in an object.
  **/
 static void
@@ -1067,12 +1094,7 @@ ason_reduce_union(ason_t *a)
 			continue;
 		}
 
-		ason_destroy(a->items[i]);
-
-		memmove(&a->items[i], &a->items[i + 1], (a->count - i - 1) *
-			sizeof(ason_t *));
-
-		a->count--;
+		ason_remove_items(a,i,1,1);
 	}
 
 	if (ason_union_collapse(a))
@@ -1112,13 +1134,8 @@ return_wild:
 		ason_destroy(a->items[i]->items[0]);
 		a->items[i]->items[0] = tmp;
 		ason_reduce(a->items[i]);
+		ason_remove_items(a,i + 1,1,1);
 
-		ason_destroy(a->items[i + 1]);
-
-		memmove(&a->items[i + 1], &a->items[i + 2],
-			(a->count - i - 2) * sizeof(ason_t *));
-
-		a->count--;
 		if (a->items[i]->type == ASON_TYPE_UNIVERSE)
 			goto return_uni;
 		if (a->items[i]->type == ASON_TYPE_WILD)
@@ -1132,10 +1149,7 @@ return_wild:
 		tmp = ason_create(ASON_TYPE_UNION, i);
 
 		memcpy(tmp->items, a->items, i * sizeof(ason_t *));
-		memmove(a->items, &a->items[i],
-			(a->count - i) * sizeof(ason_t *));
-
-		a->count -= i;
+		ason_remove_items(a,0,i,0);
 		i = 0;
 
 		/* The delete of items[0] is tricky, but works */
@@ -1161,10 +1175,7 @@ return_wild:
 			continue;
 		}
 
-		ason_destroy(a->items[j]);
-		memmove(&a->items[j], &a->items[j + 1],
-			(a->count - j - 1) * sizeof(ason_t *));
-		a->count--;
+		ason_remove_items(a,j,1,1);
 		i--;
 	}
 
@@ -1193,11 +1204,7 @@ return_wild:
 			continue;
 		}
 
-		ason_destroy(tmp->items[i]);
-
-		memmove(&tmp->items[i], &tmp->items[i + 1],
-			(tmp->count - i - 1) * sizeof(ason_t *));
-		tmp->count--;
+		ason_remove_items(tmp,i,1,1);
 	}
 
 	if (! tmp->count)
