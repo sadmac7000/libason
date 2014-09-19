@@ -880,6 +880,7 @@ ason_reduce_intersect(ason_t *a)
 		a->items[0] = tmp;
 		a->order = 5;
 		ason_reduce(a);
+		return;
 	}
 
 	/* At least one of the parameters is now order 3. God help us. */
@@ -1366,7 +1367,6 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 	if (b->order != 3)
 		errx(1, "Unknown order in ason_check_represented_in");
 
-	/* I haven't quite proved this yet, but it seems to check out. */
 	if (a->order == 2)
 		return 0;
 
