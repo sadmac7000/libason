@@ -32,6 +32,20 @@
 #define ORDER_UNKNOWN 5
 #define ORDER_OF_EMPTY -1
 
+/* Macros to get a value's child. */
+#define CHILD_VALUE_ADDR(_a, _idx) ({ \
+	ason_t *a__ = (_a); \
+	size_t idx__ = (_idx); \
+	ason_t **ret__; \
+	if (IS_OBJECT(a__)) \
+		ret__ = &a__->kvs[idx__].value; \
+	else \
+		ret__ = &a__->items[idx__]; \
+	ret__; \
+})
+
+#define CHILD_VALUE(_a, _idx) (*(CHILD_VALUE_ADDR(_a, _idx)))
+
 /**
  * An iterator to iterate the keys in two objects at once.
  **/
@@ -935,16 +949,11 @@ ason_splay(ason_t *a)
 	size_t *positions;
 
 	for (i = 0; i < a->count; i++) {
-		if (IS_OBJECT(a)) {
-			if (a->kvs[i].value->type != ASON_TYPE_UNION)
-				continue;
+		if (CHILD_VALUE(a, i)->type != ASON_TYPE_UNION)
+			continue;
 
-			union_count++;
-			results_count *= a->kvs[i].value->count;
-		} else if (a->items[i]->type == ASON_TYPE_UNION) {
-			union_count++;
-			results_count *= a->items[i]->count;
-		}
+		union_count++;
+		results_count *= CHILD_VALUE(a, i)->count;
 	}
 
 	if (! union_count)
@@ -963,45 +972,26 @@ ason_splay(ason_t *a)
 		curr_union = 0;
 
 		for (j = 0; j < a->count; j++) {
-			if (IS_OBJECT(a)) {
-				if (a->kvs[j].value->type != ASON_TYPE_UNION)
-					continue;
-				ason_destroy(results[i]->kvs[j].value);
-				results[i]->kvs[j].value =
-					ason_copy(a->kvs[j].value->
-						  items[positions[
-						  curr_union++]]);
-			} else {
-				if (a->items[j]->type != ASON_TYPE_UNION)
-					continue;
-				ason_destroy(results[i]->items[j]);
-				results[i]->items[j] =
-					ason_copy(a->items[j]->items[positions[
-						  curr_union++]]);
-			}
+			if (CHILD_VALUE(a, j)->type != ASON_TYPE_UNION)
+				continue;
+			ason_destroy(CHILD_VALUE(results[i], j));
+			CHILD_VALUE(results[i], j) =
+				ason_copy(CHILD_VALUE(a, j)->items[positions[
+					  curr_union++]]);
 		}
 
 		curr_union = 0;
 
 		for (j = 0; j < a->count; j++) {
-			if (IS_OBJECT(a)) {
-				if (a->kvs[j].value->type != ASON_TYPE_UNION)
-					continue;
+			if (CHILD_VALUE(a, j)->type != ASON_TYPE_UNION)
+				continue;
 
-				positions[curr_union]++;
+			positions[curr_union]++;
 
-				if (a->kvs[j].value->count > positions[curr_union])
-					break;
+			if (CHILD_VALUE(a, j)->count > positions[curr_union])
+				break;
 
-				positions[curr_union++] = 0;
-			} else if (a->items[j]->type == ASON_TYPE_UNION) {
-				positions[curr_union]++;
-
-				if (a->items[j]->count > positions[curr_union])
-					break;
-
-				positions[curr_union++] = 0;
-			}
+			positions[curr_union++] = 0;
 		}
 	}
 
@@ -1015,10 +1005,10 @@ ason_splay(ason_t *a)
 }
 
 /**
- * Reduce an object.
+ * Reduce an object or list.
  **/
 static void
-ason_reduce_object(ason_t *a)
+ason_reduce_collection(ason_t *a)
 {
 	size_t i;
 	int max_order = 0;
@@ -1027,37 +1017,10 @@ ason_reduce_object(ason_t *a)
 		max_order = 3;
 
 	for (i = 0; i < a->count; i++) {
-		if (a->kvs[i].value->order > max_order)
-			max_order = a->kvs[i].value->order;
+		if (CHILD_VALUE(a, i)->order > max_order)
+			max_order = CHILD_VALUE(a, i)->order;
 
-		if (a->kvs[i].value->type != ASON_TYPE_EMPTY)
-			continue;
-
-		ason_make_empty(a);
-		return;
-	}
-
-	if (max_order > 1)
-		max_order = 3;
-
-	a->order = max_order;
-	ason_splay(a);
-}
-
-/**
- * Reduce a list.
- **/
-static void
-ason_reduce_list(ason_t *a)
-{
-	size_t i;
-	int max_order = 0;
-
-	for (i = 0; i < a->count; i++) {
-		if (a->items[i]->order > max_order)
-			max_order = a->items[i]->order;
-
-		if (a->items[i]->type != ASON_TYPE_EMPTY)
+		if (CHILD_VALUE(a, i)->type != ASON_TYPE_EMPTY)
 			continue;
 
 		ason_make_empty(a);
@@ -1306,12 +1269,8 @@ ason_reduce(ason_t *a)
 		return a->order;
 	}
 
-	for (i = 0; i < a->count; i++) {
-		if (IS_OBJECT(a))
-			ason_reduce(a->kvs[i].value);
-		else
-			ason_reduce(a->items[i]);
-	}
+	for (i = 0; i < a->count; i++)
+		ason_reduce(CHILD_VALUE(a, i));
 
 	if (a->type == ASON_TYPE_EQUAL) {
 		if (ason_check_equal(a->items[0], a->items[1]))
@@ -1331,10 +1290,8 @@ ason_reduce(ason_t *a)
 		return 0;
 	}
 
-	if (IS_OBJECT(a))
-		ason_reduce_object(a);
-	else if (a->type == ASON_TYPE_LIST)
-		ason_reduce_list(a);
+	if (IS_OBJECT(a) || a->type == ASON_TYPE_LIST)
+		ason_reduce_collection(a);
 	else if (a->type == ASON_TYPE_UNION)
 		ason_reduce_union(a);
 	else if (a->type == ASON_TYPE_INTERSECT)
