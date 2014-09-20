@@ -1050,11 +1050,10 @@ ason_reduce_object(ason_t *a)
 static void
 ason_reduce_list(ason_t *a)
 {
-	int ret = 0;
 	size_t i;
 	int max_order = 0;
 
-	for (i = 0; !ret && i < a->count; i++) {
+	for (i = 0; i < a->count; i++) {
 		if (a->items[i]->order > max_order)
 			max_order = a->items[i]->order;
 
