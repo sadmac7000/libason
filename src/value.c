@@ -1029,32 +1029,39 @@ ason_reduce_collection(ason_t *a)
  * Sort the items in a union.
  **/
 static void
-ason_union_sort(ason_t *a, size_t start, size_t count)
+ason_union_sort(ason_t *a, size_t start, size_t end)
 {
 	size_t i;
 	size_t pivot = start;
 	ason_t *tmp;
 
-	if (count == 0)
+	if (end - start <= 1)
 		return;
 
-	for (i = start; i < count; i++) {
-		if (ason_compare(a->items[pivot], a->items[i]) <= 0)
+	for (i = start + 1; i < end;) {
+		if (ason_compare(a->items[pivot], a->items[i]) <= 0) {
+			i++;
 			continue;
+		}
 
-		tmp = a->items[pivot + 1];
-		a->items[pivot + 1] = a->items[i];
-		a->items[i] = tmp;
-
-		tmp = a->items[pivot];
-		a->items[pivot] = a->items[pivot + 1];
-		a->items[pivot + 1] = tmp;
+		if (i == (pivot + 1)) {
+			tmp = a->items[i];
+			a->items[i] = a->items[pivot];
+			a->items[pivot] = tmp;
+		} else {
+			tmp = a->items[pivot + 1];
+			a->items[pivot + 1] = a->items[pivot];
+			a->items[pivot] = a->items[i];
+			a->items[i] = tmp;
+		}
 
 		pivot++;
+		if (pivot == i)
+			i++;
 	}
 
-	ason_union_sort(a, start, pivot - start);
-	ason_union_sort(a, pivot + 1, start + count - 1 - pivot);
+	ason_union_sort(a, start, pivot);
+	ason_union_sort(a, pivot + 1, end);
 }
 
 /**
