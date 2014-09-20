@@ -921,11 +921,11 @@ ason_reduce_join(ason_t *a)
 }
 
 /**
- * Split an object with union elements into many objects with non-union
- * elements.
+ * Split an object or list with union elements into many objects or lists with
+ * non-union elements.
  **/
 static void
-ason_object_splay(ason_t *a)
+ason_splay(ason_t *a)
 {
 	size_t i,j;
 	size_t union_count = 0;
@@ -935,11 +935,16 @@ ason_object_splay(ason_t *a)
 	size_t *positions;
 
 	for (i = 0; i < a->count; i++) {
-		if (a->kvs[i].value->type != ASON_TYPE_UNION)
-			continue;
+		if (IS_OBJECT(a)) {
+			if (a->kvs[i].value->type != ASON_TYPE_UNION)
+				continue;
 
-		union_count++;
-		results_count *= a->kvs[i].value->count;
+			union_count++;
+			results_count *= a->kvs[i].value->count;
+		} else if (a->items[i]->type == ASON_TYPE_UNION) {
+			union_count++;
+			results_count *= a->items[i]->count;
+		}
 	}
 
 	if (! union_count)
@@ -951,33 +956,52 @@ ason_object_splay(ason_t *a)
 	for (i = 0; i < results_count; i++) {
 		results[i] = ason_create(ASON_TYPE_EMPTY, 0);
 		ason_clone_into(results[i], a);
+		results[i]->order = ORDER_UNKNOWN;
 	}
 
 	for (i = 0; i < results_count; i++) {
 		curr_union = 0;
 
 		for (j = 0; j < a->count; j++) {
-			if (a->kvs[j].value->type != ASON_TYPE_UNION)
-				continue;
-
-			ason_destroy(results[i]->kvs[j].value);
-			results[i]->kvs[j].value =
-				ason_copy(a->kvs[j].value->
-					  items[positions[curr_union++]]);
+			if (IS_OBJECT(a)) {
+				if (a->kvs[j].value->type != ASON_TYPE_UNION)
+					continue;
+				ason_destroy(results[i]->kvs[j].value);
+				results[i]->kvs[j].value =
+					ason_copy(a->kvs[j].value->
+						  items[positions[
+						  curr_union++]]);
+			} else {
+				if (a->items[j]->type != ASON_TYPE_UNION)
+					continue;
+				ason_destroy(results[i]->items[j]);
+				results[i]->items[j] =
+					ason_copy(a->items[j]->items[positions[
+						  curr_union++]]);
+			}
 		}
 
 		curr_union = 0;
 
 		for (j = 0; j < a->count; j++) {
-			if (a->kvs[j].value->type != ASON_TYPE_UNION)
-				continue;
+			if (IS_OBJECT(a)) {
+				if (a->kvs[j].value->type != ASON_TYPE_UNION)
+					continue;
 
-			positions[curr_union]++;
+				positions[curr_union]++;
 
-			if (a->kvs[j].value->count > positions[curr_union])
-				break;
+				if (a->kvs[j].value->count > positions[curr_union])
+					break;
 
-			positions[curr_union++] = 0;
+				positions[curr_union++] = 0;
+			} else if (a->items[j]->type == ASON_TYPE_UNION) {
+				positions[curr_union]++;
+
+				if (a->items[j]->count > positions[curr_union])
+					break;
+
+				positions[curr_union++] = 0;
+			}
 		}
 	}
 
@@ -1017,8 +1041,7 @@ ason_reduce_object(ason_t *a)
 		max_order = 3;
 
 	a->order = max_order;
-
-	ason_object_splay(a);
+	ason_splay(a);
 }
 
 /**
@@ -1046,6 +1069,7 @@ ason_reduce_list(ason_t *a)
 		max_order = 3;
 
 	a->order = max_order;
+	ason_splay(a);
 }
 
 /**

@@ -26,7 +26,7 @@
 
 #include "harness.h"
 
-TESTS(2);
+TESTS(3);
 
 /**
  * Full exercise of value reduction.
@@ -49,6 +49,15 @@ TEST_MAIN("Value Reduction")
 			      "{\"foo\": 6, \"bar\": 9}  | "
 			      "{\"foo\": 7, \"bar\": 9}  | "
 			      "{\"foo\": 8, \"bar\": 9}", NULL);
+
+		REQUIRE(ason_check_equal(a, ASON_TRUE));
+	}
+
+	ason_destroy(a);
+
+	TEST("List redistribution") {
+		a = ason_read("[6 | 7 | 8, 9]  = "
+			      "[6, 9]  | [7, 9]  | [8, 9]", NULL);
 
 		REQUIRE(ason_check_equal(a, ASON_TRUE));
 	}
