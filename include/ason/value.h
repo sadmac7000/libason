@@ -75,7 +75,6 @@ ason_t *ason_equality(ason_t *a, ason_t *b);
 ason_t *ason_copy(ason_t *a);
 void ason_destroy(ason_t *a);
 
-int ason_check_intersects(ason_t *a, ason_t *b);
 int ason_check_represented_in(ason_t *a, ason_t *b);
 int ason_check_equal(ason_t *a, ason_t *b);
 

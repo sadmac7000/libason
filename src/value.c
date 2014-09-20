@@ -1316,19 +1316,6 @@ ason_reduce(ason_t *a)
 }
 
 /**
- * Check intersectionality of two ASON values.
- **/
-API_EXPORT int
-ason_check_intersects(ason_t *a, ason_t *b)
-{
-	ason_t *inter = ason_intersect(a, b);
-	int ret = !ason_reduce(inter);
-
-	ason_destroy(inter);
-	return ret;
-}
-
-/**
  * Check whether ASON value a is represented in b, where both are objects.
  **/
 static int
