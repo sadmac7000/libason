@@ -876,7 +876,7 @@ ason_reduce_intersect(ason_t *a)
 		a->count = 1;
 		a->items = xmalloc(sizeof(ason_t *));
 		a->items[0] = tmp;
-		a->order = 5;
+		a->order = ORDER_UNKNOWN;
 		ason_reduce(a);
 		return;
 	}
@@ -986,7 +986,7 @@ ason_object_splay(ason_t *a)
 	a->type = ASON_TYPE_UNION;
 	a->items = results;
 	a->count = results_count;
-	a->order = 5;
+	a->order = ORDER_UNKNOWN;
 	ason_reduce(a);
 }
 
