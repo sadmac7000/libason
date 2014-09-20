@@ -130,14 +130,27 @@ kv_pair_quicksort(struct kv_pair *kvs, size_t count)
 
 	pivot = 0;
 
-	for (i = 1; i < count; i++) {
-		if (strcmp(kvs[i].key, kvs[pivot].key) >= 0)
+	for (i = 1; i < count;) {
+		if (strcmp(kvs[i].key, kvs[pivot].key) >= 0) {
+			i++;
 			continue;
+		}
 
-		tmp = kvs[pivot + 1];
-		kvs[pivot + 1] = kvs[pivot];
-		kvs[pivot++] = kvs[i];
-		kvs[i] = tmp;
+		if (i == (pivot + 1)) {
+			tmp = kvs[pivot];
+			kvs[pivot] = kvs[i];
+			kvs[i] = tmp;
+		} else {
+			tmp = kvs[pivot + 1];
+			kvs[pivot + 1] = kvs[pivot];
+			kvs[pivot] = kvs[i];
+			kvs[i] = tmp;
+		}
+
+		pivot++;
+
+		if (i == pivot)
+			i++;
 	}
 
 	kv_pair_quicksort(kvs, pivot);
