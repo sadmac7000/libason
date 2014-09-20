@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(4);
+TESTS(5);
 
 /**
  * Full exercise of value reduction.
@@ -154,6 +154,17 @@ TEST_MAIN("Value Reduction")
 
 		REQUIRE(ason_check_equal(a, ASON_TRUE));
 	}
+
+	ason_destroy(a);
+
+	TEST("List intersect") {
+		a = ason_read("[ 6, 7, 8 ] & [ !5, !6, !7 ] = "
+			      "[ 6, 7, 8 ]", NULL);
+
+		REQUIRE(ason_check_equal(a, ASON_TRUE));
+	}
+
+	ason_destroy(a);
 
 	return 0;
 }
