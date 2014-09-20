@@ -619,14 +619,12 @@ ason_compare(ason_t *a, ason_t *b)
 
 	case ASON_TYPE_UNION:
 	case ASON_TYPE_LIST:
-		for (i = 0; i < a->count; i++) {
+		ret = 0;
+
+		for (i = 0; i < a->count && ! ret; i++)
 			ret = ason_compare(a->items[i], b->items[i]);
 
-			if (ret)
-				return ret;
-		}
-
-		return 0;
+		return ret;
 
 	case ASON_TYPE_OBJECT:
 	case ASON_TYPE_UOBJECT:
