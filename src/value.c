@@ -672,18 +672,9 @@ ason_compare(ason_t *a, ason_t *b)
 static void
 ason_reduce_complement(ason_t *a)
 {
-	ason_t *tmp;
-
-	if (a->items[0]->type == ASON_TYPE_EMPTY) {
-		ason_clone_into(a, ASON_UNIVERSE);
-		return;
-	} else if (a->items[0]->type == ASON_TYPE_COMP) {
-		tmp = ason_copy(a->items[0]->items[0]);
-		ason_clone_into_d(a, tmp);
-		return;
-	}
-
-	if (a->items[0]->order <= 1)
+	if (a->items[0]->type == ASON_TYPE_COMP)
+		ason_clone_into(a, a->items[0]->items[0]);
+	else if (a->items[0]->order <= 1)
 		a->order = 2;
 	else
 		a->order = 3;
