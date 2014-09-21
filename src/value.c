@@ -77,7 +77,7 @@ API_EXPORT ason_t * const ASON_NULL = &ASON_NULL_DATA;
 
 static struct ason ASON_UNIVERSE_DATA = {
 	.type = ASON_TYPE_COMP,
-	.items = &ASON_EMPTY,
+	.items = (ason_t **)&ASON_EMPTY,
 	.count = 1,
 	.order = 2,
 };
@@ -101,7 +101,7 @@ API_EXPORT ason_t * const ASON_FALSE = &ASON_FALSE_DATA;
 
 static struct ason ASON_WILD_DATA = {
 	.type = ASON_TYPE_COMP,
-	.items = &ASON_NULL,
+	.items = (ason_t **)&ASON_NULL,
 	.count = 1,
 	.order = 2,
 };
