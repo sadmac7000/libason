@@ -138,6 +138,10 @@ value(A) ::= NUMBER(B).		{ A = ason_create_fixnum(B.n); }
 value(A) ::= START_LIST list(B) END_LIST.		{ A = B; }
 value(A) ::= TRUE.					{ A = ASON_TRUE; }
 value(A) ::= FALSE.					{ A = ASON_FALSE; }
+value(A) ::= START_OBJ END_OBJ.				{
+	A = ason_create_object(NULL,NULL);
+}
+
 value(A) ::= START_OBJ kv_list(B) END_OBJ.		{ A = B; }
 value(A) ::= START_OBJ kv_list(B) COMMA WILD END_OBJ.	{
 	A = ason_join_d(B, ASON_OBJ_ANY);
