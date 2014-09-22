@@ -123,6 +123,9 @@ ason_ns_attach(ason_ns_t *ns, ason_ns_t *parent, const char *name)
 	const char *test = name;
 	struct ason_subns *sub;
 
+	if (! *test)
+		return NULL;
+
 	while (*test && (isalpha(*test) || isdigit(*test) || *test == '_'))
 		test++;
 
