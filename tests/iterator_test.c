@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(3);
+TESTS(5);
 
 /**
  * Basic exercise of the parser.
@@ -35,9 +35,12 @@ TESTS(3);
 TEST_MAIN("Iteration")
 {
 	ason_t *a;
+	ason_t *b;
+	ason_t *c;
 	char *str;
 	ason_iter_t *iter;
 	int i;
+	double dbl;
 
 	a = ason_read("{ \"foo\": 6, \"bar\": 7, \"baz\": 8 }", NULL);
 	iter = ason_iterate(a);
@@ -145,6 +148,86 @@ TEST_MAIN("Iteration")
 
 			i++;
 		} while(ason_iter_next(iter));
+	}
+
+	ason_destroy(a);
+	ason_iter_destroy(iter);
+
+	a = ason_read("[ \"foo\", [\"bar\", [\"baz\", 7.5], \"bang\"], \"bao\" ]", NULL);
+	iter = ason_iterate(a);
+
+	TEST("Nested List Iteration") {
+		printf("hi\n");
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_LIST);
+		REQUIRE(ason_iter_enter(iter));
+
+		str = ason_iter_string(iter);
+		REQUIRE(! strcmp("foo", str));
+		REQUIRE(ason_iter_next(iter));
+		free(str);
+
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_LIST);
+		REQUIRE(ason_iter_next(iter));
+
+		str = ason_iter_string(iter);
+		REQUIRE(! strcmp("bao", str));
+		REQUIRE(ason_iter_prev(iter));
+		free(str);
+
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_LIST);
+		REQUIRE(ason_iter_enter(iter));
+
+		str = ason_iter_string(iter);
+		REQUIRE(! strcmp("bar", str));
+		REQUIRE(ason_iter_next(iter));
+		free(str);
+
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_LIST);
+		REQUIRE(ason_iter_enter(iter));
+
+		str = ason_iter_string(iter);
+		REQUIRE(! strcmp("baz", str));
+		REQUIRE(ason_iter_next(iter));
+		free(str);
+
+		dbl = ason_iter_double(iter);
+		REQUIRE(dbl == 7.5);
+		REQUIRE(! ason_iter_next(iter));
+
+		REQUIRE(ason_iter_exit(iter));
+		REQUIRE(ason_iter_next(iter));
+
+		str = ason_iter_string(iter);
+		REQUIRE(! strcmp("bang", str));
+		REQUIRE(! ason_iter_next(iter));
+		free(str);
+
+		REQUIRE(ason_iter_exit(iter));
+		REQUIRE(ason_iter_next(iter));
+
+		str = ason_iter_string(iter);
+		REQUIRE(! strcmp("bao", str));
+		REQUIRE(! ason_iter_next(iter));
+		free(str);
+
+		b = ason_iter_value(iter);
+		c = ason_read("\"bao\"", NULL);
+		REQUIRE(ason_check_equal(b, c));
+		ason_destroy(b);
+		ason_destroy(c);
+	}
+
+	ason_destroy(a);
+	ason_iter_destroy(iter);
+
+	a = ason_read("6", NULL);
+	iter = ason_iterate(a);
+
+	TEST("Iterate lonely singleton") {
+		REQUIRE(! ason_iter_next(iter));
+		REQUIRE(! ason_iter_prev(iter));
+		REQUIRE(! ason_iter_enter(iter));
+		REQUIRE(! ason_iter_exit(iter));
 	}
 
 	ason_destroy(a);
