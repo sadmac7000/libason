@@ -177,6 +177,7 @@ TEST_MAIN("Namespaces")
 
 	TEST("Bad subspaces") {
 		REQUIRE(! ason_ns_get_sub(root, "bullshit"));
+		REQUIRE(! ason_ns_get_sub(root, "bullshit.subspace"));
 		REQUIRE(! ason_ns_load(root, "bullshit.var"));
 		REQUIRE(ason_ns_store(root, "bullshit.var", ASON_NULL) ==
 			-ENOENT);

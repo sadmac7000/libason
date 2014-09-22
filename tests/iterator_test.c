@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(5);
+TESTS(7);
 
 /**
  * Basic exercise of the parser.
@@ -35,8 +35,8 @@ TESTS(5);
 TEST_MAIN("Iteration")
 {
 	ason_t *a;
-	ason_t *b;
-	ason_t *c;
+	ason_t *b = NULL;
+	ason_t *c = NULL;
 	char *str;
 	ason_iter_t *iter;
 	int i;
@@ -157,7 +157,6 @@ TEST_MAIN("Iteration")
 	iter = ason_iterate(a);
 
 	TEST("Nested List Iteration") {
-		printf("hi\n");
 		REQUIRE(ason_iter_type(iter) == ASON_TYPE_LIST);
 		REQUIRE(ason_iter_enter(iter));
 
@@ -231,6 +230,40 @@ TEST_MAIN("Iteration")
 	}
 
 	ason_destroy(a);
+	ason_iter_destroy(iter);
+
+	a = ason_read("6 | 7", NULL);
+	iter = ason_iterate(a);
+
+	TEST("Underrun") {
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_UNION);
+		REQUIRE(ason_iter_enter(iter));
+		REQUIRE(! ason_iter_prev(iter));
+		REQUIRE(ason_iter_next(iter));
+		REQUIRE(ason_iter_prev(iter));
+		REQUIRE(! ason_iter_prev(iter));
+	}
+
+	ason_destroy(a);
+	ason_iter_destroy(iter);
+
+	a = ason_read("[[[[[[[[[[6]]]]]]]]]]", NULL);
+	b = ason_read("6", NULL);
+	iter = ason_iterate(a);
+
+	TEST("Deep iterate") {
+		for (i = 0; i < 10; i++) {
+			REQUIRE(ason_iter_type(iter) == ASON_TYPE_LIST);
+			REQUIRE(ason_iter_enter(iter));
+		}
+
+		c = ason_iter_value(iter);
+		REQUIRE(ason_check_equal(c, b));
+	}
+
+	ason_destroy(a);
+	ason_destroy(b);
+	ason_destroy(c);
 	ason_iter_destroy(iter);
 
 	return 0;
