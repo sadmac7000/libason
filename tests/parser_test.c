@@ -26,7 +26,7 @@
 
 #include "harness.h"
 
-TESTS(14);
+TESTS(21);
 
 /**
  * Basic exercise of the parser.
@@ -50,9 +50,73 @@ TEST_MAIN("Parse values")
 		REQUIRE(!ason_check_equal(a, c));
 	}
 
+	ason_destroy(a);
 	ason_destroy(b);
 	ason_destroy(c);
 
+	a = ason_create_number(~(unsigned int)0);
+
+	TEST("Parse unsigned parameter") {
+		b = ason_read("?u", NULL, ~(unsigned int)0);
+		REQUIRE(ason_check_equal(a, b));
+	}
+
+	ason_destroy(a);
+	ason_destroy(b);
+
+	a = ason_create_number(~(uint64_t)0);
+
+	TEST("Parse unsigned I64 parameter") {
+		b = ason_read("?U", NULL, ~(uint64_t)0);
+		REQUIRE(ason_check_equal(a, b));
+	}
+
+	ason_destroy(a);
+	ason_destroy(b);
+
+	a = ason_create_number(~(int64_t)0);
+
+	TEST("Parse signed I64 parameter") {
+		b = ason_read("?I", NULL, ~(int64_t)0);
+		REQUIRE(ason_check_equal(a, b));
+	}
+
+	ason_destroy(a);
+	ason_destroy(b);
+
+	a = ason_read("6.75", NULL);
+
+	TEST("Parse double parameter") {
+		b = ason_read("?F", NULL, (double)6.75);
+		REQUIRE(ason_check_equal(a, b));
+	}
+
+	ason_destroy(a);
+	ason_destroy(b);
+
+	a = ason_read("\"foo\"", NULL);
+
+	TEST("Parse string parameter") {
+		b = ason_read("?s", NULL, "foo");
+		REQUIRE(ason_check_equal(a, b));
+	}
+
+	ason_destroy(a);
+	ason_destroy(b);
+
+	a = ason_read("[6,7,[8,9],10]", NULL);
+	b = ason_read("[8,9]", NULL);
+
+	TEST("Parse value parameter") {
+		c = ason_read("[6,7,?,10]", NULL, b);
+		REQUIRE(ason_check_equal(a, c));
+	}
+
+	ason_destroy(a);
+	ason_destroy(b);
+	ason_destroy(c);
+
+	a = ason_create_number(6);
 	a = ason_create_object_d("foo", a);
 
 	b = ason_create_number(8);
@@ -174,6 +238,17 @@ TEST_MAIN("Parse values")
 	TEST("Non-token (trailing)") {
 		REQUIRE(! ason_read("1 | 2 %", NULL))
 	}
+
+	a = NULL;
+	b = ason_read("[6,7]", NULL);
+
+	TEST("Limited-length read") {
+		a = ason_readn("[6,7]@@@@@@", 5, NULL);
+		REQUIRE(ason_check_equal(a,b));
+	}
+
+	ason_destroy(a);
+	ason_destroy(b);
 
 	return 0;
 }
