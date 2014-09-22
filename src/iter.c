@@ -93,8 +93,8 @@ ason_iter_enter(ason_iter_t *iter)
 	iter->parents[iter->depth].value = iter->current;
 	iter->parents[iter->depth].index= iter->index;
 	iter->depth++;
-	ason_iter_index_refresh(iter);
 	iter->index = 0;
+	ason_iter_index_refresh(iter);
 
 	return 1;
 }
