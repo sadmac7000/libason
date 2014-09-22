@@ -434,9 +434,6 @@ ason_create_object(const char *key, ason_t *value)
 	if (! value)
 		return ason_create(ASON_TYPE_OBJECT, 0);
 
-	if (value->type == ASON_TYPE_EMPTY)
-		return ASON_EMPTY;
-
 	ret = ason_create(ASON_TYPE_OBJECT, 1);
 
 	ret->kvs[0].key = string_to_utf8(key);
