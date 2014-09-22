@@ -182,6 +182,11 @@ string_escape(const char *in)
 			continue;
 		}
 
+		if (! expanded_buf[i]) {
+			chars = i;
+			break;
+		}
+
 		switch (expanded_buf[i]) {
 		case '\"':
 			pos += sprintf(pos, "\\\"");
