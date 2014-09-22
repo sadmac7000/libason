@@ -34,41 +34,23 @@ TESTS(8);
  **/
 TEST_MAIN("Value Reduction")
 {
-	ason_t *a = NULL;
+	TEST_ASON_EXPR("Order 3 on order 3 representation",
+		       "{\"foo\": 6, \"bar\": !7} in "
+		       "{\"foo\": 6, \"bar\": !7 | 8, *}");
 
-	TEST("Order 3 on order 3 representation") {
-		a = ason_read("{\"foo\": 6, \"bar\": !7} in "
-			      "{\"foo\": 6, \"bar\": !7 | 8, *}", NULL);
+	TEST_ASON_EXPR("Object redistribution",
+		       "{\"foo\": 6 | 7 | 8, \"bar\": 9}  = "
+		       "{\"foo\": 6, \"bar\": 9}  | "
+		       "{\"foo\": 7, \"bar\": 9}  | "
+		       "{\"foo\": 8, \"bar\": 9}");
 
-		REQUIRE(ason_check_equal(a, ASON_TRUE));
-	}
+	TEST_ASON_EXPR("List redistribution",
+		       "[6 | 7 | 8, 9]  = [6, 9]  | [7, 9]  | [8, 9]");
 
-	ason_destroy(a);
-
-	TEST("Object redistribution") {
-		a = ason_read("{\"foo\": 6 | 7 | 8, \"bar\": 9}  = "
-			      "{\"foo\": 6, \"bar\": 9}  | "
-			      "{\"foo\": 7, \"bar\": 9}  | "
-			      "{\"foo\": 8, \"bar\": 9}", NULL);
-
-		REQUIRE(ason_check_equal(a, ASON_TRUE));
-	}
-
-	ason_destroy(a);
-
-	TEST("List redistribution") {
-		a = ason_read("[6 | 7 | 8, 9]  = "
-			      "[6, 9]  | [7, 9]  | [8, 9]", NULL);
-
-		REQUIRE(ason_check_equal(a, ASON_TRUE));
-	}
-
-	ason_destroy(a);
-
-	TEST("Splay torture") {
-		a = ason_read("[6 | 7 | 8, 9, {\"baz\": 10, "
-			      "\"bar\": 11 | 12 | 13, \"bam\": 14, \"foo\": "
-			      "15 | 16 | 17}, 18, 19 | 20 | 21] = "
+	TEST_ASON_EXPR("Splay torture",
+		       "[6 | 7 | 8, 9, {\"baz\": 10, \"bar\": 11 | 12 | 13, "
+		       "\"bam\": 14, \"foo\": 15 | 16 | 17}, 18, 19 | 20 | "
+		       "21] = "
       "[6, 9, {\"baz\": 10, \"bar\": 11, \"bam\": 14, \"foo\": 15 }, 18, 19] |"
       "[7, 9, {\"baz\": 10, \"bar\": 11, \"bam\": 14, \"foo\": 15 }, 18, 19] |"
       "[8, 9, {\"baz\": 10, \"bar\": 11, \"bam\": 14, \"foo\": 15 }, 18, 19] |"
@@ -149,47 +131,19 @@ TEST_MAIN("Value Reduction")
       "[8, 9, {\"baz\": 10, \"bar\": 12, \"bam\": 14, \"foo\": 17 }, 18, 21] |"
       "[6, 9, {\"baz\": 10, \"bar\": 13, \"bam\": 14, \"foo\": 17 }, 18, 21] |"
       "[7, 9, {\"baz\": 10, \"bar\": 13, \"bam\": 14, \"foo\": 17 }, 18, 21] |"
-      "[8, 9, {\"baz\": 10, \"bar\": 13, \"bam\": 14, \"foo\": 17 }, 18, 21]",
-      NULL);
+      "[8, 9, {\"baz\": 10, \"bar\": 13, \"bam\": 14, \"foo\": 17 }, 18, 21]");
 
-		REQUIRE(ason_check_equal(a, ASON_TRUE));
-	}
+	TEST_ASON_EXPR("List intersect",
+		       "[ !5, !6, !7 ] & [ 6, 7, 8 ] = [ 6, 7, 8 ]");
 
-	ason_destroy(a);
+	TEST_ASON_EXPR("Slightly harder list intersect",
+		       "[ !5, !6, !7 ] & [ 6, 7, !8 ] = [ 6, 7, !(7 | 8) ]");
 
-	TEST("List intersect") {
-		a = ason_read("[ !5, !6, !7 ] & [ 6, 7, 8 ] = "
-			      "[ 6, 7, 8 ]", NULL);
+	TEST_ASON_EXPR("Length-mismatched list intersect",
+		       "[ !5, !6, !7 ] & [ 6, 7, !8, 9 ] = _");
 
-		REQUIRE(ason_check_equal(a, ASON_TRUE));
-	}
-
-	ason_destroy(a);
-
-	TEST("Slightly harder list intersect") {
-		a = ason_read("[ !5, !6, !7 ] & [ 6, 7, !8 ] = "
-			      "[ 6, 7, !(7 | 8) ]", NULL);
-
-		REQUIRE(ason_check_equal(a, ASON_TRUE));
-	}
-
-	ason_destroy(a);
-
-	TEST("Length-mismatched list intersect") {
-		a = ason_read("[ !5, !6, !7 ] & [ 6, 7, !8, 9 ] = _", NULL);
-
-		REQUIRE(ason_check_equal(a, ASON_TRUE));
-	}
-
-	ason_destroy(a);
-
-	TEST("Parameter-obliterating list intersect") {
-		a = ason_read("[ !5, !6, !7 ] & [ !6, 8, 7 ] = _", NULL);
-
-		REQUIRE(ason_check_equal(a, ASON_TRUE));
-	}
-
-	ason_destroy(a);
+	TEST_ASON_EXPR("Parameter-obliterating list intersect",
+		       "[ !5, !6, !7 ] & [ !6, 8, 7 ] = _");
 
 	return 0;
 }
