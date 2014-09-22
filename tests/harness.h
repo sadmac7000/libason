@@ -82,6 +82,7 @@ extern struct test_info *test_info;
 	ason_t *TMP_NAME(__LINE__) = NULL; \
 	TEST(_name) { \
 		TMP_NAME(__LINE__) = ason_read(_str, NULL); \
+		REQUIRE(TMP_NAME(__LINE__)); \
 		REQUIRE(ason_check_equal(TMP_NAME(__LINE__), ASON_TRUE)); \
 		ason_destroy(TMP_NAME(__LINE__)); \
 	}
