@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(8);
+TESTS(9);
 
 /**
  * Full exercise of value reduction.
@@ -144,6 +144,10 @@ TEST_MAIN("Value Reduction")
 
 	TEST_ASON_EXPR("Parameter-obliterating list intersect",
 		       "[ !5, !6, !7 ] & [ !6, 8, 7 ] = _");
+
+	TEST_ASON_EXPR("Complement-collapsing union",
+		       "{ \"foo\": !6 } | !(6|7|8) | !7 = "
+		       "{ \"foo\": !6 } | !7 ");
 
 	return 0;
 }
