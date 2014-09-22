@@ -326,6 +326,10 @@ ason_ns_connect(const char *name)
 		args++;
 
 	for (i = 0; i < ason_ns_ops_registry_count; i++) {
+		if (strlen(ason_ns_ops_registry[i].name) !=
+		    (unsigned)(args - name))
+			continue;
+
 		if (! strncmp(ason_ns_ops_registry[i].name, name, args - name))
 			break;
 	}
