@@ -28,7 +28,7 @@
 
 #include "harness.h"
 
-TESTS(8);
+TESTS(13);
 
 /**
  * Basic exercise of namespaces.
@@ -40,8 +40,8 @@ TEST_MAIN("Namespaces")
 	ason_t *c;
 	ason_t *d = NULL;
 	ason_ns_t *root;
-	ason_ns_t *sub1 = NULL;
-	ason_ns_t *sub2 = NULL;
+	ason_ns_t *sub_1 = NULL;
+	ason_ns_t *sub_2 = NULL;
 
 	a = ason_read("{ \"foo\": 6, \"bar\": 7, \"baz\": 8 }", NULL);
 	b = ason_read("\"stringval\"", NULL);
@@ -80,34 +80,34 @@ TEST_MAIN("Namespaces")
 	ason_ns_destroy(root);
 
 	root = ason_ns_create(ASON_NS_RAM, NULL);
-	sub1 = ason_ns_create(ASON_NS_RAM, NULL);
+	sub_1 = ason_ns_create(ASON_NS_RAM, NULL);
 
 	TEST("Subspace attachment") {
-		REQUIRE(! ason_ns_get_sub(root, "sub1"));
-		REQUIRE(ason_ns_attach(sub1, root, "sub1") == sub1);
-		REQUIRE(ason_ns_get_sub(root, "sub1") == sub1);
+		REQUIRE(! ason_ns_get_sub(root, "sub_1"));
+		REQUIRE(ason_ns_attach(sub_1, root, "sub_1") == sub_1);
+		REQUIRE(ason_ns_get_sub(root, "sub_1") == sub_1);
 	}
 
-	sub2 = ason_ns_create(ASON_NS_RAM, NULL);
-	ason_ns_attach(sub2, root, "sub2");
+	sub_2 = ason_ns_create(ASON_NS_RAM, NULL);
+	ason_ns_attach(sub_2, root, "sub_2");
 
 	TEST("Subspace storage") {
 		REQUIRE(! ason_ns_load(root, "a"));
-		REQUIRE(! ason_ns_load(sub1, "a"));
-		REQUIRE(! ason_ns_load(root, "sub1.a"));
-		REQUIRE(! ason_ns_load(sub2, "a"));
-		REQUIRE(! ason_ns_load(root, "sub2.a"));
+		REQUIRE(! ason_ns_load(sub_1, "a"));
+		REQUIRE(! ason_ns_load(root, "sub_1.a"));
+		REQUIRE(! ason_ns_load(sub_2, "a"));
+		REQUIRE(! ason_ns_load(root, "sub_2.a"));
 
-		REQUIRE(ason_ns_store(root, "sub1.a", a) == -ENOENT);
-		REQUIRE(! ason_ns_mkvar(root, "sub1.a"));
-		REQUIRE(! ason_ns_store(root, "sub1.a", a));
+		REQUIRE(ason_ns_store(root, "sub_1.a", a) == -ENOENT);
+		REQUIRE(! ason_ns_mkvar(root, "sub_1.a"));
+		REQUIRE(! ason_ns_store(root, "sub_1.a", a));
 
 		REQUIRE(! ason_ns_load(root, "a"));
-		REQUIRE(! ason_ns_load(sub2, "a"));
-		REQUIRE(! ason_ns_load(root, "sub2.a"));
+		REQUIRE(! ason_ns_load(sub_2, "a"));
+		REQUIRE(! ason_ns_load(root, "sub_2.a"));
 
-		c = ason_ns_load(sub1, "a");
-		d = ason_ns_load(root, "sub1.a");
+		c = ason_ns_load(sub_1, "a");
+		d = ason_ns_load(root, "sub_1.a");
 
 		REQUIRE(ason_check_equal(a, d));
 		REQUIRE(ason_check_equal(c, d));
@@ -142,6 +142,80 @@ TEST_MAIN("Namespaces")
 	}
 
 	ason_ns_destroy(root);
+	a = ason_read("6", NULL);
+
+	TEST("Namespace by URL") {
+		root = ason_ns_connect("ram");
+
+		REQUIRE(root);
+
+		REQUIRE(! ason_ns_mkvar(root, "a"));
+		REQUIRE(! ason_ns_store(root, "a", a));
+		d = ason_ns_load(root, "a");
+		REQUIRE(ason_check_equal(a, d));
+
+		/* Retry post-init */
+
+		root = ason_ns_connect("ram:ignored");
+
+		REQUIRE(root);
+
+		REQUIRE(! ason_ns_mkvar(root, "a"));
+		REQUIRE(! ason_ns_store(root, "a", a));
+		d = ason_ns_load(root, "a");
+		REQUIRE(ason_check_equal(a, d));
+	}
+
+	ason_ns_destroy(root);
+	ason_destroy(a);
+
+	TEST("Bad namespace URL") {
+		REQUIRE(! ason_ns_connect("bullshit"));
+	}
+
+	root = ason_ns_create(ASON_NS_RAM, NULL);
+
+	TEST("Bad subspaces") {
+		REQUIRE(! ason_ns_get_sub(root, "bullshit"));
+		REQUIRE(! ason_ns_load(root, "bullshit.var"));
+		REQUIRE(ason_ns_store(root, "bullshit.var", ASON_NULL) ==
+			-ENOENT);
+		REQUIRE(ason_ns_mkvar(root, "bullshit.var") == -ENOENT);
+		REQUIRE(ason_ns_set_meta(root, "bullshit.var", "") == -ENOENT);
+		REQUIRE(! ason_ns_get_meta(root, "bullshit.var"));
+	}
+
+	ason_ns_destroy(root);
+
+	root = ason_ns_create(ASON_NS_RAM, NULL);
+	sub_1 = ason_ns_create(ASON_NS_RAM, NULL);
+	sub_2 = ason_ns_create(ASON_NS_RAM, NULL);
+
+	TEST("Bad attachment points") {
+		REQUIRE(! ason_ns_attach(sub_1, root, ""));
+		REQUIRE(! ason_ns_attach(sub_1, root, "!good"));
+	}
+
+	ason_ns_attach(sub_1, root, "sub_1");
+	a = ason_read("6", NULL);
+
+	TEST("Move namespaces") {
+		REQUIRE(! ason_ns_mkvar(root, "sub_1.a"));
+		REQUIRE(! ason_ns_store(root, "sub_1.a", a));
+		d = ason_ns_load(root, "sub_1.a");
+		REQUIRE(ason_check_equal(a, d));
+		ason_destroy(d);
+
+		REQUIRE(ason_ns_attach(sub_1, sub_2, "sub_1a"));
+
+		d = ason_ns_load(sub_2, "sub_1a.a");
+		REQUIRE(ason_check_equal(a, d));
+		ason_destroy(d);
+	}
+
+	ason_ns_destroy(root);
+	ason_ns_destroy(sub_1);
+	ason_ns_destroy(sub_2);
 
 	return 0;
 }
