@@ -435,6 +435,11 @@ ason_vreadn(const char *text, size_t length, ason_ns_t *ns, va_list ap)
 		asonLemon(parser, type, data, &pdata);
 	}
 
+	while (isspace(*text)) {
+		text++;
+		length--;
+	}
+
 	if (length)
 		pdata.failed = 1;
 
