@@ -19,6 +19,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
 
 #include <ason/value.h>
 #include <ason/output.h>
@@ -26,79 +28,84 @@
 
 #include "harness.h"
 
-TESTS(2);
+TESTS(21);
+
+static void
+strip_spaces(char *str)
+{
+	size_t i = 0;
+	size_t j = 0;
+
+	for (i = 0; str[i]; i++)
+		if (! isspace(str[i]))
+			str[j++] = str[i];
+
+	str[j] = '\0';
+}
 
 /**
- * A test which does nothing.
+ * Test object printing methods.
  **/
 TEST_MAIN("Object printing")
 {
-	ason_t *six = ason_create_number(6);
-	ason_t *seven = ason_create_number(7);
-	ason_t *eight = ason_create_number(8);
-	ason_t *list = ason_create_list(six);
-	ason_t *object = ason_create_object("first", six);
 	ason_t *test = NULL;
-	ason_t *a, *b;
-	char *out = NULL;
+	char *output = NULL;
 
-	a = ason_create_list(seven);
-	b = ason_join(list, a);
-	ason_destroy(list);
-	ason_destroy(a);
-	list = b;
+#define TEST_OUTPUT(_name, _str) \
+	TEST(_name) { \
+		test = ason_read(_str, NULL); \
+		output = ason_asprint(test); \
+		strip_spaces(output); \
+		REQUIRE(!strcmp(_str, output)); \
+	} \
+	free(output); \
+	ason_destroy(test)
 
-	a = ason_create_list(eight);
-	b = ason_join(list, a);
-	ason_destroy(list);
-	ason_destroy(a);
-	list = b;
+#define TEST_OUTPUT_U(_name, _str) \
+	TEST(_name) { \
+		test = ason_read(_str, NULL); \
+		output = ason_asprint_unicode(test); \
+		strip_spaces(output); \
+		REQUIRE(!strcmp(_str, output)); \
+	} \
+	free(output); \
+	ason_destroy(test)
 
-	a = ason_create_object("second", seven);
-	b = ason_join(object, a);
-	ason_destroy(object);
-	ason_destroy(a);
-	object = b;
 
-	a = ason_create_object("third", eight);
-	b = ason_join(object, a);
-	ason_destroy(object);
-	ason_destroy(a);
-	object = b;
+	TEST_OUTPUT("Integer", "6");
+	TEST_OUTPUT("String", "\"foo\"");
+	TEST_OUTPUT("Null", "null");
+	TEST_OUTPUT("Universe", "U");
+	TEST_OUTPUT("Wild", "*");
+	TEST_OUTPUT("Empty", "_");
+	TEST_OUTPUT_U("Empty (Unicode)", "∅");
+	TEST_OUTPUT("True", "true");
+	TEST_OUTPUT("False", "false");
+	TEST_OUTPUT("Object", "{\"bar\":6,\"foo\":7}");
+	TEST_OUTPUT("Universal Object", "{\"bar\":6,\"foo\":7,*}");
+	TEST_OUTPUT("List", "[6,7,8]");
+	TEST_OUTPUT("Union", "6|7");
+	TEST_OUTPUT_U("Union (Unicode)", "6∪7");
+	TEST_OUTPUT("Empty Universal Object", "{*}");
+	TEST_OUTPUT("Empty Object", "{}");
+	TEST_OUTPUT("Complement", "!6");
+	TEST_OUTPUT("Union Complement", "!(6|7)");
+	TEST_OUTPUT("Escapes", "\"\\\"\\\\\\/\\b\\f\\n\\r\\t\\v\"");
 
-	a = ason_create_object("all", list);
-	b = ason_join(object, a);
-	ason_destroy(object);
-	ason_destroy(a);
-	ason_destroy(list);
-	object = b;
-
-	TEST("ASCII printing") {
-		out = ason_asprint(object);
-		test = ason_read(out, NULL);
-
-		REQUIRE(test);
-		REQUIRE(ason_check_equal(object, test));
+	TEST("Control character escaping") {
+		test = ason_read("\"\b\"", NULL);
+		output = ason_asprint_unicode(test);
+		REQUIRE(!strcmp("\"\\b\"", output));
 	}
 
-	free(out);
-	ason_destroy(test);
-
-	TEST("Unicode printing") {
-		out = ason_asprint_unicode(object);
-		test = ason_read(out, NULL);
-
-		REQUIRE(test);
-		REQUIRE(ason_check_equal(object, test));
+	TEST("Unicode escaping") {
+		test = ason_read("\"©\\u00A9\"", NULL);
+		output = ason_asprint_unicode(test);
+		REQUIRE(!strcmp("\"\\u00a9\\u00a9\"", output));
 	}
 
-	free(out);
+	free(output);
 	ason_destroy(test);
-
-	ason_destroy(object);
-	ason_destroy(six);
-	ason_destroy(seven);
-	ason_destroy(eight);
 
 	return 0;
 }

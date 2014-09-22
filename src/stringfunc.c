@@ -227,7 +227,7 @@ string_escape(const char *in)
 
 	*pos = '\0';
 	free(expanded_buf);
-	return xrealloc(ret, strlen(ret));
+	return xrealloc(ret, strlen(ret) + 1);
 }
 
 /**
