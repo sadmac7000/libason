@@ -108,6 +108,7 @@ ason_ns_detach(ason_ns_t *ns)
 	if (parent->subns_count == i)
 		errx(1, "Namespace not listed in parent");
 
+	free(parent->subns[i].name);
 	parent->subns_count--;
 	memcpy(&parent->subns[i + 1], &parent->subns[i],
 	       (parent->subns_count - i) * sizeof(struct ason_subns));
@@ -160,6 +161,7 @@ ason_ns_destroy(ason_ns_t *ns)
 
 	for (i = 0; i < ns->subns_count; i++) {
 		free(ns->subns[i].name);
+		ns->subns[i].space->parent = NULL;
 		ason_ns_destroy(ns->subns[i].space);
 	}
 	
@@ -179,7 +181,7 @@ ason_ns_resolve_subspaces(ason_ns_t *ns, const char **name)
 	const char *test = *name;
 	char *tmp;
 
-	for (;;) {
+	do {
 		while (*test && *test != '.')
 			test++;
 
@@ -192,11 +194,10 @@ ason_ns_resolve_subspaces(ason_ns_t *ns, const char **name)
 
 		ns = ason_ns_lookup_sub(ns, tmp);
 
-		if (! ns)
-			return NULL;
-
 		free(tmp);
-	}
+	} while (ns);
+
+	return NULL;
 }
 
 /**
@@ -301,7 +302,8 @@ ason_ns_register_proto(const ason_ns_ops_t *ops, const char *name)
 		return -EINVAL;
 
 	ason_ns_ops_registry = xrealloc(ason_ns_ops_registry,
-					ason_ns_ops_registry_count + 1);
+					(ason_ns_ops_registry_count + 1) *
+					sizeof(*ason_ns_ops_registry));
 
 	ason_ns_ops_registry[ason_ns_ops_registry_count].name = xstrdup(name);
 	ason_ns_ops_registry[ason_ns_ops_registry_count].ops = ops;

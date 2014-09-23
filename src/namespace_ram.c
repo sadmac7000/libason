@@ -72,6 +72,7 @@ ason_ram_ns_teardown(void *data)
 		ason_destroy(ns->entries[i].value);
 	}
 
+	free(ns->entries);
 	free(ns);
 }
 
