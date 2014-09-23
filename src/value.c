@@ -116,48 +116,6 @@ static struct ason ASON_OBJ_ANY_DATA = {
 API_EXPORT ason_t * const ASON_OBJ_ANY = &ASON_OBJ_ANY_DATA;
 
 /**
- * Quicksort an array of KV pairs.
- **/
-static void
-kv_pair_quicksort(struct kv_pair *kvs, size_t count)
-{
-	size_t pivot;
-	size_t i;
-	struct kv_pair tmp;
-
-	if (count <= 1)
-		return;
-
-	pivot = 0;
-
-	for (i = 1; i < count;) {
-		if (strcmp(kvs[i].key, kvs[pivot].key) >= 0) {
-			i++;
-			continue;
-		}
-
-		if (i == (pivot + 1)) {
-			tmp = kvs[pivot];
-			kvs[pivot] = kvs[i];
-			kvs[i] = tmp;
-		} else {
-			tmp = kvs[pivot + 1];
-			kvs[pivot + 1] = kvs[pivot];
-			kvs[pivot] = kvs[i];
-			kvs[i] = tmp;
-		}
-
-		pivot++;
-
-		if (i == pivot)
-			i++;
-	}
-
-	kv_pair_quicksort(kvs, pivot);
-	kv_pair_quicksort(kvs + pivot + 1, count - pivot - 1);
-}
-
-/**
  * Remove some items from an ASON object. This is generally a mutating operation
  * so it must be done with care so as not to break value-immutability.
  **/
@@ -185,18 +143,6 @@ ason_remove_items(ason_t *a, size_t idx, size_t count, int destroy_removed)
 }
 
 /**
- * Sort the KV pairs in an object.
- **/
-static void
-ason_object_sort_kvs(ason_t *obj)
-{
-	struct kv_pair *kvs = obj->kvs;
-	size_t count = obj->count;
-
-	kv_pair_quicksort(kvs, count);
-}
-
-/**
  * Initialize an ASON coiterator.
  **/
 static void
@@ -206,9 +152,6 @@ ason_coiterator_init(struct ason_coiterator *iter, ason_t *a, ason_t *b)
 	iter->b_i = 0;
 	iter->a = ason_copy(a);
 	iter->b = ason_copy(b);
-
-	ason_object_sort_kvs(a);
-	ason_object_sort_kvs(b);
 }
 
 /**
