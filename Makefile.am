@@ -32,7 +32,7 @@ coverage.info: coverage.info.all_code
 coverage: coverage.info
 	$(genhtml) $^ $(GENHTML_FLAGS) --output-dir $@
 
-MOSTLYCLEANFILES = coverage.info
+MOSTLYCLEANFILES = coverage.info coverage.info.raw coverage.info.all_code
 
 clean-local:
 	-rm -rf coverage
