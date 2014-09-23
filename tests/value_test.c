@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(9);
+TESTS(13);
 
 /**
  * Full exercise of value reduction.
@@ -148,6 +148,22 @@ TEST_MAIN("Value Reduction")
 	TEST_ASON_EXPR("Complement-collapsing union",
 		       "{ \"foo\": !6 } | !(6|7|8) | !7 = "
 		       "{ \"foo\": !6 } | !7 ");
+
+	TEST_ASON_EXPR("Intersecting universal objects",
+		       "{ \"foo\": 6, \"bar\": 7 | 8, \"baz\": 8, *} & "
+		       "{ \"foo\": 6, \"bar\": 7, \"bam\": 9, *} = "
+		       "{ \"foo\": 6, \"bar\": 7, \"baz\": 8, \"bam\": 9, *}")
+
+	TEST_ASON_EXPR("Joining universal objects",
+		       "{ \"foo\": 6, \"bar\": null, \"baz\": 8, *} : "
+		       "{ \"foo\": 6, \"bar\": 7, \"bam\": 9, *} = "
+		       "{ \"foo\": 6, \"bar\": 7, \"baz\": 8, \"bam\": 9, *}")
+
+	TEST_ASON_EXPR("Collapsing order 0/order 3 union",
+		       "{\"foo\": !7 } = {\"foo\": 6} | {\"foo\": !7 }");
+
+	TEST_ASON_EXPR("Non-collapsing order 0/order 3 union",
+		       "6 in 6 | {\"foo\": !7 }");
 
 	return 0;
 }
