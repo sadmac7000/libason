@@ -98,6 +98,9 @@ TEST_MAIN("Object printing")
 		REQUIRE(!strcmp("\"\\b\"", output));
 	}
 
+	free(output);
+	ason_destroy(test);
+
 	TEST("Unicode escaping") {
 		test = ason_read("\"©\\u00A9\"", NULL);
 		output = ason_asprint_unicode(test);
