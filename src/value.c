@@ -286,7 +286,9 @@ ason_destroy(ason_t *a)
 	    --a->refcount)
 		return;
 
-	if (IS_OBJECT(a)) {
+	if (a->type == ASON_TYPE_STRING) {
+		free(a->string);
+	} else if (IS_OBJECT(a)) {
 		for (i = 0; i < a->count; i++) {
 			free(a->kvs[i].key);
 			ason_destroy(a->kvs[i].value);
