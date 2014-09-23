@@ -1396,6 +1396,7 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 {
 	size_t i;
 	int ret;
+	ason_t *tmp;
 
 	ason_reduce(a);
 	ason_reduce(b);
@@ -1422,7 +1423,8 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 		return 1;
 	}
 
-	if (b->order == 1) {
+	if (b->order == 1 || (a->order == 0 &&
+			      b->type == ASON_TYPE_UNION)) {
 		for (i = 0; i < b->count; i++)
 			if (ason_check_equal(a, b->items[i]))
 				return 1;
@@ -1451,11 +1453,26 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 	if (a->order == 2)
 		return 0;
 
-	/* FIXME */
-	if (b->type == ASON_TYPE_UNION)
-		errx(1, "We can't handle this case yet");
+	if (IS_OBJECT(a) && IS_OBJECT(b))
+		return ason_check_object_represented_in(a, b);
+	if (a->type == ASON_TYPE_LIST && b->type == ASON_TYPE_LIST)
+		return ason_check_list_represented_in(a, b);
 
-	if (a->type == ASON_TYPE_COMP) {
+	if (a->order == 0 && b->type == ASON_TYPE_COMP)
+		return ! ason_check_represented_in(a, b->items[0]);
+
+	/* We've handled every other order 0 case for a */
+	if (a->order == 0)
+		return 0;
+
+	/* a->order == 3 */
+
+	/* We know a->type != ASON_TYPE_UNION */
+	if (b->type != ASON_TYPE_UNION &&
+	    a->type != ASON_TYPE_COMP && b->type != ASON_TYPE_COMP)
+		return 0;
+
+	if (a->type == ASON_TYPE_COMP && b->type == ASON_TYPE_COMP) {
 		a = ason_complement(a);
 		b = ason_complement(b);
 
@@ -1467,17 +1484,34 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 		return ret;
 	}
 
-	if (b->type != ASON_TYPE_COMP) {
-		if (IS_OBJECT(a) && IS_OBJECT(b))
-			return ason_check_object_represented_in(a, b);
-		if (a->type == ASON_TYPE_LIST && b->type == ASON_TYPE_LIST)
-			return ason_check_list_represented_in(a, b);
+	if (IS_OBJECT(b))
+		return 0;
+	if (b->type == ASON_TYPE_LIST)
+		return 0;
+
+	/* This /should/ work as long as we still splay values. I'm nervous
+	 * about missing cases here though. Specifically we're worried about a
+	 * case where a is represented partially by one term of b and partially
+	 * by another, but I can't construct an example that isn't handled
+	 * elswhere or taken apart by splay.
+	 */
+	if (b->type == ASON_TYPE_UNION) {
+		for (i = 0; i < b->count; i++)
+			if (ason_check_represented_in(a, b->items[0]))
+				return 1;
 
 		return 0;
 	}
 
-	/* FIXME */
-	errx(1, "We can't handle this case yet");
+	if (b->type != ASON_TYPE_COMP)
+		errx(1, "Unknown case in ason_check_represented_in");
+
+	/* Risking a spin here. It's a decent catch-all for now. */
+	tmp = ason_intersect(a, b);
+	ret = ason_check_equal(a, tmp);
+	ason_destroy(tmp);
+
+	return ret;
 }
 
 /**
