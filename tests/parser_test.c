@@ -26,7 +26,7 @@
 
 #include "harness.h"
 
-TESTS(21);
+TESTS(22);
 
 /**
  * Basic exercise of the parser.
@@ -244,6 +244,17 @@ TEST_MAIN("Parse values")
 
 	TEST("Limited-length read") {
 		a = ason_readn("[6,7]@@@@@@", 5, NULL);
+		REQUIRE(ason_check_equal(a,b));
+	}
+
+	ason_destroy(a);
+	ason_destroy(b);
+
+	a = ason_create_list(NULL);
+	b = NULL;
+
+	TEST("Empty list") {
+		b = ason_read("[]", NULL);
 		REQUIRE(ason_check_equal(a,b));
 	}
 

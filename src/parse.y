@@ -135,6 +135,10 @@ value(A) ::= WILD.		{ A = ASON_WILD; }
 
 value(A) ::= NUMBER(B).		{ A = ason_create_fixnum(B.n); }
 
+value(A) ::= START_LIST END_LIST.			{
+	A = ason_create_list(NULL);
+}
+
 value(A) ::= START_LIST list(B) END_LIST.		{ A = B; }
 value(A) ::= TRUE.					{ A = ASON_TRUE; }
 value(A) ::= FALSE.					{ A = ASON_FALSE; }
