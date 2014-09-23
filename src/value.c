@@ -1100,9 +1100,11 @@ ason_reduce_union_0_2(ason_t *a)
 
 	memcpy(tmp->items, a->items, i * sizeof(ason_t *));
 	ason_remove_items(a,0,i,0);
+	ason_union_collapse(tmp);
 
 	/* The delete of items[0]->items[0] is tricky, but works */
 	a->items[0]->items[0] = ason_intersect_d(tmp, a->items[0]->items[0]);
+	a->items[0]->order = ORDER_UNKNOWN;
 	ason_reduce(a->items[0]);
 }
 
