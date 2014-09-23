@@ -285,6 +285,20 @@ ason_ns_get_meta(ason_ns_t *ns, const char *name)
 }
 
 /**
+ * Teardown the ops registry. This isn't super necessary but makes it possible
+ * to ensure our unit tests always exit with zero memory held, which makes
+ * valgrind more useful.
+ **/
+static void
+ason_ns_teardown_ops_registry(void)
+{
+	while (ason_ns_ops_registry_count--)
+		free(ason_ns_ops_registry[ason_ns_ops_registry_count].name);
+
+	free(ason_ns_ops_registry);
+}
+
+/**
  * Register a new type of namespace.
  **/
 API_EXPORT int
@@ -300,6 +314,8 @@ ason_ns_register_proto(const ason_ns_ops_t *ops, const char *name)
 
 	if (*pos)
 		return -EINVAL;
+
+	atexit(ason_ns_teardown_ops_registry);
 
 	ason_ns_ops_registry = xrealloc(ason_ns_ops_registry,
 					(ason_ns_ops_registry_count + 1) *

@@ -36,16 +36,14 @@ TESTS(13);
 TEST_MAIN("Namespaces")
 {
 	ason_t *a;
-	ason_t *b;
-	ason_t *c;
+	ason_t *b = NULL;
+	ason_t *c = NULL;
 	ason_t *d = NULL;
 	ason_ns_t *root;
 	ason_ns_t *sub_1 = NULL;
 	ason_ns_t *sub_2 = NULL;
 
 	a = ason_read("{ \"foo\": 6, \"bar\": 7, \"baz\": 8 }", NULL);
-	b = ason_read("\"stringval\"", NULL);
-	c = ason_read("6", NULL);
 
 	root = ason_ns_create(ASON_NS_RAM, NULL);
 
@@ -68,12 +66,14 @@ TEST_MAIN("Namespaces")
 		REQUIRE(! ason_ns_load(root, "nothing_here"));
 	}
 
+	b = ason_read("\"stringval\"", NULL);
 	TEST("Clobbering value") {
 		REQUIRE(! ason_ns_store(root, "a", b));
 		d = ason_ns_load(root, "a");
 		REQUIRE(ason_check_equal(b, d));
 	}
 
+	ason_destroy(b);
 	ason_destroy(d);
 	d = NULL;
 
@@ -114,7 +114,6 @@ TEST_MAIN("Namespaces")
 	}
 
 	ason_destroy(a);
-	ason_destroy(b);
 	ason_destroy(c);
 	ason_destroy(d);
 
@@ -154,6 +153,8 @@ TEST_MAIN("Namespaces")
 		d = ason_ns_load(root, "a");
 		REQUIRE(ason_check_equal(a, d));
 
+		ason_destroy(d);
+		ason_ns_destroy(root);
 		/* Retry post-init */
 
 		root = ason_ns_connect("ram:ignored");
@@ -168,6 +169,7 @@ TEST_MAIN("Namespaces")
 
 	ason_ns_destroy(root);
 	ason_destroy(a);
+	ason_destroy(d);
 
 	TEST("Bad namespace URL") {
 		REQUIRE(! ason_ns_connect("bullshit"));
@@ -214,8 +216,8 @@ TEST_MAIN("Namespaces")
 		ason_destroy(d);
 	}
 
+	ason_destroy(a);
 	ason_ns_destroy(root);
-	ason_ns_destroy(sub_1);
 	ason_ns_destroy(sub_2);
 
 	return 0;
