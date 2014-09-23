@@ -64,7 +64,6 @@ struct parse_data {
 %left COLON.
 %left COMMA.
 
-%type file      {ason_t *}
 %type value     {ason_t *}
 %type list      {ason_t *}
 %type kv_list   {ason_t *}
@@ -76,10 +75,16 @@ struct parse_data {
 %type equality  {ason_t *}
 %type repr      {ason_t *}
 
-%destructor value { ason_destroy($$); }
-%destructor list { ason_destroy($$); }
-%destructor kv_list { ason_destroy($$); }
-%destructor kv_pair { ason_destroy($$); }
+%destructor value     { ason_destroy($$); }
+%destructor list      { ason_destroy($$); }
+%destructor kv_list   { ason_destroy($$); }
+%destructor kv_pair   { ason_destroy($$); }
+%destructor join      { ason_destroy($$); }
+%destructor intersect { ason_destroy($$); }
+%destructor union     { ason_destroy($$); }
+%destructor comp      { ason_destroy($$); }
+%destructor equality  { ason_destroy($$); }
+%destructor repr      { ason_destroy($$); }
 
 %name asonLemon
 %token_prefix ASON_LEX_
