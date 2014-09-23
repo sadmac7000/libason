@@ -1,6 +1,7 @@
 AC_INIT([libason], [0.0.1], [casey.dahlin@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror -Wno-portability foreign
                   parallel-tests subdir-objects])
+AM_EXTRA_RECURSIVE_TARGETS([valgrind])
 AM_SILENT_RULES([yes])
 AC_PROG_CC
 m4_pattern_allow([AM_PROG_AR])
@@ -59,6 +60,8 @@ AC_PATH_PROG([PDFLATEX], [pdflatex], [no])
 
 test "x$PDFLATEX" = "xno" -a "x$with_spec" != xno && \
 	AC_MSG_ERROR([PDFLatex not found])
+
+AC_PATH_PROG([VALGRIND], [valgrind], [no])
 
 AM_CONDITIONAL([INSTALL_SPEC], [ test "x$with_spec" != xno ])
 

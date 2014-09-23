@@ -1,5 +1,9 @@
 AM_CFLAGS = --std=gnu99 -Wall -Wextra -D_GNU_SOURCE -fvisibility=hidden $(lcov_CFLAGS)
 
+valgrind = $(valgrind_$(V))$(LIBTOOL) --mode=execute $(VALGRIND)
+valgrind_ = $(valgrind_$(AM_DEFAULT_VERBOSITY))
+valgrind_0 = @echo "  VALGRND " $@;
+
 TESTS = parser_test	  \
 	esc_parser_test	  \
 	print_object	  \
@@ -13,7 +17,13 @@ TESTS = parser_test	  \
 	ns_test
 noinst_PROGRAMS = $(TESTS)
 
-MOSTLYCLEANFILES=*.gcda *.gcno *.gcov
+MOSTLYCLEANFILES=*.gcda *.gcno *.gcov *.valgrind
+
+%.valgrind: %
+	$(valgrind) --leak-check=full --log-file=$@ ./$^ --raw
+
+.PHONY: valgrind-local
+valgrind-local: $(patsubst %,%.valgrind,$(TESTS))
 
 parser_test_SOURCES = parser_test.c harness.c
 parser_test_LDADD = ../src/libason.la
