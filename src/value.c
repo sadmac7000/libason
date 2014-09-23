@@ -1215,8 +1215,10 @@ ason_reduce_union(ason_t *a)
 		return;
 
 	/* FIXME We could do more to crunch order 3 values here. */
-	if (a->items[0]->order != 2)
+	if (a->items[0]->order != 2) {
+		a->order = 3;
 		return;
+	}
 
 	tmp = a->items[0]->items[0];
 
