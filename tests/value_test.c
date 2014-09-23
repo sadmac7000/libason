@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(13);
+TESTS(14);
 
 /**
  * Full exercise of value reduction.
@@ -164,6 +164,9 @@ TEST_MAIN("Value Reduction")
 
 	TEST_ASON_EXPR("Non-collapsing order 0/order 3 union",
 		       "6 in 6 | {\"foo\": !7 }");
+
+	TEST_ASON_EXPR("Simple Intersection of Unions",
+		       "(6 | 7 | 8 | 9) & (5 | 6) = 6");
 
 	return 0;
 }

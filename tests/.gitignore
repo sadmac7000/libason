@@ -2,7 +2,6 @@ print_object
 parser_test
 esc_parser_test
 complement_test
-intersection_test
 iterator_test
 ns_test
 blockfile_test
