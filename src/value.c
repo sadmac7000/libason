@@ -906,7 +906,7 @@ ason_reduce_intersect(ason_t *a)
 	} else if (a->items[0]->type == ASON_TYPE_LIST) {
 		ason_reduce_list_intersect(a);
 	} else {
-		/* We're still punting for a lot of cases */
+		/* FIXME: We're still punting for a lot of cases */
 		a->order = 3;
 	}
 }
@@ -1129,6 +1129,39 @@ ason_union_collapse(ason_t *a)
 }
 
 /**
+ * For a union sorted such that it begins with several order 0 values and an
+ * order 2 value, reduce to just an order 2 value.
+ **/
+static void
+ason_reduce_union_0_2(ason_t *a)
+{
+	size_t i;
+	ason_t *tmp;
+
+	for (i = 0; i < a->count; i++)
+		if (a->items[i]->order != 0)
+			break;
+
+	if (i == a->count)
+		errx(1, "Unexpected empty or order 1 union");
+
+	if (a->items[i]->order != 2)
+		errx(1, "Expected order 2 item");
+
+	if (! i)
+		return;
+
+	tmp = ason_create(ASON_TYPE_UNION, i);
+
+	memcpy(tmp->items, a->items, i * sizeof(ason_t *));
+	ason_remove_items(a,0,i,0);
+
+	/* The delete of items[0]->items[0] is tricky, but works */
+	a->items[0]->items[0] = ason_intersect_d(tmp, a->items[0]->items[0]);
+	ason_reduce(a->items[0]);
+}
+
+/**
  * Reduce a union.
  **/
 static void
@@ -1177,23 +1210,15 @@ ason_reduce_union(ason_t *a)
 		return;
 
 	if (i && a->items[i]->order == 2) {
-		tmp = ason_create(ASON_TYPE_UNION, i);
-
-		memcpy(tmp->items, a->items, i * sizeof(ason_t *));
-		ason_remove_items(a,0,i,0);
+		ason_reduce_union_0_2(a);
 		i = 0;
-
-		/* The delete of items[0]->items[0] is tricky, but works */
-		a->items[0]->items[0] =
-			ason_intersect_d(tmp, a->items[0]->items[0]);
-		ason_reduce(a->items[0]);
 	}
 
 	if (ason_union_collapse(a))
 		return;
 
 	/* Two cases left: a bunch of order 0s and order 3s, or an order 2 and
-	 * some order 3s.
+	 * some order 3s. `i` is the index of the first item with order > 0
 	 */
 
 	for (j = 0; j < i;) {
