@@ -778,6 +778,8 @@ ason_reduce_list_intersect(ason_t *a)
 		if (order == ORDER_OF_EMPTY) {
 			ason_destroy(tmp);
 			ason_make_empty(a);
+			ason_destroy(left);
+			ason_destroy(right);
 			return;
 		}
 
