@@ -799,6 +799,161 @@ ason_reduce_list_intersect(ason_t *a)
 }
 
 /**
+ * Turn a union of zero or one values into a simpler value. Return true if the
+ * change was made.
+ **/
+static int
+ason_union_collapse(ason_t *a)
+{
+	if (a->count > 1)
+		return 0;
+
+	if (a->count)
+		ason_clone_into(a, a->items[0]);
+	else
+		ason_make_empty(a);
+
+	return 1;
+}
+
+/**
+ * Reduce an intersect of two order 3 values of which a is a collection and b
+ * is a complement of a list.
+ **/
+static void
+ason_reduce_intersect_col3_comp3_list(ason_t *a)
+{
+	ason_t **results;
+	ason_t *tmp;
+	size_t i;
+	size_t count;
+
+	if (a->items[0]->count != a->items[1]->items[0]->count) {
+		ason_clone_into_d(a, a->items[0]);
+		return;
+	}
+
+	count = a->items[0]->count;
+	results = xcalloc(count, sizeof(ason_t *));
+
+	for (i = 0; i < count; i++) {
+		results[i] = ason_create(ASON_TYPE_EMPTY, 0);
+		ason_clone_into(results[i], a->items[0]);
+		results[i]->order = ORDER_UNKNOWN;
+		tmp = ason_complement(a->items[1]->items[0]->items[i]);
+		tmp = ason_intersect_d(results[i]->items[i], tmp);
+		results[i]->items[i] = tmp;
+		ason_reduce(results[i]);
+	}
+
+	ason_make_empty(a);
+	a->type = ASON_TYPE_UNION;
+	a->count = count;
+	a->items = results;
+	a->order = ORDER_UNKNOWN;
+	ason_reduce(a);
+}
+
+/**
+ * Reduce an intersect of two order 3 values of which a is a collection and b
+ * is a complement of an object.
+ **/
+static void
+ason_reduce_intersect_col3_comp3_object(ason_t *a)
+{
+	ason_t **results;
+	ason_t *tmp;
+	ason_t *left;
+	ason_t *right;
+	size_t i;
+	struct ason_coiterator iter;
+	const char *key;
+
+	results = xcalloc(a->items[0]->count +
+			  a->items[1]->items[0]->count, sizeof(ason_t *));
+
+	ason_coiterator_init(&iter, a->items[0], a->items[1]->items[0]);
+
+	for (i = 0; (key = ason_coiterator_next(&iter, &left, &right)); i++) {
+		results[i] = ason_create(ASON_TYPE_UOBJECT, 1);
+		results[i]->kvs[0].key = xstrdup(key);
+		tmp = ason_complement(right);
+		results[i]->kvs[0].value = ason_intersect(left, tmp);
+		ason_destroy(tmp);
+		ason_reduce(results[i]);
+	}
+
+	results = xrealloc(results, i * sizeof(ason_t *));
+
+	ason_make_empty(a);
+	a->type = ASON_TYPE_UNION;
+	a->count = i;
+	a->items = results;
+	a->order = ORDER_UNKNOWN;
+	ason_reduce(a);
+}
+
+/**
+ * Reduce an intersect of two order 3 values of which a is a collection and b
+ * is a complement of a union.
+ **/
+static void
+ason_reduce_intersect_col3_comp3_union(ason_t *a)
+{
+	ason_t *tmp;
+
+	while (a->items[1]->items[0]->type == ASON_TYPE_UNION) {
+		a->items[1]->items[0]->order = ORDER_UNKNOWN;
+		a->items[1]->order = ORDER_UNKNOWN;
+
+		tmp = a->items[1]->items[0]->items[0];
+		ason_remove_items(a->items[1]->items[0], 0, 1, 0);
+
+		a->items[0] = ason_intersect_d(a->items[0], tmp);
+		ason_reduce(a->items[0]);
+
+		ason_union_collapse(a->items[1]->items[0]);
+		ason_reduce(a->items[1]);
+	}
+
+	ason_reduce(a);
+}
+
+/**
+ * Reduce an intersect of two order 3 values of which a is a collection and b
+ * is a complementation.
+ **/
+static void
+ason_reduce_intersect_col3_comp3(ason_t *a)
+{
+	ason_t *tmp;
+
+	if (a->items[0]->type == ASON_TYPE_COMP) {
+		tmp = a->items[0];
+		a->items[0] = a->items[1];
+		a->items[1] = tmp;
+	}
+
+	if (a->items[1]->items[0]->type == ASON_TYPE_UNION) {
+		ason_reduce_intersect_col3_comp3_union(a);
+		return;
+	}
+
+	if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1]->items[0])) {
+		ason_reduce_intersect_col3_comp3_object(a);
+		return;
+	}
+
+	if (a->items[0]->type == ASON_TYPE_LIST &&
+	    a->items[1]->items[0]->type == ASON_TYPE_LIST) {
+		ason_reduce_intersect_col3_comp3_list(a);
+		return;
+	}
+
+	ason_clone_into_d(a, a->items[0]);
+}
+
+/**
  * Reduce an intersect.
  **/
 static void
@@ -859,8 +1014,10 @@ ason_reduce_intersect(ason_t *a)
 	} else if (a->items[0]->type == ASON_TYPE_LIST) {
 		ason_reduce_list_intersect(a);
 	} else {
-		/* FIXME: We're still punting for a lot of cases */
-		a->order = 3;
+		/* The case remaining is: one of these is a complement, the
+		 * other is an object or list
+		 */
+		ason_reduce_intersect_col3_comp3(a);
 	}
 }
 
@@ -1061,24 +1218,6 @@ ason_union_make_level(ason_t *a)
 
 		ason_destroy(sub);
 	}
-}
-
-/**
- * Turn a union of zero or one values into a simpler value. Return true if the
- * change was made.
- **/
-static int
-ason_union_collapse(ason_t *a)
-{
-	if (a->count > 1)
-		return 0;
-
-	if (a->count)
-		ason_clone_into(a, a->items[0]);
-	else
-		ason_make_empty(a);
-
-	return 1;
 }
 
 /**
