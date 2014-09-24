@@ -27,17 +27,13 @@
 
 #include "harness.h"
 
-TESTS(17);
+TESTS(21);
 
 /**
  * Full exercise of value reduction.
  **/
 TEST_MAIN("Value Reduction")
 {
-	TEST_ASON_EXPR("Order 3 on order 3 representation",
-		       "{\"foo\": 6, \"bar\": !7} in "
-		       "{\"foo\": 6, \"bar\": !7 | 8, *}");
-
 	TEST_ASON_EXPR("Object redistribution",
 		       "{\"foo\": 6 | 7 | 8, \"bar\": 9}  = "
 		       "{\"foo\": 6, \"bar\": 9}  | "
@@ -173,6 +169,23 @@ TEST_MAIN("Value Reduction")
 	TEST_ASON_EXPR("0-2 Union with 3 trailer", "6 | 7 | !(6|7|8) | [!9] = !8");
 
 	TEST_ASON_EXPR("0-2 Union with simple complement", "6 | 7 | !6 = U");
+
+	TEST_ASON_EXPR("Order 3 on order 3 representation",
+		       "{\"foo\": 6, \"bar\": !7} in "
+		       "{\"foo\": 6, \"bar\": !7 | 8, *}");
+
+	TEST_ASON_EXPR("3 on 3 union representation",
+		       "{\"foo\": [!(7|8)]} in {\"foo\": [!8]}|[!9]");
+
+	TEST_ASON_EXPR("3 union on 3 representation",
+		       "{\"foo\": [!(7|8)]}|[!9] in {\"foo\": [!8]}|[!9]");
+
+	TEST_ASON_EXPR("Order 3 on order 3 complement representation",
+		       "!{\"foo\": 6, \"bar\": !7 | 8, *} in "
+		       "!{\"foo\": 6, \"bar\": !7}");
+
+	TEST_ASON_EXPR("3 on 3 complement representation",
+		       "{\"foo\": !(6|7|[!8])} in !{\"foo\": [!8]}");
 
 	return 0;
 }
