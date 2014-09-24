@@ -1470,9 +1470,8 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 	if (b->type != ASON_TYPE_COMP)
 		errx(1, "Unknown case in ason_check_represented_in");
 
-	/* Risking a spin here. It's a decent catch-all for now. */
-	tmp = ason_intersect(a, b);
-	ret = ason_check_equal(a, tmp);
+	tmp = ason_intersect(a, b->items[0]);
+	ret = ason_check_equal(tmp, ASON_EMPTY);
 	ason_destroy(tmp);
 
 	return ret;
