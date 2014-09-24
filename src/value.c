@@ -1461,7 +1461,7 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 	 */
 	if (b->type == ASON_TYPE_UNION) {
 		for (i = 0; i < b->count; i++)
-			if (ason_check_represented_in(a, b->items[0]))
+			if (ason_check_represented_in(a, b->items[i]))
 				return 1;
 
 		return 0;
