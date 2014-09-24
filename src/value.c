@@ -787,6 +787,9 @@ ason_reduce_list_intersect(ason_t *a)
 		a->items[a->count] = tmp;
 	}
 
+	ason_destroy(left);
+	ason_destroy(right);
+
 	if (max_order > 1)
 		max_order = 3;
 
