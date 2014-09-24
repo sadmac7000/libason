@@ -666,8 +666,11 @@ ason_distribute(ason_t *a)
 	b = ason_copy(a->items[target]);
 	ason_clone_into_d(a, b);
 
-	for (i = 0; i < a->count; i++)
+	for (i = 0; i < a->count; i++) {
+		b = a->items[i];
 		a->items[i] = ason_operate(a->items[i], right, type);
+		ason_destroy(b);
+	}
 
 	ason_destroy(right);
 	a->order = ORDER_UNKNOWN;
