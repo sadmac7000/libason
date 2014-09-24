@@ -1074,38 +1074,52 @@ ason_union_collapse(ason_t *a)
 }
 
 /**
- * For a union sorted such that it begins with several order 0 values and an
- * order 2 value, reduce to just an order 2 value.
+ * Reduce the leading items of a union when they are, respectively, a series of
+ * order 0 items and an order 2 item.
  **/
 static void
-ason_reduce_union_0_2(ason_t *a)
+ason_reduce_union_0_2(ason_t *a, size_t o2_idx)
 {
+	ason_t **values = xcalloc(o2_idx, sizeof(ason_t *));
 	size_t i;
-	ason_t *tmp;
+	size_t j;
+	ason_t *other;
 
-	for (i = 0; i < a->count; i++)
-		if (a->items[i]->order != 0)
-			break;
+	values = memcpy(values, a->items, o2_idx * sizeof(ason_t *));
+	ason_remove_items(a, 0, o2_idx, 0);
 
-	if (i == a->count)
-		errx(1, "Unexpected empty or order 1 union");
+	if (ason_union_collapse(a))
+		other = a->items[0];
+	else
+		other = a->items[0]->items[0];
 
-	if (a->items[i]->order != 2)
-		errx(1, "Expected order 2 item");
+	if (other->type != ASON_TYPE_UNION) {
+		for (i = 0; i < o2_idx; i++)
+			if (ason_check_equal(other, values[i]))
+				break;
 
-	if (! i)
-		return;
+		if (i != o2_idx)
+			ason_make_empty(other);
+	} else {
+		for (i = 0; i < o2_idx; i++) {
+			for (j = 0; j < other->count; j++)
+				if (ason_check_equal(values[i],
+						     other->items[j]))
+					break;
 
-	tmp = ason_create(ASON_TYPE_UNION, i);
+			if (j == other->count)
+				continue;
 
-	memcpy(tmp->items, a->items, i * sizeof(ason_t *));
-	ason_remove_items(a,0,i,0);
-	ason_union_collapse(tmp);
+			ason_remove_items(other, j, 1, 1);
+		}
 
-	/* The delete of items[0]->items[0] is tricky, but works */
-	a->items[0]->items[0] = ason_intersect_d(tmp, a->items[0]->items[0]);
-	a->items[0]->order = ORDER_UNKNOWN;
-	ason_reduce(a->items[0]);
+		ason_union_collapse(other);
+	}
+
+	for (i = 0; i < o2_idx; i++)
+		ason_destroy(values[i]);
+
+	free(values);
 }
 
 /**
@@ -1156,18 +1170,7 @@ ason_reduce_union(ason_t *a)
 	if (ason_union_collapse(a))
 		return;
 
-	if (i && a->items[i]->order == 2) {
-		ason_reduce_union_0_2(a);
-		i = 0;
-	}
-
-	if (ason_union_collapse(a))
-		return;
-
-	/* Two cases left: a bunch of order 0s and order 3s, or an order 2 and
-	 * some order 3s. `i` is the index of the first item with order > 0
-	 */
-
+	/* i is the index of the first value where order is not 0 */
 	for (j = 0; j < i;) {
 		for (k = i; k < a->count; k++)
 			if (ason_check_represented_in(a->items[j],
@@ -1184,6 +1187,12 @@ ason_reduce_union(ason_t *a)
 	}
 
 	if (ason_union_collapse(a))
+		return;
+
+	if (a->items[0]->order == 0 && a->items[i]->order == 2)
+		ason_reduce_union_0_2(a, i);
+
+	if (a->type != ASON_TYPE_UNION)
 		return;
 
 	/* FIXME We could do more to crunch order 3 values here. */
