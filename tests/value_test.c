@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(14);
+TESTS(17);
 
 /**
  * Full exercise of value reduction.
@@ -167,6 +167,12 @@ TEST_MAIN("Value Reduction")
 
 	TEST_ASON_EXPR("Simple Intersection of Unions",
 		       "(6 | 7 | 8 | 9) & (5 | 6) = 6");
+
+	TEST_ASON_EXPR("0-2 Union", "6 | 7 | !(6|7|8) = !8");
+
+	TEST_ASON_EXPR("0-2 Union with 3 trailer", "6 | 7 | !(6|7|8) | [!9] = !8");
+
+	TEST_ASON_EXPR("0-2 Union with simple complement", "6 | 7 | !6 = U");
 
 	return 0;
 }
