@@ -220,6 +220,10 @@ TEST_MAIN("Namespaces")
 	ason_ns_destroy(root);
 	ason_ns_destroy(sub_2);
 
+	TEST("Register bad protocol name") {
+		REQUIRE(ason_ns_register_proto(NULL, "") == -EINVAL);
+	}
+
 	return 0;
 }
 

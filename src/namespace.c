@@ -315,7 +315,8 @@ ason_ns_register_proto(const ason_ns_ops_t *ops, const char *name)
 	if (*pos)
 		return -EINVAL;
 
-	atexit(ason_ns_teardown_ops_registry);
+	if (! ason_ns_ops_registry)
+		atexit(ason_ns_teardown_ops_registry);
 
 	ason_ns_ops_registry = xrealloc(ason_ns_ops_registry,
 					(ason_ns_ops_registry_count + 1) *
