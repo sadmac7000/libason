@@ -185,7 +185,8 @@ TEST_MAIN("Value Reduction")
 		       "!{\"foo\": 6, \"bar\": !7}");
 
 	TEST_ASON_EXPR("3 on 3 complement representation",
-		       "{\"foo\": !(6|7|[!8])} in !{\"foo\": [!8]}");
+		       "{\"foo\": !(6|7|[!8])} & !{\"foo\": [!8]} = "
+		       "{\"foo\": !(6|7|[!8])}");
 
 	return 0;
 }
