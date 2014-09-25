@@ -1316,7 +1316,10 @@ ason_reduce_union_0_3(ason_t *a)
 		hits++;
 	}
 
-	for (i = 0; a->items[i]->order != 3; i++);
+	for (i = 0; a->items[i]->order != 3 && i < a->count; i++);
+
+	if (i == a->count)
+		rereduce = 1;
 
 	for (; i < a->count - 1; i++) {
 		for (j = i + 1; j < a->count; j++) {
