@@ -663,8 +663,7 @@ ason_distribute(ason_t *a)
 	right = ason_copy(a->items[source]);
 	type = a->type;
 
-	b = ason_copy(a->items[target]);
-	ason_clone_into_d(a, b);
+	ason_clone_into(a, a->items[target]);
 
 	for (i = 0; i < a->count; i++) {
 		b = a->items[i];
