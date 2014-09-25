@@ -910,7 +910,7 @@ ason_reduce_intersect_col3_comp3_union(ason_t *a)
 		a->items[1]->items[0]->order = ORDER_UNKNOWN;
 		a->items[1]->order = ORDER_UNKNOWN;
 
-		tmp = a->items[1]->items[0]->items[0];
+		tmp = ason_complement_d(a->items[1]->items[0]->items[0]);
 		ason_remove_items(a->items[1]->items[0], 0, 1, 0);
 
 		a->items[0] = ason_intersect_d(a->items[0], tmp);
