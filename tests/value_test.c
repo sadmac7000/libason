@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(21);
+TESTS(26);
 
 /**
  * Full exercise of value reduction.
@@ -187,6 +187,29 @@ TEST_MAIN("Value Reduction")
 	TEST_ASON_EXPR("3 on 3 complement representation",
 		       "{\"foo\": !(6|7|[!8])} & !{\"foo\": [!8]} = "
 		       "{\"foo\": !(6|7|[!8])}");
+
+	TEST_ASON_EXPR("Mismatched 3 on 3 list complement intersection",
+		       "[ 6, !7 ] & ! [ 6, !7, 8 ] = [6, !7]");
+
+	TEST_ASON_EXPR("Col3/Comp3 union intersection",
+		       "!( [8 | !9] | 6 ) & [6, !7] = [6, !7]");
+
+	TEST_ASON_EXPR("Union of order 3 complements",
+		       "![6,7,!8, 7] | ![6,!9,7, 7] = ![6,7,7, 7]");
+
+	TEST("Destructor safety") {
+		ason_destroy(NULL);
+	}
+
+	TEST("Global copy memory safety") {
+		ason_copy(ASON_EMPTY);
+		ason_copy(ASON_NULL);
+		ason_copy(ASON_UNIVERSE);
+		ason_copy(ASON_WILD);
+		ason_copy(ASON_TRUE);
+		ason_copy(ASON_FALSE);
+		ason_copy(ASON_OBJ_ANY);
+	}
 
 	return 0;
 }
