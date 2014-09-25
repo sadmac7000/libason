@@ -1015,7 +1015,8 @@ ason_reduce_intersect(ason_t *a)
 
 	if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1])) {
 		ason_reduce_object_intersect_join(a, 0);
-	} else if (a->items[0]->type == ASON_TYPE_LIST) {
+	} else if (a->items[0]->type == ASON_TYPE_LIST &&
+		   a->items[1]->type == ASON_TYPE_LIST) {
 		ason_reduce_list_intersect(a);
 	} else {
 		/* The case remaining is: one of these is a complement, the
