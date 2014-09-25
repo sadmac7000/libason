@@ -1275,6 +1275,66 @@ ason_reduce_union_0_2(ason_t *a, size_t o2_idx)
 }
 
 /**
+ * Reduce a union of zero or more order 0 values and one or more order 3
+ * values.
+ **/
+static void
+ason_reduce_union_0_3(ason_t *a)
+{
+	size_t i;
+	size_t j;
+	size_t hits = 0;
+	ason_t *tmp;
+	int rereduce = 0;
+
+	for (i = 0; a->items[i]->order != 3; i++);
+
+	while ((i + 1) < a->count) {
+		if (a->items[i]->order != 3) {
+			ason_reduce(a);
+			return;
+		}
+
+		if (a->items[i]->type != ASON_TYPE_COMP) {
+			i++;
+			continue;
+		}
+
+		if (a->items[i + 1]->type != ASON_TYPE_COMP) {
+			i++;
+			continue;
+		}
+
+		tmp = ason_intersect_d(ason_complement_d(a->items[i]),
+				       ason_complement_d(a->items[i + 1]));
+
+		ason_reduce(tmp);
+		ason_remove_items(a, i, 1, 0);
+		a->items[i] = tmp;
+		hits++;
+	}
+
+	for (i = 0; a->items[i]->order != 3; i++);
+
+	for (; i < a->count - 1; i++) {
+		for (j = i + 1; j < a->count; j++) {
+			tmp = ason_complement(a->items[j]);
+			a->items[i] = ason_intersect_d(a->items[i], tmp);
+			ason_reduce(a->items[i]);
+
+			if (a->items[i]->order != 3)
+				rereduce = 1;
+		}
+	}
+
+	if (rereduce) {
+		ason_reduce(a);
+	} else {
+		ason_union_sort(a, 0, a->count);
+		a->order = 3;
+	}
+}
+/**
  * Reduce a union.
  **/
 static void
@@ -1347,9 +1407,8 @@ ason_reduce_union(ason_t *a)
 	if (a->type != ASON_TYPE_UNION)
 		return;
 
-	/* FIXME We could do more to crunch order 3 values here. */
 	if (a->items[0]->order != 2) {
-		a->order = 3;
+		ason_reduce_union_0_3(a);
 		return;
 	}
 
