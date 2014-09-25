@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(26);
+TESTS(27);
 
 /**
  * Full exercise of value reduction.
@@ -196,6 +196,9 @@ TEST_MAIN("Value Reduction")
 
 	TEST_ASON_EXPR("Union of order 3 complements",
 		       "![6,7,!8, 7] | ![6,!9,7, 7] = ![6,7,7, 7]");
+
+	TEST_ASON_EXPR("Order 3 representation in order 3 complement",
+		       "[6,7,!8] in ![4,5,!6]");
 
 	TEST("Destructor safety") {
 		ason_destroy(NULL);
