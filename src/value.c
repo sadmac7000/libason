@@ -1308,6 +1308,8 @@ ason_reduce_union_0_3(ason_t *a)
 		tmp = ason_intersect_d(ason_complement_d(a->items[i]),
 				       ason_complement_d(a->items[i + 1]));
 
+		tmp = ason_complement_d(tmp);
+
 		ason_reduce(tmp);
 		ason_remove_items(a, i, 1, 0);
 		a->items[i] = tmp;
