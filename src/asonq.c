@@ -120,7 +120,12 @@ main(void)
 	for (;;) {
 		line = readline("> ");
 
-		if (! (line && *line)) {
+		if (! line) {
+			printf("\n");
+			break;
+		}
+
+		if (! *line) {
 			free(line);
 			continue;
 		}
