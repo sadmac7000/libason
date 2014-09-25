@@ -885,10 +885,14 @@ ason_reduce_intersect_col3_comp3_object(ason_t *a)
 
 	results = xrealloc(results, i * sizeof(ason_t *));
 
-	ason_make_empty(a);
-	a->type = ASON_TYPE_UNION;
-	a->count = i;
-	a->items = results;
+	tmp = ason_create(ASON_TYPE_UNION, 0);
+	tmp->count = i;
+	tmp->items = results;
+	tmp->order = ORDER_UNKNOWN;
+	ason_reduce(tmp);
+
+	ason_destroy(a->items[1]);
+	a->items[1] = tmp;
 	a->order = ORDER_UNKNOWN;
 	ason_reduce(a);
 }
