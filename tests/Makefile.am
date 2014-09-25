@@ -9,7 +9,6 @@ TESTS = parser_test	  \
 	iterator_test     \
 	blockfile_test    \
 	crc_test          \
-	order_test        \
 	value_test        \
 	ns_test
 noinst_PROGRAMS = $(TESTS)
@@ -36,10 +35,6 @@ ns_test_LDADD = ../src/libason.la
 
 value_test_SOURCES = value_test.c harness.c
 value_test_LDADD = ../src/libason.la
-
-order_test_SOURCES = order_test.c harness.c ../src/value.c ../src/value.h \
-		     ../src/stringfunc.c
-order_test_LDADD = ../src/libason.la
 
 blockfile_test_SOURCES = blockfile_test.c harness.c \
 			 ../src/blockfile.c ../src/blockfile.h \

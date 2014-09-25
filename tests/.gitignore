@@ -3,7 +3,6 @@ parser_test
 iterator_test
 ns_test
 blockfile_test
-order_test
 value_test
 crc_test
 *.log
