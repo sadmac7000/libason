@@ -1,6 +1,5 @@
 print_object
 parser_test
-complement_test
 iterator_test
 ns_test
 blockfile_test

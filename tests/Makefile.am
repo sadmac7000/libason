@@ -6,7 +6,6 @@ valgrind_0 = @echo "  VALGRND " $@;
 
 TESTS = parser_test	  \
 	print_object	  \
-	complement_test	  \
 	iterator_test     \
 	blockfile_test    \
 	crc_test          \
@@ -28,9 +27,6 @@ parser_test_LDADD = ../src/libason.la
 
 print_object_SOURCES = print_object.c harness.c
 print_object_LDADD = ../src/libason.la
-
-complement_test_SOURCES = complement_test.c harness.c
-complement_test_LDADD = ../src/libason.la
 
 iterator_test_SOURCES = iterator_test.c harness.c
 iterator_test_LDADD = ../src/libason.la
