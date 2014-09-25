@@ -90,7 +90,7 @@ TEST_MAIN("Object printing")
 	TEST_OUTPUT("Empty Object", "{}");
 	TEST_OUTPUT("Complement", "!6");
 	TEST_OUTPUT("Union Complement", "!(6|7)");
-	TEST_OUTPUT("Escapes", "\"\\\"\\\\\\/\\b\\f\\n\\r\\t\\v\"");
+	TEST_OUTPUT("Escapes", "\"\\\"\\\\\\/\\u0001\\b\\f\\n\\r\\t\\v\"");
 
 	TEST("Control character escaping") {
 		test = ason_read("\"\b\"", NULL);

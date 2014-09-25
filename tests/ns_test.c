@@ -28,7 +28,7 @@
 
 #include "harness.h"
 
-TESTS(13);
+TESTS(14);
 
 /**
  * Basic exercise of namespaces.

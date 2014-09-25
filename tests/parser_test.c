@@ -170,8 +170,8 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("String") {
-		test_value = ason_read("\"\tstring \\\"☺\\\"\"", NULL);
-		a = ason_create_string("\tstring \"☺\"");
+		test_value = ason_read("\"\t\001string \\\"☺\\\"\"", NULL);
+		a = ason_create_string("\t\001string \"☺\"");
 
 		REQUIRE(test_value);
 		REQUIRE(ason_check_equal(a, test_value));
