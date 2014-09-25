@@ -5,7 +5,6 @@ valgrind_ = $(valgrind_$(AM_DEFAULT_VERBOSITY))
 valgrind_0 = @echo "  VALGRND " $@;
 
 TESTS = parser_test	  \
-	esc_parser_test	  \
 	print_object	  \
 	complement_test	  \
 	iterator_test     \
@@ -26,9 +25,6 @@ valgrind-local: $(patsubst %,%.valgrind,$(TESTS))
 
 parser_test_SOURCES = parser_test.c harness.c
 parser_test_LDADD = ../src/libason.la
-
-esc_parser_test_SOURCES = esc_parser_test.c harness.c
-esc_parser_test_LDADD = ../src/libason.la
 
 print_object_SOURCES = print_object.c harness.c
 print_object_LDADD = ../src/libason.la
