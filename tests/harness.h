@@ -84,8 +84,8 @@ extern struct test_info *test_info;
 		TMP_NAME(__LINE__) = ason_read(_str, NULL); \
 		REQUIRE(TMP_NAME(__LINE__)); \
 		REQUIRE(ason_check_equal(TMP_NAME(__LINE__), ASON_TRUE)); \
-		ason_destroy(TMP_NAME(__LINE__)); \
-	}
+	} \
+	ason_destroy(TMP_NAME(__LINE__))
 
 #ifdef __cplusplus
 extern "C" {

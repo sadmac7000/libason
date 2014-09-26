@@ -35,6 +35,7 @@ ns_test_LDADD = ../src/libason.la
 
 value_test_SOURCES = value_test.c harness.c
 value_test_LDADD = ../src/libason.la
+value_test_CFLAGS = -Wno-uninitialized
 
 blockfile_test_SOURCES = blockfile_test.c harness.c \
 			 ../src/blockfile.c ../src/blockfile.h \
