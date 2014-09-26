@@ -842,7 +842,6 @@ ason_reduce_intersect_col3_comp3_list(ason_t *a)
 		tmp = ason_complement(a->items[1]->items[0]->items[i]);
 		tmp = ason_intersect_d(results[i]->items[i], tmp);
 		results[i]->items[i] = tmp;
-		ason_reduce(results[i]);
 	}
 
 	ason_make_empty(a);
@@ -850,7 +849,6 @@ ason_reduce_intersect_col3_comp3_list(ason_t *a)
 	a->count = count;
 	a->items = results;
 	a->order = ORDER_UNKNOWN;
-	ason_reduce(a);
 }
 
 /**
@@ -879,7 +877,6 @@ ason_reduce_intersect_col3_comp3_object(ason_t *a)
 		tmp = ason_complement(right);
 		results[i]->kvs[0].value = ason_intersect(left, tmp);
 		ason_destroy(tmp);
-		ason_reduce(results[i]);
 	}
 
 	results = xrealloc(results, i * sizeof(ason_t *));
@@ -888,12 +885,10 @@ ason_reduce_intersect_col3_comp3_object(ason_t *a)
 	tmp->count = i;
 	tmp->items = results;
 	tmp->order = ORDER_UNKNOWN;
-	ason_reduce(tmp);
 
 	ason_destroy(a->items[1]);
 	a->items[1] = tmp;
 	a->order = ORDER_UNKNOWN;
-	ason_reduce(a);
 }
 
 /**
@@ -913,13 +908,9 @@ ason_reduce_intersect_col3_comp3_union(ason_t *a)
 		ason_remove_items(a->items[1]->items[0], 0, 1, 0);
 
 		a->items[0] = ason_intersect_d(a->items[0], tmp);
-		ason_reduce(a->items[0]);
 
 		ason_union_collapse(a->items[1]->items[0]);
-		ason_reduce(a->items[1]);
 	}
-
-	ason_reduce(a);
 }
 
 /**
@@ -986,10 +977,8 @@ ason_reduce_intersect(ason_t *a)
 		return;
 	}
 
-	if (ason_distribute(a)) {
-		ason_reduce(a);
+	if (ason_distribute(a))
 		return;
-	}
 
 	/* Distribute took care of order 1 objects. We cleared up order 0
 	 * objects earlier. Everything left is order 2 or 3.
@@ -1006,7 +995,6 @@ ason_reduce_intersect(ason_t *a)
 		a->items = xmalloc(sizeof(ason_t *));
 		a->items[0] = tmp;
 		a->order = ORDER_UNKNOWN;
-		ason_reduce(a);
 		return;
 	}
 
@@ -1033,10 +1021,8 @@ ason_reduce_join(ason_t *a)
 {
 	ason_t *b;
 
-	if (ason_distribute(a)) {
-		ason_reduce(a);
+	if (ason_distribute(a))
 		return;
-	}
 
 	if (a->items[0]->type == ASON_TYPE_NULL) {
 		b = ason_copy(a->items[1]);
@@ -1119,7 +1105,6 @@ ason_splay(ason_t *a)
 	a->items = results;
 	a->count = results_count;
 	a->order = ORDER_UNKNOWN;
-	ason_reduce(a);
 }
 
 /**
@@ -1289,10 +1274,8 @@ ason_reduce_union_0_3(ason_t *a)
 	for (i = 0; a->items[i]->order != 3; i++);
 
 	while ((i + 1) < a->count) {
-		if (a->items[i]->order != 3) {
-			ason_reduce(a);
+		if (a->items[i]->order != 3)
 			return;
-		}
 
 		if (a->items[i]->type != ASON_TYPE_COMP) {
 			i++;
@@ -1309,7 +1292,6 @@ ason_reduce_union_0_3(ason_t *a)
 
 		tmp = ason_complement_d(tmp);
 
-		ason_reduce(tmp);
 		ason_remove_items(a, i, 1, 0);
 		a->items[i] = tmp;
 		hits++;
@@ -1331,12 +1313,11 @@ ason_reduce_union_0_3(ason_t *a)
 		}
 	}
 
-	if (rereduce) {
-		ason_reduce(a);
-	} else {
-		ason_union_sort(a, 0, a->count);
-		a->order = 3;
-	}
+	if (rereduce)
+		return;
+
+	ason_union_sort(a, 0, a->count);
+	a->order = 3;
 }
 /**
  * Reduce a union.
@@ -1451,6 +1432,49 @@ ason_reduce_union(ason_t *a)
 }
 
 /**
+ * A stack of ason_t * values and their position within their parents;
+ **/
+struct reduce_stack {
+	ason_t *item;
+	size_t pos;
+	struct reduce_stack *next;
+};
+
+/**
+ * Push a reduce_stack.
+ **/
+static void
+reduce_stack_push(struct reduce_stack **stack, ason_t *item, size_t pos)
+{
+	struct reduce_stack *frame = xmalloc(sizeof(struct reduce_stack));
+
+	frame->next = *stack;
+	frame->item = item;
+	frame->pos = pos;
+	*stack = frame;
+}
+
+/**
+ * Pop reduce_stack.
+ **/
+static ason_t *
+reduce_stack_pop(struct reduce_stack **stack, size_t *pos)
+{
+	ason_t *ret;
+	struct reduce_stack *frame = *stack;
+
+	if (! *stack)
+		return NULL;
+
+	ret = frame->item;
+	*stack = frame->next;
+	*pos = frame->pos;
+	free(frame);
+
+	return ret;
+}
+
+/**
  * Reduce an ASON value. This technically mutates the value, but our API allows
  * values to change representation as long as they remain equal to themselves.
  *
@@ -1460,12 +1484,14 @@ int
 ason_reduce(ason_t *a)
 {
 	size_t i;
+	struct reduce_stack *stack = NULL;
 
+restart:
 	if (a->type == ASON_TYPE_EMPTY)
 		a->order = ORDER_OF_EMPTY;
 
 	if (a->order != ORDER_UNKNOWN)
-		return a->order;
+		goto out;
 
 	if (! a->count) {
 		if (a->type == ASON_TYPE_UOBJECT)
@@ -1475,11 +1501,19 @@ ason_reduce(ason_t *a)
 		else
 			a->order = 0;
 
-		return a->order;
+		goto out;
 	}
 
-	for (i = 0; i < a->count; i++)
-		ason_reduce(CHILD_VALUE(a, i));
+	for (i = 0; i < a->count; i++) {
+		if (CHILD_VALUE(a, i)->order != ORDER_UNKNOWN)
+			continue;
+
+		reduce_stack_push(&stack, a, i);
+		a = CHILD_VALUE(a, i);
+		goto restart;
+next_child:
+		;
+	}
 
 	if (a->type == ASON_TYPE_EQUAL) {
 		if (ason_check_equal(a->items[0], a->items[1]))
@@ -1487,7 +1521,7 @@ ason_reduce(ason_t *a)
 		else
 			ason_clone_into(a, ASON_FALSE);
 
-		return 0;
+		goto out;
 	}
 
 	if (a->type == ASON_TYPE_REPR) {
@@ -1496,7 +1530,7 @@ ason_reduce(ason_t *a)
 		else
 			ason_clone_into(a, ASON_FALSE);
 
-		return 0;
+		goto out;
 	}
 
 	if (IS_OBJECT(a) || a->type == ASON_TYPE_LIST)
@@ -1510,7 +1544,16 @@ ason_reduce(ason_t *a)
 	else if (a->type == ASON_TYPE_COMP)
 		ason_reduce_complement(a);
 
-	return a->order;
+	if (a->order == ORDER_UNKNOWN)
+		goto restart;
+
+out:
+	if (! stack) {
+		return a->order;
+	} else {
+		a = reduce_stack_pop(&stack, &i);
+		goto next_child;
+	}
 }
 
 /**
