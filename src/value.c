@@ -928,23 +928,15 @@ ason_reduce_intersect_col3_comp3(ason_t *a)
 		a->items[1] = tmp;
 	}
 
-	if (a->items[1]->items[0]->type == ASON_TYPE_UNION) {
+	if (a->items[1]->items[0]->type == ASON_TYPE_UNION)
 		ason_reduce_intersect_col3_comp3_union(a);
-		return;
-	}
-
-	if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1]->items[0])) {
+	else if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1]->items[0]))
 		ason_reduce_intersect_col3_comp3_object(a);
-		return;
-	}
-
-	if (a->items[0]->type == ASON_TYPE_LIST &&
-	    a->items[1]->items[0]->type == ASON_TYPE_LIST) {
+	else if (a->items[0]->type == ASON_TYPE_LIST &&
+		 a->items[1]->items[0]->type == ASON_TYPE_LIST)
 		ason_reduce_intersect_col3_comp3_list(a);
-		return;
-	}
-
-	ason_clone_into_d(a, a->items[0]);
+	else
+		ason_clone_into_d(a, a->items[0]);
 }
 
 /**
