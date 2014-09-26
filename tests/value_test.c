@@ -148,12 +148,12 @@ TEST_MAIN("Value Reduction")
 	TEST_ASON_EXPR("Intersecting universal objects",
 		       "{ \"foo\": 6, \"bar\": 7 | 8, \"baz\": 8, *} & "
 		       "{ \"foo\": 6, \"bar\": 7, \"bam\": 9, *} = "
-		       "{ \"foo\": 6, \"bar\": 7, \"baz\": 8, \"bam\": 9, *}")
+		       "{ \"foo\": 6, \"bar\": 7, \"baz\": 8, \"bam\": 9, *}");
 
 	TEST_ASON_EXPR("Joining universal objects",
 		       "{ \"foo\": 6, \"bar\": null, \"baz\": 8, *} : "
 		       "{ \"foo\": 6, \"bar\": 7, \"bam\": 9, *} = "
-		       "{ \"foo\": 6, \"bar\": 7, \"baz\": 8, \"bam\": 9, *}")
+		       "{ \"foo\": 6, \"bar\": 7, \"baz\": 8, \"bam\": 9, *}");
 
 	TEST_ASON_EXPR("Collapsing order 0/order 3 union",
 		       "{\"foo\": !7 } = {\"foo\": 6} | {\"foo\": !7 }");
