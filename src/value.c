@@ -711,7 +711,6 @@ ason_reduce_object_intersect_join(ason_t *a, int is_join)
 	a->type = type;
 	a->kvs = buf;
 
-
 	a->count = 0;
 
 	while((key = ason_coiterator_next(&iter, &left, &right))) {
@@ -726,6 +725,7 @@ ason_reduce_object_intersect_join(ason_t *a, int is_join)
 			ason_destroy(tmp);
 			ason_make_empty(a);
 			ason_coiterator_release(&iter);
+
 			return;
 		}
 
@@ -849,6 +849,7 @@ ason_reduce_intersect_col3_comp3_list(ason_t *a)
 	a->count = count;
 	a->items = results;
 	a->order = ORDER_UNKNOWN;
+	ason_union_collapse(a);
 }
 
 /**
