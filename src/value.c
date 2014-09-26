@@ -936,7 +936,7 @@ ason_reduce_intersect_col3_comp3(ason_t *a)
 		 a->items[1]->items[0]->type == ASON_TYPE_LIST)
 		ason_reduce_intersect_col3_comp3_list(a);
 	else
-		ason_clone_into_d(a, a->items[0]);
+		ason_clone_into(a, a->items[0]);
 }
 
 /**
@@ -1259,7 +1259,6 @@ ason_reduce_union_0_3(ason_t *a)
 {
 	size_t i;
 	size_t j;
-	size_t hits = 0;
 	ason_t *tmp;
 	int rereduce = 0;
 
@@ -1286,7 +1285,6 @@ ason_reduce_union_0_3(ason_t *a)
 
 		ason_remove_items(a, i, 1, 0);
 		a->items[i] = tmp;
-		hits++;
 	}
 
 	for (i = 0; a->items[i]->order != 3 && i < a->count; i++);
