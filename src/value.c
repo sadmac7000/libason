@@ -473,21 +473,36 @@ ason_make_empty(ason_t *a)
 {
 	size_t i;
 
-	if (IS_OBJECT(a)) {
+	switch(a->type) {
+	case ASON_TYPE_OBJECT:
+	case ASON_TYPE_UOBJECT:
 		for (i = 0; i < a->count; i++) {
 			free(a->kvs[i].key);
 			ason_destroy(a->kvs[i].value);
 		}
 
 		free(a->kvs);
-		a->count = 0;
+		a->kvs = NULL;
+		break;
+	case ASON_TYPE_NUMERIC:
+	case ASON_TYPE_EMPTY:
+	case ASON_TYPE_NULL:
+	case ASON_TYPE_TRUE:
+	case ASON_TYPE_FALSE:
+		break;
+	case ASON_TYPE_STRING:
+		free(a->string);
+		a->string = NULL;
+		break;
+	default:
+		for (i = 0; i < a->count; i++)
+			ason_destroy(a->items[i]);
+
+		if (a->count || a->type == ASON_TYPE_LIST || a->type == ASON_TYPE_UNION)
+			free(a->items);
+		a->items = NULL;
 	}
 
-	for (i = 0; i < a->count; i++)
-		ason_destroy(a->items[i]);
-
-	if (a->count)
-		free(a->items);
 
 	a->count = 0;
 	a->type = ASON_TYPE_EMPTY;
