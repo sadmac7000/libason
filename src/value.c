@@ -828,7 +828,7 @@ ason_reduce_intersect_col3_comp3_list(ason_t *a)
 	size_t count;
 
 	if (a->items[0]->count != a->items[1]->items[0]->count) {
-		ason_clone_into_d(a, a->items[0]);
+		ason_clone_into(a, a->items[0]);
 		return;
 	}
 
