@@ -35,6 +35,9 @@ print a list of all options. Here are the `libason`-specific options:
 * `--enable-spec` - Build the ASON specification document. Requires the
   `pdflatex` command.
 
+* `--enable-lcov` - Build library with LCOV support. `make lcov` will build
+  a code coverage report.
+
 * `--with-asonq` - Build and install the `asonq` utility as well as the
   library.
 
