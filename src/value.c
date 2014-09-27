@@ -905,6 +905,7 @@ ason_reduce_intersect_col3_comp3_object(ason_t *a)
 	ason_destroy(a->items[1]);
 	a->items[1] = tmp;
 	a->order = ORDER_UNKNOWN;
+	ason_coiterator_release(&iter);
 }
 
 /**
