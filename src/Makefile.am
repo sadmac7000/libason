@@ -6,13 +6,20 @@ AM_CFLAGS = --std=gnu99 -Wall -Wextra -D_GNU_SOURCE -fvisibility=hidden $(lcov_C
 lib_LTLIBRARIES = libason.la
 libason_la_SOURCES = \
 	value.c \
+	value.h \
 	output.c \
 	iter.c \
+	iter.h \
 	stringfunc.c \
+	stringfunc.h \
 	namespace.c \
 	namespace_ram.c \
 	crc.c \
-	parse.c
+	crc.h \
+	util.h \
+	parse.c \
+	parse.h
+
 MOSTLYCLEANFILES = parse.c parse.h parse.out *.gcda *.gcno *.gcov *.gcov_report
 
 if BUILD_ASONQ

@@ -20,21 +20,21 @@ MOSTLYCLEANFILES=*.gcda *.gcno *.gcov *.valgrind
 .PHONY: valgrind-local
 valgrind-local: $(patsubst %,%.valgrind,$(TESTS))
 
-parser_test_SOURCES = parser_test.c harness.c
+parser_test_SOURCES = parser_test.c harness.c harness.h
 parser_test_LDADD = ../src/libason.la
 
-print_object_SOURCES = print_object.c harness.c
+print_object_SOURCES = print_object.c harness.c harness.h
 print_object_LDADD = ../src/libason.la
 
-iterator_test_SOURCES = iterator_test.c harness.c
+iterator_test_SOURCES = iterator_test.c harness.c harness.h
 iterator_test_LDADD = ../src/libason.la
 
-ns_test_SOURCES = ns_test.c harness.c
+ns_test_SOURCES = ns_test.c harness.c harness.h
 ns_test_LDADD = ../src/libason.la
 
-value_test_SOURCES = value_test.c harness.c
+value_test_SOURCES = value_test.c harness.c harness.h
 value_test_LDADD = ../src/libason.la
 value_test_CFLAGS = -Wno-uninitialized
 
-crc_test_SOURCES = crc_test.c harness.c \
+crc_test_SOURCES = crc_test.c harness.c harness.h \
 			 ../src/crc.c ../src/crc.h
