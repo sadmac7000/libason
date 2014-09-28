@@ -81,7 +81,7 @@ extern struct test_info *test_info;
 #define TEST_ASON_EXPR(_name, _str) \
 	ason_t *TMP_NAME(__LINE__) = NULL; \
 	TEST(_name) { \
-		TMP_NAME(__LINE__) = ason_read(_str, NULL); \
+		TMP_NAME(__LINE__) = ason_read(_str); \
 		REQUIRE(TMP_NAME(__LINE__)); \
 		REQUIRE(ason_check_equal(TMP_NAME(__LINE__), ASON_TRUE)); \
 	} \

@@ -53,7 +53,7 @@ TEST_MAIN("Object printing")
 
 #define TEST_OUTPUT(_name, _str) \
 	TEST(_name) { \
-		test = ason_read(_str, NULL); \
+		test = ason_read(_str); \
 		output = ason_asprint(test); \
 		strip_spaces(output); \
 		REQUIRE(!strcmp(_str, output)); \
@@ -63,7 +63,7 @@ TEST_MAIN("Object printing")
 
 #define TEST_OUTPUT_U(_name, _str) \
 	TEST(_name) { \
-		test = ason_read(_str, NULL); \
+		test = ason_read(_str); \
 		output = ason_asprint_unicode(test); \
 		strip_spaces(output); \
 		REQUIRE(!strcmp(_str, output)); \
@@ -93,7 +93,7 @@ TEST_MAIN("Object printing")
 	TEST_OUTPUT("Escapes", "\"\\\"\\\\\\/\\u0001\\b\\f\\n\\r\\t\\v\"");
 
 	TEST("Control character escaping") {
-		test = ason_read("\"\b\"", NULL);
+		test = ason_read("\"\b\"");
 		output = ason_asprint_unicode(test);
 		REQUIRE(!strcmp("\"\\b\"", output));
 	}
@@ -102,7 +102,7 @@ TEST_MAIN("Object printing")
 	ason_destroy(test);
 
 	TEST("Unicode escaping") {
-		test = ason_read("\"©\\u00A9\"", NULL);
+		test = ason_read("\"©\\u00A9\"");
 		output = ason_asprint_unicode(test);
 		REQUIRE(!strcmp("\"\\u00a9\\u00a9\"", output));
 	}

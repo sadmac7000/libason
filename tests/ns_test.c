@@ -43,7 +43,7 @@ TEST_MAIN("Namespaces")
 	ason_ns_t *sub_1 = NULL;
 	ason_ns_t *sub_2 = NULL;
 
-	a = ason_read("{ \"foo\": 6, \"bar\": 7, \"baz\": 8 }", NULL);
+	a = ason_read("{ \"foo\": 6, \"bar\": 7, \"baz\": 8 }");
 
 	root = ason_ns_create(ASON_NS_RAM, NULL);
 
@@ -66,7 +66,7 @@ TEST_MAIN("Namespaces")
 		REQUIRE(! ason_ns_load(root, "nothing_here"));
 	}
 
-	b = ason_read("\"stringval\"", NULL);
+	b = ason_read("\"stringval\"");
 	TEST("Clobbering value") {
 		REQUIRE(! ason_ns_store(root, "a", b));
 		d = ason_ns_load(root, "a");

@@ -424,7 +424,7 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data,
  * resolve and assign symbols, and `ap` to resolve tokens.
  **/
 static ason_t *
-ason_vreadn(const char *text, size_t length, ason_ns_t *ns, va_list ap)
+ason_ns_vreadn(const char *text, size_t length, ason_ns_t *ns, va_list ap)
 {
 	token_t data;
 	size_t len;
@@ -471,13 +471,28 @@ ason_vreadn(const char *text, size_t length, ason_ns_t *ns, va_list ap)
  * resolve and assign symbols.
  **/
 API_EXPORT ason_t *
-ason_readn(const char *text, size_t length, ason_ns_t *ns, ...)
+ason_ns_readn(ason_ns_t *ns, const char *text, size_t length, ...)
 {
 	va_list ap;
 	ason_t *ret;
 
-	va_start(ap, ns);
-	ret = ason_vreadn(text, length, ns, ap);
+	va_start(ap, length);
+	ret = ason_ns_vreadn(text, length, ns, ap);
+	va_end(ap);
+	return ret;
+}
+
+/**
+ * Read an ASON value from a string. Use `ns` to resolve and assign symbols.
+ **/
+API_EXPORT ason_t *
+ason_ns_read(ason_ns_t *ns, const char *text, ...)
+{
+	va_list ap;
+	ason_t *ret;
+
+	va_start(ap, text);
+	ret = ason_ns_vreadn(text, strlen(text), ns, ap);
 	va_end(ap);
 	return ret;
 }
@@ -486,13 +501,28 @@ ason_readn(const char *text, size_t length, ason_ns_t *ns, ...)
  * Read an ASON value from a string.
  **/
 API_EXPORT ason_t *
-ason_read(const char *text, ason_ns_t *ns, ...)
+ason_read(const char *text, ...)
 {
 	va_list ap;
 	ason_t *ret;
 
-	va_start(ap, ns);
-	ret = ason_vreadn(text, strlen(text), ns, ap);
+	va_start(ap, text);
+	ret = ason_ns_vreadn(text, strlen(text), NULL, ap);
+	va_end(ap);
+	return ret;
+}
+
+/**
+ * Read an ASON value from a string. Stop after `length` bytes.
+ **/
+API_EXPORT ason_t *
+ason_readn(const char *text, size_t length, ...)
+{
+	va_list ap;
+	ason_t *ret;
+
+	va_start(ap, length);
+	ret = ason_ns_vreadn(text, length, NULL, ap);
 	va_end(ap);
 	return ret;
 }

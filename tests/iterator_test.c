@@ -42,7 +42,7 @@ TEST_MAIN("Iteration")
 	int i;
 	double dbl;
 
-	a = ason_read("{ \"foo\": 6, \"bar\": 7, \"baz\": 8 }", NULL);
+	a = ason_read("{ \"foo\": 6, \"bar\": 7, \"baz\": 8 }");
 	iter = ason_iterate(a);
 
 	TEST("Object Iteration") {
@@ -85,7 +85,7 @@ TEST_MAIN("Iteration")
 	ason_destroy(a);
 	ason_iter_destroy(iter);
 
-	a = ason_read("{ \"foo\": 6, \"bar\": 7, \"baz\": 8, * }", NULL);
+	a = ason_read("{ \"foo\": 6, \"bar\": 7, \"baz\": 8, * }");
 	iter = ason_iterate(a);
 
 	TEST("Universal Object Iteration") {
@@ -128,7 +128,7 @@ TEST_MAIN("Iteration")
 	ason_destroy(a);
 	ason_iter_destroy(iter);
 
-	a = ason_read("[ \"foo\", \"bar\", \"baz\" ]", NULL);
+	a = ason_read("[ \"foo\", \"bar\", \"baz\" ]");
 	iter = ason_iterate(a);
 
 	TEST("List Iteration") {
@@ -153,7 +153,7 @@ TEST_MAIN("Iteration")
 	ason_destroy(a);
 	ason_iter_destroy(iter);
 
-	a = ason_read("[ \"foo\", [\"bar\", [\"baz\", 7.5], \"bang\"], \"bao\" ]", NULL);
+	a = ason_read("[ \"foo\", [\"bar\", [\"baz\", 7.5], \"bang\"], \"bao\" ]");
 	iter = ason_iterate(a);
 
 	TEST("Nested List Iteration") {
@@ -210,7 +210,7 @@ TEST_MAIN("Iteration")
 		free(str);
 
 		b = ason_iter_value(iter);
-		c = ason_read("\"bao\"", NULL);
+		c = ason_read("\"bao\"");
 		REQUIRE(ason_check_equal(b, c));
 		ason_destroy(b);
 		ason_destroy(c);
@@ -219,7 +219,7 @@ TEST_MAIN("Iteration")
 	ason_destroy(a);
 	ason_iter_destroy(iter);
 
-	a = ason_read("6", NULL);
+	a = ason_read("6");
 	iter = ason_iterate(a);
 
 	TEST("Iterate lonely singleton") {
@@ -232,7 +232,7 @@ TEST_MAIN("Iteration")
 	ason_destroy(a);
 	ason_iter_destroy(iter);
 
-	a = ason_read("6 | 7", NULL);
+	a = ason_read("6 | 7");
 	iter = ason_iterate(a);
 
 	TEST("Underrun") {
@@ -247,8 +247,8 @@ TEST_MAIN("Iteration")
 	ason_destroy(a);
 	ason_iter_destroy(iter);
 
-	a = ason_read("[[[[[[[[[[6]]]]]]]]]]", NULL);
-	b = ason_read("6", NULL);
+	a = ason_read("[[[[[[[[[[6]]]]]]]]]]");
+	b = ason_read("6");
 	iter = ason_iterate(a);
 
 	TEST("Deep iterate") {

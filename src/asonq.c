@@ -138,7 +138,7 @@ main(void)
 			continue;
 		}
 
-		value = ason_read(line, ns);
+		value = ason_ns_read(ns, line);
 
 		free(line);
 

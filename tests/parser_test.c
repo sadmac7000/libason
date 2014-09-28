@@ -42,13 +42,13 @@ TEST_MAIN("Parse values")
 	ason_iter_t *iter;
 
 	TEST("Parse parameter") {
-		a = ason_read("?i", NULL, 7);
+		a = ason_read("?i", 7);
 		iter = ason_iterate(a);
 		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
 		REQUIRE(ason_iter_long(iter) == 7);
 		ason_iter_destroy(iter);
 
-		b = ason_read("?i", NULL, 6);
+		b = ason_read("?i", 6);
 		iter = ason_iterate(b);
 
 		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
@@ -61,7 +61,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(b);
 
 	TEST("Parse unsigned parameter") {
-		a = ason_read("?u", NULL, 3000);
+		a = ason_read("?u", 3000);
 		iter = ason_iterate(a);
 		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
 		REQUIRE(ason_iter_long(iter) == 3000);
@@ -71,7 +71,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(a);
 
 	TEST("Parse unsigned I64 parameter") {
-		a = ason_read("?I", NULL, (uint64_t)3000);
+		a = ason_read("?I", (uint64_t)3000);
 		iter = ason_iterate(a);
 		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
 		REQUIRE(ason_iter_long(iter) == 3000);
@@ -81,7 +81,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(a);
 
 	TEST("Parse I64 parameter") {
-		a = ason_read("?I", NULL, (int64_t)-3000);
+		a = ason_read("?I", (int64_t)-3000);
 		iter = ason_iterate(a);
 		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
 		printf("%lld\n", ason_iter_long(iter));
@@ -91,31 +91,31 @@ TEST_MAIN("Parse values")
 
 	ason_destroy(a);
 
-	a = ason_read("6.75", NULL);
+	a = ason_read("6.75");
 
 	TEST("Parse double parameter") {
-		b = ason_read("?F", NULL, (double)6.75);
+		b = ason_read("?F", (double)6.75);
 		REQUIRE(ason_check_equal(a, b));
 	}
 
 	ason_destroy(a);
 	ason_destroy(b);
 
-	a = ason_read("\"foo\"", NULL);
+	a = ason_read("\"foo\"");
 
 	TEST("Parse string parameter") {
-		b = ason_read("?s", NULL, "foo");
+		b = ason_read("?s", "foo");
 		REQUIRE(ason_check_equal(a, b));
 	}
 
 	ason_destroy(a);
 	ason_destroy(b);
 
-	a = ason_read("[6,7,[8,9],10]", NULL);
-	b = ason_read("[8,9]", NULL);
+	a = ason_read("[6,7,[8,9],10]");
+	b = ason_read("[8,9]");
 
 	TEST("Parse value parameter") {
-		c = ason_read("[6,7,?,10]", NULL, b);
+		c = ason_read("[6,7,?,10]", b);
 		REQUIRE(ason_check_equal(a, c));
 	}
 
@@ -129,7 +129,7 @@ TEST_MAIN("Parse values")
 		char *c;
 
 		a = ason_read("{ \"foo\": 6, \"bar\": 8 } | "
-			      "(98 | [1,2,3] & [1,2])", NULL);
+			      "(98 | [1,2,3] & [1,2])");
 		iter = ason_iterate(a);
 
 		REQUIRE(ason_iter_type(iter) == ASON_TYPE_UNION);
@@ -173,7 +173,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(a);
 
 	TEST("Truth") {
-		test_value = ason_read("true", NULL);
+		test_value = ason_read("true");
 
 		REQUIRE(test_value);
 		REQUIRE(ason_check_equal(ASON_TRUE, test_value));
@@ -182,7 +182,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("Falsehood") {
-		test_value = ason_read("false", NULL);
+		test_value = ason_read("false");
 
 		REQUIRE(test_value);
 		REQUIRE(ason_check_equal(ASON_FALSE, test_value));
@@ -192,7 +192,7 @@ TEST_MAIN("Parse values")
 
 	TEST("String") {
 		char *c;
-		test_value = ason_read("\"\t\001string \\\"☺\\\"\"", NULL);
+		test_value = ason_read("\"\t\001string \\\"☺\\\"\"");
 		iter = ason_iterate(test_value);
 		c = ason_iter_string(iter);
 		ason_iter_destroy(iter);
@@ -203,7 +203,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("Number") {
-		test_value = ason_read("-6.25", NULL);
+		test_value = ason_read("-6.25");
 		str = ason_asprint(test_value);
 
 		REQUIRE(!strcmp(str, "-6.25"));
@@ -214,7 +214,7 @@ TEST_MAIN("Parse values")
 	str = NULL;
 
 	TEST("Equivalence (true)") {
-		test_value = ason_read("1 = 1", NULL);
+		test_value = ason_read("1 = 1");
 
 		REQUIRE(ason_check_equal(test_value, ASON_TRUE));
 	}
@@ -222,7 +222,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("Equivalence (false)") {
-		test_value = ason_read("2 = 1", NULL);
+		test_value = ason_read("2 = 1");
 
 		REQUIRE(ason_check_equal(test_value, ASON_FALSE));
 	}
@@ -230,7 +230,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("Representation (true)") {
-		test_value = ason_read("1 in 2 | 1", NULL);
+		test_value = ason_read("1 in 2 | 1");
 
 		REQUIRE(ason_check_equal(test_value, ASON_TRUE));
 	}
@@ -238,7 +238,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("Representation (false)") {
-		test_value = ason_read("1 | 2 in 1", NULL);
+		test_value = ason_read("1 | 2 in 1");
 
 		REQUIRE(ason_check_equal(test_value, ASON_FALSE));
 	}
@@ -246,26 +246,26 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("Unexpected token") {
-		REQUIRE(! ason_read("1 | | 2", NULL));
+		REQUIRE(! ason_read("1 | | 2"));
 	}
 
 	TEST("Unexpected token (trailing)") {
-		REQUIRE(! ason_read("1 | 2 &", NULL));
+		REQUIRE(! ason_read("1 | 2 &"));
 	}
 
 	TEST("Non-token") {
-		REQUIRE(! ason_read("1 % 2", NULL))
+		REQUIRE(! ason_read("1 % 2"))
 	}
 
 	TEST("Non-token (trailing)") {
-		REQUIRE(! ason_read("1 | 2 %", NULL))
+		REQUIRE(! ason_read("1 | 2 %"))
 	}
 
 	a = NULL;
-	b = ason_read("[6,7]", NULL);
+	b = ason_read("[6,7]");
 
 	TEST("Limited-length read") {
-		a = ason_readn("[6,7]@@@@@@", 5, NULL);
+		a = ason_readn("[6,7]@@@@@@", 5);
 		REQUIRE(ason_check_equal(a,b));
 	}
 
@@ -273,7 +273,7 @@ TEST_MAIN("Parse values")
 	ason_destroy(b);
 
 	TEST("Empty list") {
-		a = ason_read("[]", NULL);
+		a = ason_read("[]");
 		iter = ason_iterate(a);
 
 		REQUIRE(ason_iter_type(iter) == ASON_TYPE_LIST);
