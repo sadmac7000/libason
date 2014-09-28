@@ -1,0 +1,77 @@
+.TH ASON\ INSPECT 3 "JANUARY 2014" Linux "User Manuals"
+.SH NAME
+ason_check_represented_in, ason_check_equal, ason_type, ason_long, ason_double,
+ason_string \- Inspect various properties of ASON values.
+.SH SYNOPSIS
+.B #include <ason/ason.h>
+.sp
+.B int ason_check_represented_in(ason_t *a, ason_t *b);
+.br
+.B int ason_check_equal(ason_t *a, ason_t *b);
+.sp
+.B ason_type_t ason_type(ason_t *a);
+.br
+.B long long ason_long(ason_t *a);
+.br
+.B double ason_double(ason_t *a);
+.br
+.B char *ason_string(ason_t *a);
+.SH DESCRIPTION
+.B ason_check_represented_in
+is used to check whether the ASON value in
+.I a
+is represented in
+.IR b .
+
+.B ason_check_equal
+is used to check whether two ASON values are equal.
+
+.B ason_type
+returns the type of the ASON value in
+.IR a .
+See
+.BR ason_values (3).
+
+.BR ason_long ,
+and
+.B ason_double
+return the numerical values of numerical ASON values as a C long long or C
+double respectively.
+
+.BR ason_string
+returns the C string value of an ASON string value. The returned value is a new
+string which must be freed with
+.B free (3).
+
+.SH RETURN VALUE
+.B ason_check_represented_in
+and
+.B ason_check_equal
+return nonzero if the condition they check for is true.
+
+.B ason_type
+returns the appropriate ason_type_t constant. See
+.B ason_values (3).
+
+.B ason_long
+and
+.B ason_double
+return the appropriate long long or double value.
+
+.B ason_string
+returns a new string which must be freed by the caller.
+
+Note that
+.BR ason_long ,
+.BR ason_double ,
+and
+.B ason_string
+will abort if they are used on a value which cannot be converted to the
+appropriate type. You MUST check the type of the argument with
+.B ason_type
+before calling.
+
+.SH SEE ALSO
+.BR ason_values (3)
+.SH AUTHOR
+Casey Dahlin <casey.dahlin@gmail.com>

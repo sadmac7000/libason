@@ -16,6 +16,8 @@ dist_man3_MANS =		\
 	ason_destroy.3		\
 	ason_iterators.3	\
 	ason_read.3		\
+	ason_copy.3		\
+	ason_inspect.3		\
 	ason_values.3
 
 ason_spec.aux: ason_spec.tex
@@ -25,27 +27,13 @@ ason_spec.pdf: ason_spec.tex ason_spec.aux
 	$(pdflatex) -halt-on-error $< | grep '^!' && exit 1 || exit 0
 
 install-exec-hook:
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_create_number.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_create_list.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_append_lists.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_create_object.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_create_string.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_union.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_intersect.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_join.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_complement.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_representation_in.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_equality.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_create_list_d.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_append_lists_d.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_create_object_d.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_union_d.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_intersect_d.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_join_d.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_complement_d.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_representation_in_d.3
-	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_values.3 $(DESTDIR)$(mandir)/man3/ason_equality_d.3
-	
+	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_inspect.3 $(DESTDIR)$(mandir)/man3/ason_check_represented_in.3
+	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_inspect.3 $(DESTDIR)$(mandir)/man3/ason_check_equal.3
+	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_inspect.3 $(DESTDIR)$(mandir)/man3/ason_type.3
+	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_inspect.3 $(DESTDIR)$(mandir)/man3/ason_long.3
+	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_inspect.3 $(DESTDIR)$(mandir)/man3/ason_double.3
+	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_inspect.3 $(DESTDIR)$(mandir)/man3/ason_string.3
+
 	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_asprint.3 $(DESTDIR)$(mandir)/man3/ason_asprint_unicode.3
 	
 	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_iterators.3 $(DESTDIR)$(mandir)/man3/ason_iterate.3
@@ -62,3 +50,5 @@ install-exec-hook:
 	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_iterators.3 $(DESTDIR)$(mandir)/man3/ason_iter_type.3
 	
 	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_read.3 $(DESTDIR)$(mandir)/man3/ason_readn.3
+	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_read.3 $(DESTDIR)$(mandir)/man3/ason_ns_read.3
+	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_read.3 $(DESTDIR)$(mandir)/man3/ason_ns_readn.3

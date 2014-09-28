@@ -1,0 +1,26 @@
+.TH ASON\ COPY 3 "JANUARY 2014" Linux "User Manuals"
+.SH NAME
+ason_copy \- Copy an ASON value.
+
+.SH SYNOPSIS
+.B #include <ason/ason.h>
+.sp
+.B ason_t *ason_copy(ason_t *a);
+.SH DESCRIPTION
+.B ason_copy
+copys an ason_t value. The result is a new ason_t which must have
+.B ason_destroy (3)
+called on it separately.
+
+Note that libason may actually use refcounting internally to distinguish
+objects. Your program should always behave as though
+.B ason_copy
+returns a new pointer. You should never use pointer comparison to inspect
+pointers to ason_t.
+.SH RETURN VALUE
+.B ason_copy
+always returns a valid pointer to ason_t.
+.SH SEE ALSO
+.BR ason_destroy (3)
+.SH AUTHOR
+Casey Dahlin <casey.dahlin@gmail.com>

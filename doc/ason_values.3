@@ -1,56 +1,9 @@
 .TH ASON\ VALUES 3 "JANUARY 2014" Linux "User Manuals"
 .SH NAME
-ason_create_number, ason_create_list, ason_append_lists, ason_create_object,
-ason_create_string, ason_union, ason_intersect, ason_join, ason_complement,
-ason_representation_in, ason_equality, ason_create_list_d, ason_append_lists_d,
-ason_create_object_d, ason_union_d, ason_intersect_d, ason_join_d,
-ason_complement_d, ason_representation_in_d,
-ason_equality_d \- Create ASON values
-
 ASON_EMPTY, ASON_NULL, ASON_UNIVERSE, ASON_WILD, ASON_OBJ_ANY, ASON_TRUE,
 ASON_FALSE \- Predefined basic ASON value constants
 .SH SYNOPSIS
 .B #include <ason/ason.h>
-.sp
-.B ason_t *ason_create_number(int64_t number);
-.br
-.B ason_t *ason_create_string(const char *str);
-.sp
-.B ason_t *ason_create_list(ason_t *content);
-.br
-.B ason_t *ason_create_list_d(ason_t *content);
-.br
-.B ason_t *ason_append_lists(ason_t *content);
-.br
-.B ason_t *ason_append_lists_d(ason_t *content);
-.sp
-.B ason_t *ason_create_object(const char *key, ason_t *value); 
-.br
-.B ason_t *ason_create_object_d(const char *key, ason_t *value); 
-.sp
-.B ason_t *ason_union(ason_t *a, ason_t *b);
-.br
-.B ason_t *ason_union_d(ason_t *a, ason_t *b);
-.sp
-.B ason_t *ason_intersect(ason_t *a, ason_t *b);
-.br
-.B ason_t *ason_intersect_d(ason_t *a, ason_t *b);
-.sp
-.B ason_t *ason_join(ason_t *a, ason_t *b);
-.br
-.B ason_t *ason_join_d(ason_t *a, ason_t *b);
-.sp
-.B ason_t *ason_complement(ason_t *a);
-.br
-.B ason_t *ason_complement_d(ason_t *a);
-.sp
-.B ason_t *ason_representation_in(ason_t *a, ason_t *b);
-.br
-.B ason_t *ason_representation_in_d(ason_t *a, ason_t *b);
-.sp
-.B ason_t *ason_equality(ason_t *a, ason_t *b);
-.br
-.B ason_t *ason_equality_d(ason_t *a, ason_t *b);
 .sp
 .B ason_t * const ASON_EMPTY;
 .br
@@ -65,127 +18,41 @@ ASON_FALSE \- Predefined basic ASON value constants
 .B ason_t * const ASON_TRUE;
 .br
 .B ason_t * const ASON_FALSE;
+.sp
+.B typedef enum {
+.br
+.B 	ASON_TYPE_NUMERIC,
+.br
+.B 	ASON_TYPE_EMPTY,
+.br
+.B 	ASON_TYPE_NULL,
+.br
+.B 	ASON_TYPE_UNION,
+.br
+.B 	ASON_TYPE_INTERSECT,
+.br
+.B 	ASON_TYPE_OBJECT,
+.br
+.B 	ASON_TYPE_UOBJECT,
+.br
+.B 	ASON_TYPE_LIST,
+.br
+.B 	ASON_TYPE_JOIN,
+.br
+.B 	ASON_TYPE_COMP,
+.br
+.B 	ASON_TYPE_STRING,
+.br
+.B 	ASON_TYPE_TRUE,
+.br
+.B 	ASON_TYPE_FALSE,
+.br
+.B 	ASON_TYPE_REPR,
+.br
+.B 	ASON_TYPE_EQUAL,
+.br
+.B } ason_type_t;
 .SH DESCRIPTION
-.SS Functions
-This family of functions all create new values of type
-.IR ason_t .
-These are binary representations of ASON values.
-.I ason_t
-pointers as returned by these functions point to objects which should be
-treated as immutable, and which can be released with
-.BR ason_destroy (3).
-
-.B ason_create_number
-and
-.B ason_create_string
-create 
-.I ason_t
-values representing ASON values for the given string or integer respectively.
-.I str
-is converted from the current locale to UTF-8 as mandated by the JSON
-specification. If output, the string will be escaped as the JSON specification
-allows.
-.I number
-is a positive or negative integer. At this time there is no direct function for
-creating decimal ASON values, but
-.BR ason_read (3)
-is preferred for creating static values anyway.
-
-.B ason_create_list
-creates an ASON list containing one value
-.I a
-or an empty list if
-.I a
-is NULL.
-.I a
-is copied and remains valid irrespective of the lifecycle of the return value.
-.B ason_create_list_d
-is different in only this resepct;
-.I a
-is no longer valid after being passed and does not need to be released with
-.BR ason_destroy (3).
-
-.B ason_append_lists
-creates an ASON list containing the values from an ASON list
-.I a
-followed by the values from an ASON list
-.IR b .
-.B ason_append_lists_d
-is the same, and also destroys the two argument lists.
-
-.B ason_create_object
-creates a non-universal ASON object with one key
-.I key
-assigned the value
-.I value
-or an empty object if
-.I key
-and
-.I value
-are NULL.
-.I value
-is copied and remains valid irrespective of the lifecycle of the return value.
-.B ason_create_object_d
-is different in only this resepct;
-.I value
-is no longer valid after being passed and does not need to be released with
-.BR ason_destroy (3).
-
-.BR ason_union ,
-.BR ason_intersect ,
-and
-.BR ason_join
-create new values by applying the ASON union, intersection, or join operators
-respectively to
-.I a
-and
-.IR b .
-.BR ason_union_d ,
-.BR ason_intersect_d ,
-and
-.BR ason_join_d
-differ only in that they call
-.BR ason_destroy (3)
-on
-.I a
-and
-.I b
-before returning.
-
-.B ason_complement
-creates a new
-.I ason_t
-value by applying the ASON complement operator to
-.IR a .
-.B ason_complement_d
-also calls
-.BR ason_destroy (3)
-on
-.I a
-before returning.
-
-.B ason_represented_in
-and
-.B ason_equality
-return a new boolean ASON value which indicates whether
-.I a
-is represented in
-.IR b ,
-or whether
-.I a
-is equal to
-.IR b
-repspectively.
-.B ason_represented_in_d
-and
-.B ason_equality_d
-also call
-.BR ason_destroy (3)
-on
-.I a
-and
-.I b
-before returning.
 .SS Constants
 libason defines several constants for commonly-needed values.
 
@@ -209,21 +76,54 @@ respectively.
 
 .B ASON_OBJ_ANY
 describes a universal object with no keys.
-.SH RETURN VALUE
-All functions should always return a valid pointer to
-.IR ason_t .
-.SH BUGS
-.B libason
-reserves the right to use refcounting to reduce memory overhead and simplify
-processing. For this reason, two
-.I ason_t *
-pointers may be identical even if returned separately. One should never use C
-comparators to compare values of type
-.I ason_t *
-to oneanother.
-.SH SEE ALSO
+
+Note that
 .BR ason_destroy (3)
+has no effect on these ASON constants.
+.SS Types
+libason defines the ason_type_t enum for identifying types of ASON values.
+.BR ASON_TYPE_NUMERIC ,
+and
+.B ASON_TYPE_STRING
+are for values which are constant numerical or string values respectively.
+
+.BR ASON_TYPE_EMPTY ,
+.BR ASON_TYPE_NULL ,
+.BR ASON_TYPE_TRUE ,
+and
+.B ASON_TYPE_FALSE
+are the types of the empty value, and the JSON constants "true", "false", and
+"null".
+
+.BR ASON_TYPE_UNION ,
+.BR ASON_TYPE_INTERSECT ,
+.BR ASON_TYPE_COMP ,
+and
+.B ASON_TYPE_JOIN
+are types of values which are unions, intersections, complementations, or ASON
+joins of other values. Note that libason typically reduces values to simplest
+form, which should cause intersections and joins to be eliminated. Thus libason
+functions should not return those types when inspecting values.
+
+.BR ASON_TYPE_OBJECT
+and
+.B ASON_TYPE_UOBJECT
+are the types of normal and universal objects.
+
+.B ASON_TYPE_LIST
+is the type of list values.
+
+.BR ASON_TYPE_REPR ,
+and
+.B ASON_TYPE_EQUAL
+are the types of statements checking for equality or representation between
+other values. Note that libason will usually solve such expressions as soon as
+they are parsed, so you will likely observe a simple true or false value rather
+than either of these types.
+
+.SH SEE ALSO
 .BR ason_read (3)
+.BR ason_destroy (3)
 .SH AUTHOR
 Casey Dahlin <casey.dahlin@gmail.com>
 

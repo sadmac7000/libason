@@ -34,39 +34,6 @@ iterators to explore ason_t values.
 .sp
 .B ason_type_t ason_iter_type(ason_iter_t *iter);
 .sp
-.B typedef enum {
-.br
-.B 	ASON_TYPE_NUMERIC,
-.br
-.B 	ASON_TYPE_EMPTY,
-.br
-.B 	ASON_TYPE_NULL,
-.br
-.B 	ASON_TYPE_UNION,
-.br
-.B 	ASON_TYPE_INTERSECT,
-.br
-.B 	ASON_TYPE_OBJECT,
-.br
-.B 	ASON_TYPE_UOBJECT,
-.br
-.B 	ASON_TYPE_LIST,
-.br
-.B 	ASON_TYPE_JOIN,
-.br
-.B 	ASON_TYPE_COMP,
-.br
-.B 	ASON_TYPE_STRING,
-.br
-.B 	ASON_TYPE_TRUE,
-.br
-.B 	ASON_TYPE_FALSE,
-.br
-.B 	ASON_TYPE_REPR,
-.br
-.B 	ASON_TYPE_EQUAL,
-.br
-.B } ason_type_t;
 .SH DESCRIPTION
 ASON iterators are used to traverse ASON values and query individual values
 within. ASON iterators are created with
@@ -97,7 +64,8 @@ the beginning or end of the set they have no effect.
 
 .B ason_iter_type
 returns a constant indicating the type of value the iterator currently points
-to.
+to. See
+.BR ason_values (3)
 
 .BR ason_iter_long ,
 .BR ason_iter_double ,
