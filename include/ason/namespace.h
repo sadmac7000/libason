@@ -73,4 +73,5 @@ ason_ns_t *ason_ns_connect(const char *name);
 }
 #endif
 
+#include <ason/_ns_read.h>
 #endif /* ASON_NAMESPACE_H */

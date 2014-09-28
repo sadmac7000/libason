@@ -20,6 +20,7 @@
 %include {
 #include <ason/ason.h>
 #include <ason/read.h>
+#include <ason/namespace.h>
 
 #include <assert.h>
 #include <stdlib.h>

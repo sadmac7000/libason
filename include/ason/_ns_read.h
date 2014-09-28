@@ -17,22 +17,21 @@
  * along with libason. If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#ifndef ASON_READ_H
-#define ASON_READ_H
+#if defined(ASON_NAMESPACE_H) && defined(ASON_READ_H)
 
-#include <ason/ason.h>
+#ifndef ASON__NS_READ_H
+#define ASON__NS_READ_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-ason_t *ason_read(const char *text, ...);
-ason_t *ason_readn(const char *text, size_t length, ...);
+ason_t *ason_ns_read(ason_ns_t *ns, const char *text, ...);
+ason_t *ason_ns_readn(ason_ns_t *ns, const char *text, size_t length, ...);
 
 #ifdef __cplusplus
 }
 #endif
 
-#include <ason/_ns_read.h>
-#endif /* ASON_READ_H */
-
+#endif /* ASON__NS_READ_H */
+#endif /* ASON_NAMESPACE_H && ASON_READ_H */
