@@ -1,0 +1,101 @@
+.TH ASON 3 "JANUARY 2014" Linux "User Manuals"
+.SH NAME
+ason \- Overview of ASON/libason
+.SH DESCRIPTION
+ASON is an extension of JSON. Like JSON, ASON is a language for representing
+data. However, ASON adds some important features to JSON.
+
+.SS ASON has a semantic
+JSON has an object type, which represents data in a list of key-value pairs. It
+might look like this:
+
+	{ "foo": 6, "bar": 7 }
+
+What this might represent is somewhat intuitive to most programmers; a mapping
+of string keys to (in this case) integer values. Most higher level programming
+languages have a data type that represents this sort of data. But consider the
+following:
+
+	{ "bar": 7, "foo": 6 }
+
+The JSON specification doesn't state if this value is different from the last
+one. That's because the JSON spec contains only a syntax; it tells us that both
+of the examples so far are valid JSON but doesn't tell us anything more.
+Intuitively most programmers would treat a key-value store as
+order-independent, but JSON doesn't say regarding its object type, and there
+are applications which will allow order-dependent processing of JSON objects.
+Now consider this example:
+
+	{ "foo": 6, "foo": 7 }
+
+Our intuition-guided programmer is a bit more hesitant about this value.
+Usually keys map to single values, but one-to-many dictionaries are possible.
+If order matters, then using the same key twice could have all sorts of
+additional meanings as well. Again, JSON tells us only that the value above is
+valid JSON, nothing more.
+
+ASON resolves these questions and others, because while JSON only provides a
+syntax, ASON provides a semantic; it specifies how values are processed, not
+just what is and is not a value.
+
+.SS ASON can represent categories of values
+JSON syntax lends itself to explicit values, whereas ASON can specify
+categories or "patterns." It could be said that ASON relates to JSON in the way
+that regular expressions relate to strings. Any valid string is certainly a
+valid regular expression; "cat" is valid, and so is /cat/, but regular
+expressions can represent entire groups of strings, such as /c[abc]t/.
+
+ASON aims for similar expressive power. For example, representing all objects
+with the key "foo" set to six, and any other combination of keys and values,
+may be done as such:
+
+	{ "foo": 6, * }
+
+ASON includes a series of operators for compositing such categorical
+expressions. For example, if you wanted to also look at objects which might
+have the key "bar" set to 7:
+
+	{ "foo": 6, * } | { "bar": 7, * }
+
+And if you only wanted to look at objects in both categories:
+
+	{ "foo": 6, * } & { "bar": 7, * }
+.br
+	= { "foo": 6, "bar": 7, * }
+
+In this last example we demonstrated two ASON expressions that represent the
+same category. ASON's rules are complex enough that there are frequently
+multiple representations for the same value. The implementation described here
+will always endeavor to reduce ASON values to a simplest form.
+
+.SS libason
+libason is a library for manipulating ASON values. Values are of type ason_t,
+an opaque type which will always be handled through pointers by the API user.
+ason_t behaves as though it is immutable from the user's perspective, but as
+values are created they may be reduced, so inspecting an ason_t value may
+reveal it to be structurally different from the value that was entered.
+
+ason_t values are created with
+.BR ason_read (3),
+can be copied with
+.BR ason_copy (3),
+and are released with
+.BR ason_destroy (3).
+.B ason_read
+takes a complicated variety of arguments that will allow you to compose other
+ASON values and convert C values to ASON values. You can convert ASON values
+back to C values with the functions described in
+.BR ason_inspect (3).
+
+.SH SEE ALSO
+.BR ason_read (3),
+.BR ason_copy (3),
+.BR ason_destroy (3),
+.BR ason_asprint (3),
+.BR ason_iterators (3),
+.BR ason_values (3),
+.BR ason_inspect (3)
+.SH AUTHOR
+Casey Dahlin <casey.dahlin@gmail.com>
+
+

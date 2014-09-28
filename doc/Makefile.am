@@ -18,6 +18,7 @@ dist_man3_MANS =		\
 	ason_read.3		\
 	ason_copy.3		\
 	ason_inspect.3		\
+	ason.3			\
 	ason_values.3
 
 ason_spec.aux: ason_spec.tex
