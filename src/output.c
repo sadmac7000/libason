@@ -23,8 +23,8 @@
 #include <limits.h>
 #include <err.h>
 
-#include <ason/value.h>
-#include <ason/output.h>
+#include <ason/ason.h>
+#include <ason/print.h>
 
 #include "value.h"
 #include "util.h"

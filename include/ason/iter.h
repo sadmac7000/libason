@@ -20,7 +20,7 @@
 #ifndef ASON_ITER_H
 #define ASON_ITER_H
 
-#include <ason/value.h>
+#include <ason/ason.h>
 
 typedef struct ason_iter ason_iter_t;
 

@@ -20,7 +20,7 @@
 #ifndef ASON_OUTPUT_H
 #define ASON_OUTPUT_H
 
-#include <ason/value.h>
+#include <ason/ason.h>
 
 #ifdef __cplusplus
 extern "C" {

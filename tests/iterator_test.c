@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <ason/value.h>
-#include <ason/output.h>
+#include <ason/ason.h>
+#include <ason/print.h>
 #include <ason/read.h>
 #include <ason/iter.h>
 

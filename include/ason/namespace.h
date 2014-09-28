@@ -20,7 +20,7 @@
 #ifndef ASON_NAMESPACE_H
 #define ASON_NAMESPACE_H
 
-#include <ason/value.h>
+#include <ason/ason.h>
 
 /**
  * A namespace of ASON variables.

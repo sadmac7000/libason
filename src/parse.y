@@ -18,7 +18,7 @@
  **/
 
 %include {
-#include <ason/value.h>
+#include <ason/ason.h>
 #include <ason/read.h>
 
 #include <assert.h>

@@ -21,8 +21,8 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include <ason/value.h>
-#include <ason/output.h>
+#include <ason/ason.h>
+#include <ason/print.h>
 #include <ason/read.h>
 #include <ason/namespace.h>
 

@@ -29,8 +29,8 @@
 
 #include <ason/read.h>
 #include <ason/namespace.h>
-#include <ason/value.h>
-#include <ason/output.h>
+#include <ason/ason.h>
+#include <ason/print.h>
 
 /**
  * Connect a new ASON namespace.
