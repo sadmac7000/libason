@@ -238,7 +238,7 @@ ason_create(ason_type_t type, size_t count)
 /**
  * Create an ASON string value.
  **/
-API_EXPORT ason_t *
+ason_t *
 ason_create_string(const char *string)
 {
 	ason_t *ret = ason_create(ASON_TYPE_STRING, 0);
@@ -308,7 +308,7 @@ ason_destroy(ason_t *a)
 /**
  * Create an ASON numeric value.
  **/
-API_EXPORT ason_t *
+ason_t *
 ason_create_number(int64_t number)
 {
 	return ason_create_fixnum(TO_FP(number));
@@ -330,7 +330,7 @@ ason_create_fixnum(int64_t number)
 /**
  * Create an ASON list value.
  **/
-API_EXPORT ason_t *
+ason_t *
 ason_create_list(ason_t *content)
 {
 	ason_t *ret;
@@ -348,7 +348,7 @@ ason_create_list(ason_t *content)
  * Create an ASON list with the values in one list as well as the values in
  * another list.
  **/
-API_EXPORT ason_t *
+ason_t *
 ason_append_lists(ason_t *a, ason_t *b)
 {
 	ason_t *ret;
@@ -371,7 +371,7 @@ ason_append_lists(ason_t *a, ason_t *b)
 /**
  * Create an ASON value.
  **/
-API_EXPORT ason_t *
+ason_t *
 ason_create_object(const char *key, ason_t *value) 
 {
 	ason_t *ret;
@@ -406,7 +406,7 @@ ason_operate(ason_t *a, ason_t *b, ason_type_t type)
 /**
  * Union two ASON values.
  **/
-API_EXPORT ason_t *
+ason_t *
 ason_union(ason_t *a, ason_t *b)
 {
 	return ason_operate(a, b, ASON_TYPE_UNION);
@@ -415,7 +415,7 @@ ason_union(ason_t *a, ason_t *b)
 /**
  * Intersect two ASON values.
  **/
-API_EXPORT ason_t *
+ason_t *
 ason_intersect(ason_t *a, ason_t *b)
 {
 	return ason_operate(a, b, ASON_TYPE_INTERSECT);
@@ -424,7 +424,7 @@ ason_intersect(ason_t *a, ason_t *b)
 /**
  * Join ASON value b to a.
  **/
-API_EXPORT ason_t *
+ason_t *
 ason_join(ason_t *a, ason_t *b)
 {
 	return ason_operate(a, b, ASON_TYPE_JOIN);
@@ -433,7 +433,7 @@ ason_join(ason_t *a, ason_t *b)
 /**
  * Complement an ASON value a.
  **/
-API_EXPORT ason_t *
+ason_t *
 ason_complement(ason_t *a)
 {
 	ason_t *ret = ason_create(ASON_TYPE_COMP, 1);
@@ -444,7 +444,7 @@ ason_complement(ason_t *a)
 /**
  * A boolean ASON value indicating whether a is represented in b.
  **/
-API_EXPORT ason_t *
+ason_t *
 ason_representation_in(ason_t *a, ason_t *b)
 {
 	ason_t *ret = ason_create(ASON_TYPE_REPR, 2);
@@ -456,7 +456,7 @@ ason_representation_in(ason_t *a, ason_t *b)
 /**
  * A boolean ASON value indicating whether a is equal to b.
  **/
-API_EXPORT ason_t *
+ason_t *
 ason_equality(ason_t *a, ason_t *b)
 {
 	ason_t *ret = ason_create(ASON_TYPE_EQUAL, 2);

@@ -23,6 +23,7 @@
 #include <ason/value.h>
 #include <ason/output.h>
 #include <ason/read.h>
+#include <ason/iter.h>
 
 #include "harness.h"
 
@@ -34,55 +35,61 @@ TESTS(22);
 TEST_MAIN("Parse values")
 {
 	ason_t *test_value = NULL;
-	ason_t *a;
+	ason_t *a = NULL;
 	ason_t *b = NULL;
 	ason_t *c = NULL;
-	ason_t *d;
 	char *str = NULL;
-
-	a = ason_create_number(6);
+	ason_iter_t *iter;
 
 	TEST("Parse parameter") {
-		b = ason_read("?i", NULL, 6);
-		REQUIRE(ason_check_equal(a, b));
+		a = ason_read("?i", NULL, 7);
+		iter = ason_iterate(a);
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
+		REQUIRE(ason_iter_long(iter) == 7);
+		ason_iter_destroy(iter);
 
-		c = ason_read("?i", NULL, 7);
-		REQUIRE(!ason_check_equal(a, c));
+		b = ason_read("?i", NULL, 6);
+		iter = ason_iterate(b);
+
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
+		REQUIRE(ason_iter_long(iter) == 6);
+
+		ason_iter_destroy(iter);
 	}
 
 	ason_destroy(a);
 	ason_destroy(b);
-	ason_destroy(c);
-
-	a = ason_create_number(~(unsigned int)0);
 
 	TEST("Parse unsigned parameter") {
-		b = ason_read("?u", NULL, ~(unsigned int)0);
-		REQUIRE(ason_check_equal(a, b));
+		a = ason_read("?u", NULL, 3000);
+		iter = ason_iterate(a);
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
+		REQUIRE(ason_iter_long(iter) == 3000);
+		ason_iter_destroy(iter);
 	}
 
 	ason_destroy(a);
-	ason_destroy(b);
-
-	a = ason_create_number(~(uint64_t)0);
 
 	TEST("Parse unsigned I64 parameter") {
-		b = ason_read("?U", NULL, ~(uint64_t)0);
-		REQUIRE(ason_check_equal(a, b));
+		a = ason_read("?I", NULL, (uint64_t)3000);
+		iter = ason_iterate(a);
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
+		REQUIRE(ason_iter_long(iter) == 3000);
+		ason_iter_destroy(iter);
 	}
 
 	ason_destroy(a);
-	ason_destroy(b);
 
-	a = ason_create_number(~(int64_t)0);
-
-	TEST("Parse signed I64 parameter") {
-		b = ason_read("?I", NULL, ~(int64_t)0);
-		REQUIRE(ason_check_equal(a, b));
+	TEST("Parse I64 parameter") {
+		a = ason_read("?I", NULL, (int64_t)-3000);
+		iter = ason_iterate(a);
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
+		printf("%lld\n", ason_iter_long(iter));
+		REQUIRE(ason_iter_long(iter) == -3000);
+		ason_iter_destroy(iter);
 	}
 
 	ason_destroy(a);
-	ason_destroy(b);
 
 	a = ason_read("6.75", NULL);
 
@@ -116,39 +123,53 @@ TEST_MAIN("Parse values")
 	ason_destroy(b);
 	ason_destroy(c);
 
-	a = ason_create_number(6);
-	a = ason_create_object_d("foo", a);
-
-	b = ason_create_number(8);
-	b = ason_create_object_d("bar", b);
-
-	a = ason_join_d(a, b);
-	b = ason_create_number(98);
-
-	a = ason_union_d(a, b);
-	b = ason_create_number(1);
-	b = ason_create_list_d(b);
-
-	c = ason_create_number(2);
-	c = ason_create_list_d(c);
-
-	b = ason_join_d(b, c);
-	c = ason_create_number(3);
-	c = ason_create_list_d(c);
-
-	d = ason_join(b, c);
-	ason_destroy(c);
-
-	b = ason_intersect_d(b, d);
-	a = ason_union_d(a, b);
-	
 	TEST("Union value") {
-		test_value = ason_read("{ \"foo\": 6, \"bar\": 8 } | "
-				       "(98 | [1,2,3] & [1,2])", NULL);
-		REQUIRE(ason_check_equal(a, test_value));
+		int count = 0;
+		int subcount = 0;
+		char *c;
+
+		a = ason_read("{ \"foo\": 6, \"bar\": 8 } | "
+			      "(98 | [1,2,3] & [1,2])", NULL);
+		iter = ason_iterate(a);
+
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_UNION);
+		REQUIRE(ason_iter_enter(iter));
+
+		do {
+			if (ason_iter_type(iter) == ASON_TYPE_NUMERIC) {
+				REQUIRE(ason_iter_long(iter) == 98);
+				count |= 2;
+			} else {
+				REQUIRE(ason_iter_type(iter) == ASON_TYPE_OBJECT);
+				REQUIRE(ason_iter_enter(iter));
+
+				do {
+					c = ason_iter_key(iter);
+					REQUIRE(c);
+
+					REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
+
+					if (ason_iter_long(iter) == 6) {
+						REQUIRE(!strcmp(c, "foo"));
+						subcount |= 1;
+					} else {
+						REQUIRE(!strcmp(c, "bar"));
+						REQUIRE(ason_iter_long(iter) == 8);
+						subcount |= 2;
+					}
+					free(c);
+				} while (ason_iter_next(iter));
+
+				REQUIRE(subcount == 3);
+				count |= 1;
+				ason_iter_exit(iter);
+			}
+		} while (ason_iter_next(iter));
+
+		REQUIRE(count == 3);
+		ason_iter_destroy(iter);
 	}
 
-	ason_destroy(test_value);
 	ason_destroy(a);
 
 	TEST("Truth") {
@@ -170,15 +191,16 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("String") {
+		char *c;
 		test_value = ason_read("\"\t\001string \\\"☺\\\"\"", NULL);
-		a = ason_create_string("\t\001string \"☺\"");
-
-		REQUIRE(test_value);
-		REQUIRE(ason_check_equal(a, test_value));
+		iter = ason_iterate(test_value);
+		c = ason_iter_string(iter);
+		ason_iter_destroy(iter);
+		REQUIRE(! strcmp(c, "\t\001string \"☺\""));
+		free(c);
 	}
 
 	ason_destroy(test_value);
-	ason_destroy(a);
 
 	TEST("Number") {
 		test_value = ason_read("-6.25", NULL);
@@ -250,16 +272,15 @@ TEST_MAIN("Parse values")
 	ason_destroy(a);
 	ason_destroy(b);
 
-	a = ason_create_list(NULL);
-	b = NULL;
-
 	TEST("Empty list") {
-		b = ason_read("[]", NULL);
-		REQUIRE(ason_check_equal(a,b));
+		a = ason_read("[]", NULL);
+		iter = ason_iterate(a);
+
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_LIST);
+		REQUIRE(!ason_iter_enter(iter));
 	}
 
 	ason_destroy(a);
-	ason_destroy(b);
 
 	return 0;
 }

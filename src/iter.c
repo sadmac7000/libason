@@ -74,6 +74,9 @@ ason_iter_enter(ason_iter_t *iter)
 		return 0;
 	};
 
+	if (! iter->current->count)
+		return 0;
+
 	alloc_size = iter->depth * 2;
 
 	if (iter->depth & (iter->depth - 1))
@@ -164,13 +167,13 @@ ason_iter_type(ason_iter_t *iter)
  * Return the long value of the iterator's current value. Abort if the value is
  * not a number.
  **/
-API_EXPORT long
+API_EXPORT long long
 ason_iter_long(ason_iter_t *iter)
 {
 	if (iter->current->type != ASON_TYPE_NUMERIC)
 		errx(1, "Cannot convert non-numeric to number");
 
-	return (long)FP_WHOLE(iter->current->n);
+	return (long long)FP_WHOLE(iter->current->n);
 }
 
 /**

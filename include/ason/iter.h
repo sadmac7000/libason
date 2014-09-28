@@ -34,7 +34,7 @@ int ason_iter_exit(ason_iter_t *iter);
 int ason_iter_next(ason_iter_t *iter);
 int ason_iter_prev(ason_iter_t *iter);
 ason_type_t ason_iter_type(ason_iter_t *iter);
-long ason_iter_long(ason_iter_t *iter);
+long long ason_iter_long(ason_iter_t *iter);
 double ason_iter_double(ason_iter_t *iter);
 char *ason_iter_string(ason_iter_t *iter);
 char *ason_iter_key(ason_iter_t *iter);

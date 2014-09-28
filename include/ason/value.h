@@ -60,110 +60,11 @@ extern ason_t * const ASON_FALSE;
 extern "C" {
 #endif
 
-ason_t *ason_create_number(int64_t number);
-ason_t *ason_create_list(ason_t *content);
-ason_t *ason_append_lists(ason_t *list, ason_t *item);
-ason_t *ason_create_object(const char *key, ason_t *value); 
-ason_t *ason_create_string(const char *str);
-ason_t *ason_union(ason_t *a, ason_t *b);
-ason_t *ason_intersect(ason_t *a, ason_t *b);
-ason_t *ason_join(ason_t *a, ason_t *b);
-ason_t *ason_complement(ason_t *a);
-ason_t *ason_representation_in(ason_t *a, ason_t *b);
-ason_t *ason_equality(ason_t *a, ason_t *b);
-
 ason_t *ason_copy(ason_t *a);
 void ason_destroy(ason_t *a);
 
 int ason_check_represented_in(ason_t *a, ason_t *b);
 int ason_check_equal(ason_t *a, ason_t *b);
-
-/* Destructive operators */
-
-static inline ason_t *
-ason_create_list_d(ason_t *content)
-{
-	ason_t *ret = ason_create_list(content);
-	ason_destroy(content);
-	return ret;
-}
-
-static inline ason_t *
-ason_create_object_d(const char *key, ason_t *value)
-{
-	ason_t *ret = ason_create_object(key, value);
-	ason_destroy(value);
-	return ret;
-}
-
-static inline ason_t *
-ason_union_d(ason_t *a, ason_t *b)
-{
-	ason_t *ret;
-	ret = ason_union(a, b);
-	ason_destroy(a);
-	ason_destroy(b);
-	return ret;
-}
-
-static inline ason_t *
-ason_intersect_d(ason_t *a, ason_t *b)
-{
-	ason_t *ret;
-	ret = ason_intersect(a, b);
-	ason_destroy(a);
-	ason_destroy(b);
-	return ret;
-}
-
-static inline ason_t *
-ason_join_d(ason_t *a, ason_t *b)
-{
-	ason_t *ret;
-	ret = ason_join(a, b);
-	ason_destroy(a);
-	ason_destroy(b);
-	return ret;
-}
-
-static inline ason_t *
-ason_complement_d(ason_t *a)
-{
-	ason_t *ret;
-	ret = ason_complement(a);
-	ason_destroy(a);
-	return ret;
-}
-
-static inline ason_t *
-ason_representation_in_d(ason_t *a, ason_t *b)
-{
-	ason_t *ret;
-	ret = ason_representation_in(a, b);
-	ason_destroy(a);
-	ason_destroy(b);
-	return ret;
-}
-
-static inline ason_t *
-ason_equality_d(ason_t *a, ason_t *b)
-{
-	ason_t *ret;
-	ret = ason_equality(a, b);
-	ason_destroy(a);
-	ason_destroy(b);
-	return ret;
-}
-
-static inline ason_t *
-ason_append_lists_d(ason_t *a, ason_t *b)
-{
-	ason_t *ret;
-	ret = ason_append_lists(a, b);
-	ason_destroy(a);
-	ason_destroy(b);
-	return ret;
-}
 
 #ifdef __cplusplus
 }
