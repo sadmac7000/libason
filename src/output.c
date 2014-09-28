@@ -56,63 +56,6 @@ ason_get_precedence(ason_type_t operator)
 }
 
 /**
- * Get the character for an ASON operator.
- **/
-static const char *
-ason_get_opchar(ason_type_t operator, int use_unicode)
-{
-	switch (operator) {
-	case ASON_TYPE_INTERSECT:
-		if (use_unicode)
-			return "∩";
-		else
-			return "&";
-	case ASON_TYPE_JOIN:
-		return ":";
-	case ASON_TYPE_REPR:
-		if (use_unicode)
-			return "⊆";
-		else
-			return "in";
-	case ASON_TYPE_EQUAL:
-		return "=";
-	default:
-		errx(1, "Unreachable statement at %s:%d", __FILE__, __LINE__);
-	}
-}
-
-/**
- * Print an ASON operator as a string.
- **/
-static char *
-ason_asprint_operator(ason_t *value, int use_unicode)
-{
-	char *a = ason_do_asprint(value->items[0], use_unicode);
-	char *b = ason_do_asprint(value->items[1], use_unicode);
-	const char *op = ason_get_opchar(value->type, use_unicode);
-	char *tmp;
-	int precedence = ason_get_precedence(value->type);
-
-	if (precedence > ason_get_precedence(value->items[0]->type)) {
-		tmp = a;
-		a = xasprintf("( %s )", a);
-		free(tmp);
-	}
-
-	if (precedence > ason_get_precedence(value->items[1]->type)) {
-		tmp = b;
-		b = xasprintf("( %s )", b);
-		free(tmp);
-	}
-
-	tmp = xasprintf("%s %s %s", a, op, b);
-	free(a);
-	free(b);
-
-	return tmp;
-}
-
-/**
  * Print an ASON union as a string.
  **/
 static char *
@@ -277,7 +220,7 @@ ason_do_asprint(ason_t *value, int use_unicode)
 	case ASON_TYPE_JOIN:
 	case ASON_TYPE_REPR:
 	case ASON_TYPE_EQUAL:
-		return ason_asprint_operator(value, use_unicode);
+		errx(1, "Value is not reduced in asprint");
 	case ASON_TYPE_UNION:
 		return ason_asprint_union(value, use_unicode);
 	case ASON_TYPE_OBJECT:
