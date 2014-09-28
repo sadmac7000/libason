@@ -43,18 +43,13 @@ TEST_MAIN("Parse values")
 
 	TEST("Parse parameter") {
 		a = ason_read("?i", 7);
-		iter = ason_iterate(a);
-		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
-		REQUIRE(ason_iter_long(iter) == 7);
-		ason_iter_destroy(iter);
+		REQUIRE(ason_type(a) == ASON_TYPE_NUMERIC);
+		REQUIRE(ason_long(a) == 7);
 
 		b = ason_read("?i", 6);
-		iter = ason_iterate(b);
+		REQUIRE(ason_type(b) == ASON_TYPE_NUMERIC);
+		REQUIRE(ason_long(b) == 6);
 
-		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
-		REQUIRE(ason_iter_long(iter) == 6);
-
-		ason_iter_destroy(iter);
 	}
 
 	ason_destroy(a);
@@ -62,44 +57,34 @@ TEST_MAIN("Parse values")
 
 	TEST("Parse unsigned parameter") {
 		a = ason_read("?u", 3000);
-		iter = ason_iterate(a);
-		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
-		REQUIRE(ason_iter_long(iter) == 3000);
-		ason_iter_destroy(iter);
+		REQUIRE(ason_type(a) == ASON_TYPE_NUMERIC);
+		REQUIRE(ason_long(a) == 3000);
 	}
 
 	ason_destroy(a);
 
 	TEST("Parse unsigned I64 parameter") {
 		a = ason_read("?I", (uint64_t)3000);
-		iter = ason_iterate(a);
-		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
-		REQUIRE(ason_iter_long(iter) == 3000);
-		ason_iter_destroy(iter);
+		REQUIRE(ason_type(a) == ASON_TYPE_NUMERIC);
+		REQUIRE(ason_long(a) == 3000);
 	}
 
 	ason_destroy(a);
 
 	TEST("Parse I64 parameter") {
 		a = ason_read("?I", (int64_t)-3000);
-		iter = ason_iterate(a);
-		REQUIRE(ason_iter_type(iter) == ASON_TYPE_NUMERIC);
-		printf("%lld\n", ason_iter_long(iter));
-		REQUIRE(ason_iter_long(iter) == -3000);
-		ason_iter_destroy(iter);
+		REQUIRE(ason_type(a) == ASON_TYPE_NUMERIC);
+		REQUIRE(ason_long(a) == -3000);
 	}
 
 	ason_destroy(a);
-
-	a = ason_read("6.75");
 
 	TEST("Parse double parameter") {
-		b = ason_read("?F", (double)6.75);
-		REQUIRE(ason_check_equal(a, b));
+		a = ason_read("?F", (double)6.75);
+		REQUIRE(ason_double(a) == 6.75);
 	}
 
 	ason_destroy(a);
-	ason_destroy(b);
 
 	a = ason_read("\"foo\"");
 
@@ -191,15 +176,12 @@ TEST_MAIN("Parse values")
 	ason_destroy(test_value);
 
 	TEST("String") {
-		char *c;
 		test_value = ason_read("\"\t\001string \\\"☺\\\"\"");
-		iter = ason_iterate(test_value);
-		c = ason_iter_string(iter);
-		ason_iter_destroy(iter);
-		REQUIRE(! strcmp(c, "\t\001string \"☺\""));
-		free(c);
+		str = ason_string(test_value);
+		REQUIRE(! strcmp(str, "\t\001string \"☺\""));
 	}
 
+	free(str);
 	ason_destroy(test_value);
 
 	TEST("Number") {
@@ -278,6 +260,8 @@ TEST_MAIN("Parse values")
 
 		REQUIRE(ason_iter_type(iter) == ASON_TYPE_LIST);
 		REQUIRE(!ason_iter_enter(iter));
+
+		ason_iter_destroy(iter);
 	}
 
 	ason_destroy(a);
