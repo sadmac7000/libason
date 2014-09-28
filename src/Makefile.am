@@ -11,8 +11,6 @@ libason_la_SOURCES = \
 	stringfunc.c \
 	namespace.c \
 	namespace_ram.c \
-	blockfile.c \
-	btree.c \
 	crc.c \
 	parse.c
 MOSTLYCLEANFILES = parse.c parse.h parse.out *.gcda *.gcno *.gcov *.gcov_report

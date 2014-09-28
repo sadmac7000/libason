@@ -7,7 +7,6 @@ valgrind_0 = @echo "  VALGRND " $@;
 TESTS = parser_test	  \
 	print_object	  \
 	iterator_test     \
-	blockfile_test    \
 	crc_test          \
 	value_test        \
 	ns_test
@@ -36,10 +35,6 @@ ns_test_LDADD = ../src/libason.la
 value_test_SOURCES = value_test.c harness.c
 value_test_LDADD = ../src/libason.la
 value_test_CFLAGS = -Wno-uninitialized
-
-blockfile_test_SOURCES = blockfile_test.c harness.c \
-			 ../src/blockfile.c ../src/blockfile.h \
-			 ../src/crc.c ../src/crc.h
 
 crc_test_SOURCES = crc_test.c harness.c \
 			 ../src/crc.c ../src/crc.h
