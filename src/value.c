@@ -306,15 +306,6 @@ ason_destroy(ason_t *a)
 }
 
 /**
- * Create an ASON numeric value.
- **/
-ason_t *
-ason_create_number(int64_t number)
-{
-	return ason_create_fixnum(TO_FP(number));
-}
-
-/**
  * Create an ASON numeric value from a fixed point number.
  **/
 ason_t *
