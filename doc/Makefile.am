@@ -21,6 +21,8 @@ dist_man3_MANS =		\
 	ason.3			\
 	ason_values.3
 
+EXTRA_DIST = ason_spec.tex
+
 ason_spec.aux: ason_spec.tex
 	$(pdflatex) -halt-on-error -draftmode $< | grep '^!' && exit 1 || exit 0
 
