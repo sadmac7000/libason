@@ -1742,3 +1742,48 @@ ason_check_equal(ason_t *a, ason_t *b)
 {
 	return !ason_compare(a, b);
 }
+
+/**
+ * Get the type of an ASON value.
+ **/
+API_EXPORT ason_type_t
+ason_type(ason_t *a)
+{
+	return a->type;
+}
+
+/**
+ * Get the integral numerical value of an ASON value.
+ **/
+API_EXPORT long long
+ason_long(ason_t *a)
+{
+	if (a->type != ASON_TYPE_NUMERIC)
+		errx(1, "Cannot convert non-numeric to number");
+
+	return (long long)FP_WHOLE(a->n);
+}
+
+/**
+ * Get the floating point numerical value of an ASON value.
+ **/
+API_EXPORT double
+ason_double(ason_t *a)
+{
+	if (a->type != ASON_TYPE_NUMERIC)
+		errx(1, "Cannot convert non-numeric to number");
+
+	return ((double)a->n) / FP_BITS;
+}
+
+/**
+ * Get the string value of an ASON value.
+ **/
+API_EXPORT char *
+ason_string(ason_t *a)
+{
+	if (a->type != ASON_TYPE_STRING)
+		errx(1, "Cannot convert non-string to string");
+
+	return xstrdup(a->string);
+}

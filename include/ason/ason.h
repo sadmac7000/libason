@@ -66,6 +66,11 @@ void ason_destroy(ason_t *a);
 int ason_check_represented_in(ason_t *a, ason_t *b);
 int ason_check_equal(ason_t *a, ason_t *b);
 
+ason_type_t ason_type(ason_t *a);
+long long ason_long(ason_t *a);
+double ason_double(ason_t *a);
+char *ason_string(ason_t *a);
+
 #ifdef __cplusplus
 }
 #endif

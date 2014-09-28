@@ -160,7 +160,7 @@ ason_iter_prev(ason_iter_t *iter)
 API_EXPORT ason_type_t
 ason_iter_type(ason_iter_t *iter)
 {
-	return iter->current->type;
+	return ason_type(iter->current);
 }
 
 /**
@@ -170,10 +170,7 @@ ason_iter_type(ason_iter_t *iter)
 API_EXPORT long long
 ason_iter_long(ason_iter_t *iter)
 {
-	if (iter->current->type != ASON_TYPE_NUMERIC)
-		errx(1, "Cannot convert non-numeric to number");
-
-	return (long long)FP_WHOLE(iter->current->n);
+	return ason_long(iter->current);
 }
 
 /**
@@ -183,10 +180,7 @@ ason_iter_long(ason_iter_t *iter)
 API_EXPORT double
 ason_iter_double(ason_iter_t *iter)
 {
-	if (iter->current->type != ASON_TYPE_NUMERIC)
-		errx(1, "Cannot convert non-numeric to number");
-
-	return ((double)iter->current->n) / FP_BITS;
+	return ason_double(iter->current);
 }
 
 /**
@@ -196,10 +190,7 @@ ason_iter_double(ason_iter_t *iter)
 API_EXPORT char *
 ason_iter_string(ason_iter_t *iter)
 {
-	if (iter->current->type != ASON_TYPE_STRING)
-		errx(1, "Cannot convert non-string to string");
-
-	return xstrdup(iter->current->string);
+	return ason_string(iter->current);
 }
 
 /**
