@@ -11,7 +11,7 @@ AC_PROG_LN_S
 AC_ARG_ENABLE([lcov], [AS_HELP_STRING(
 	       [--enable-lcov],
 	       [Compile in lcov support])
-], [], [enable_lcov=yes])
+], [], [enable_lcov=no])
 
 lcov_CFLAGS=
 
@@ -28,7 +28,7 @@ test "x$GENHTML" = "xno" -a "x$enable_lcov" = xyes && \
 	AC_MSG_ERROR([genhtml command (part of lcov) not found])
 
 AC_ARG_WITH([asonq], [AS_HELP_STRING(
-	     [--with-asonq],
+	     [--without-asonq],
 	 [Build the asonq binary])
 ], [], [with_asonq=yes])
 
@@ -54,16 +54,16 @@ test "x$LEMON" = "xno" && AC_MSG_ERROR([Lemon parser generator not found])
 AC_ARG_ENABLE([spec], [AS_HELP_STRING(
 	     [--enable-spec],
 	     [Build the ASON specification document])
-], [], [with_spec=yes])
+], [], [enable_spec=no])
 
 AC_PATH_PROG([PDFLATEX], [pdflatex], [no])
 
-test "x$PDFLATEX" = "xno" -a "x$with_spec" != xno && \
+test "x$PDFLATEX" = "xno" -a "x$enable_spec" = xyes && \
 	AC_MSG_ERROR([PDFLatex not found])
 
 AC_PATH_PROG([VALGRIND], [valgrind], [no])
 
-AM_CONDITIONAL([INSTALL_SPEC], [ test "x$with_spec" != xno ])
+AM_CONDITIONAL([INSTALL_SPEC], [ test "x$enable_spec" = xyes ])
 
 AC_ARG_VAR([LEMON], [Lemon parser generator command])
 AC_ARG_VAR([PDFLATEX], [PDFLatex command])
