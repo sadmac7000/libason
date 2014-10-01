@@ -268,9 +268,11 @@ ason_get_token_number(const char *text, size_t length, int *type,
  * Get a token from a positional argument.
  **/
 static size_t
-ason_get_token_arg(char type, token_t *data, va_list ap)
+ason_get_token_arg(char type, token_t *data, int *ttype, va_list ap)
 {
 	size_t ret = 1;
+
+	*ttype = ASON_LEX_PREBAKED;
 
 	switch (type) {
 	case 'i':
@@ -298,7 +300,8 @@ ason_get_token_arg(char type, token_t *data, va_list ap)
 		data->value->n = TO_FP(va_arg(ap, double));
 		break;
 	case 's':
-		data->value = ason_create_string(va_arg(ap, char *));
+		data->c = xstrdup(va_arg(ap, char *));
+		*ttype = ASON_LEX_STRING;
 		break;
 	default:
 		ret = 0;
@@ -318,6 +321,7 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data,
 	const char *text_start = text;
 	const char *tok_start;
 	char *tmp;
+	int inc;
 
 	while (length && isspace(*text)) {
 		length--;
@@ -364,12 +368,14 @@ ason_get_token(const char *text, size_t length, int *type, token_t *data,
 	if (*text == '?') {
 		text++;
 		length--;
-		if (length)
-			text += ason_get_token_arg(*text, data, ap);
-		else
-			ason_get_token_arg('\0', data, ap);
+		if (length) {
+			inc = ason_get_token_arg(*text, data, type, ap);
+			text += inc;
+			length -= inc;
+		} else {
+			ason_get_token_arg('\0', data, type, ap);
+		}
 
-		*type = ASON_LEX_PREBAKED;
 		return text - text_start;
 	}
 

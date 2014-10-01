@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(22);
+TESTS(24);
 
 /**
  * Basic exercise of the parser.
@@ -86,15 +86,53 @@ TEST_MAIN("Parse values")
 
 	ason_destroy(a);
 
-	a = ason_read("\"foo\"");
-
 	TEST("Parse string parameter") {
-		b = ason_read("?s", "foo");
-		REQUIRE(ason_check_equal(a, b));
+		a = ason_read("?s", "foo");
+		str = ason_string(a);
+		REQUIRE(!strcmp(str, "foo"));
+	}
+
+	ason_destroy(a);
+
+	TEST("Parse string parameter list") {
+		a = ason_read("[ ?s , ?s ]", "foo", "bar");
+		iter = ason_iterate(a);
+
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_LIST);
+		REQUIRE(ason_iter_enter(iter));
+		str = ason_iter_string(iter);
+		REQUIRE(!strcmp(str, "foo"));
+		free(str);
+		REQUIRE(ason_iter_next(iter));
+		str = ason_iter_string(iter);
+		REQUIRE(!strcmp(str, "bar"));
+		free(str);
+		ason_iter_destroy(iter);
+	}
+
+	ason_destroy(a);
+
+	b = ason_read("{*}");
+	c = ason_read("6");
+
+	TEST("Parse complex parameter list") {
+		a = ason_read("? : { ?s : ? }", b, "foo", c);
+		iter = ason_iterate(a);
+
+		REQUIRE(ason_iter_type(iter) == ASON_TYPE_UOBJECT);
+		REQUIRE(ason_iter_enter(iter));
+		str = ason_iter_key(iter);
+		REQUIRE(!strcmp(str, "foo"));
+		free(str);
+		REQUIRE(ason_iter_long(iter) == 6);
+		REQUIRE(! ason_iter_next(iter));
+		REQUIRE(! ason_iter_prev(iter));
+		ason_iter_destroy(iter);
 	}
 
 	ason_destroy(a);
 	ason_destroy(b);
+	ason_destroy(c);
 
 	a = ason_read("[6,7,[8,9],10]");
 	b = ason_read("[8,9]");
