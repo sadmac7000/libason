@@ -92,6 +92,7 @@ TEST_MAIN("Parse values")
 		REQUIRE(!strcmp(str, "foo"));
 	}
 
+	free(str);
 	ason_destroy(a);
 
 	TEST("Parse string parameter list") {
