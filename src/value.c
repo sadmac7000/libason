@@ -539,18 +539,6 @@ ason_clone_into(ason_t *target, ason_t *src)
 	ason_destroy(src);
 }
 
-/**
- * Alter the value of an ASON value to that of another value.
- *
- * Then destroy that other value.
- **/
-static void
-ason_clone_into_d(ason_t *target, ason_t *src)
-{
-	ason_clone_into(target, src);
-	ason_destroy(src);
-}
-
 /* Predeclaration */
 int ason_reduce(ason_t *a);
 
@@ -1019,17 +1007,13 @@ ason_reduce_intersect(ason_t *a)
 static void
 ason_reduce_join(ason_t *a)
 {
-	ason_t *b;
-
 	if (ason_distribute(a))
 		return;
 
 	if (a->items[0]->type == ASON_TYPE_NULL) {
-		b = ason_copy(a->items[1]);
-		ason_clone_into_d(a, b);
+		ason_clone_into(a, a->items[1]);
 	} else if (a->items[1]->type == ASON_TYPE_NULL) {
-		b = ason_copy(a->items[0]);
-		ason_clone_into_d(a, b);
+		ason_clone_into(a, a->items[0]);
 	} else if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1])) {
 		ason_reduce_object_intersect_join(a, 1);
 	} else {
