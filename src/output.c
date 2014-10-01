@@ -138,6 +138,9 @@ ason_asprint_list(ason_t *value, int use_unicode)
 	char *next;
 	size_t i;
 
+	if (! value->count)
+		return xasprintf("[]");
+
 	for (i = 0; i < value->count; i++) {
 		next = ason_do_asprint(value->items[i], use_unicode);
 
