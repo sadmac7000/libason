@@ -119,6 +119,8 @@ TEST_MAIN("Parse values")
 	TEST("Parse complex parameter list") {
 		a = ason_read("? : { ?s : ? }", b, "foo", c);
 		iter = ason_iterate(a);
+		ason_destroy(b);
+		ason_destroy(c);
 
 		REQUIRE(ason_iter_type(iter) == ASON_TYPE_UOBJECT);
 		REQUIRE(ason_iter_enter(iter));
@@ -132,8 +134,6 @@ TEST_MAIN("Parse values")
 	}
 
 	ason_destroy(a);
-	ason_destroy(b);
-	ason_destroy(c);
 
 	a = ason_read("[6,7,[8,9],10]");
 	b = ason_read("[8,9]");
