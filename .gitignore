@@ -26,3 +26,4 @@ libtool
 *.gcov_report
 coverage
 coverage.info*
+libason-*.tar.*
