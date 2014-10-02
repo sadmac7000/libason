@@ -515,6 +515,9 @@ ason_clone_into(ason_t *target, ason_t *src)
 	memcpy(target, src, sizeof(ason_t));
 	target->refcount = refcount;
 
+	if (target->type == ASON_TYPE_STRING)
+		target->string = xstrdup(src->string);
+
 	if (! target->count) {
 		ason_destroy(src);
 		return;
