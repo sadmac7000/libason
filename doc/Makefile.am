@@ -29,7 +29,7 @@ ason_spec.aux: ason_spec.tex
 ason_spec.pdf: ason_spec.tex ason_spec.aux
 	$(pdflatex) -halt-on-error $< | grep '^!' && exit 1 || exit 0
 
-install-exec-hook:
+install-data-hook:
 	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_inspect.3 $(DESTDIR)$(mandir)/man3/ason_check_represented_in.3
 	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_inspect.3 $(DESTDIR)$(mandir)/man3/ason_check_equal.3
 	$(LN_S) $(DESTDIR)$(mandir)/man3/ason_inspect.3 $(DESTDIR)$(mandir)/man3/ason_type.3
