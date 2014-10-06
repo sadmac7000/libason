@@ -864,6 +864,12 @@ ason_reduce_intersect_col3_comp3_object(ason_t *a)
 	struct ason_coiterator iter;
 	const char *key;
 
+	if (!a->items[0]->count && !a->items[1]->items[0]->count) {
+		/* The only expression that can end up here is {*} & !{*} */
+		ason_make_empty(a);
+		return;
+	}
+
 	results = xcalloc(a->items[0]->count +
 			  a->items[1]->items[0]->count, sizeof(ason_t *));
 
