@@ -1733,6 +1733,7 @@ ason_check_equal(ason_t *a, ason_t *b)
 API_EXPORT ason_type_t
 ason_type(ason_t *a)
 {
+	ason_reduce(a);
 	return a->type;
 }
 
