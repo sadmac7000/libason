@@ -84,7 +84,7 @@ connect(const char *line, ason_ns_t *ns)
 static int
 command(const char *line, ason_ns_t *ns)
 {
-	if (*(line++) != '/')
+	if (*(line++) != '}')
 		return 0;
 
 	if (! strcmp(line, "quit"))
