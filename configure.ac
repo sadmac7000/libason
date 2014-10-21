@@ -1,4 +1,4 @@
-AC_INIT([libason], [0.1.2], [casey.dahlin@gmail.com])
+AC_INIT([libason], [0.1.3], [casey.dahlin@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror -Wno-portability foreign
                   parallel-tests subdir-objects])
 AM_EXTRA_RECURSIVE_TARGETS([valgrind])

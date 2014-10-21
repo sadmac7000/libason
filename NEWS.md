@@ -10,6 +10,11 @@ for most normal uses. There's still only moderate thought given to performance,
 but it seems quick enough. We need users before we can have performance cases,
 and we need performance cases before we can improve performance.
 
+### v0.1.3 ###
+Another bugfix release. We fix a make bug that appeared on certain platforms, a
+memory gremlin, and a bug where `ason_type` wasn't reducing values before
+outputting. This cleans our plate for development work.
+
 ### v0.1.2 ###
 This release just massages out a few of the early gremlins. We've included the
 missing LaTeX source for the spec, and fixed some of the option parsing for the
