@@ -120,18 +120,18 @@ union(A) ::= union(B) UNION intersect(C).	{
 	A = ason_union_d(B, C);
 }
 
-intersect(A) ::= comp(B).				{ A = B; }
-intersect(A) ::= intersect(B) INTERSECT comp(C).	{
+intersect(A) ::= join(B).				{ A = B; }
+intersect(A) ::= intersect(B) INTERSECT join(C).	{
 	A = ason_intersect_d(B, C);
 }
 
-comp(A) ::= join(B). { A = B; }
-comp(A) ::= NOT comp(B). { A = ason_complement_d(B); }
-
-join(A) ::= value(B).				{ A = B; }
-join(A) ::= value(B) COLON join(C).		{
+join(A) ::= comp(B).				{ A = B; }
+join(A) ::= join(B) COLON comp(C).		{
 	A = ason_join_d(B, C);
 }
+
+comp(A) ::= value(B). { A = B; }
+comp(A) ::= NOT comp(B). { A = ason_complement_d(B); }
 
 value(A) ::= PREBAKED(B).	{ A = B.value; }
 value(A) ::= EMPTY.		{ A = ASON_EMPTY; }
@@ -162,7 +162,7 @@ value(A) ::= STRING(B). {
 	free(B.c);
 }
 
-value(A) ::= O_PAREN union(B) C_PAREN. { A = B; }
+value(A) ::= O_PAREN equality(B) C_PAREN. { A = B; }
 value(A) ::= SYMBOL(B). {
 	if (data->ns)
 		A = ason_ns_load(data->ns, B.c) ?: ASON_EMPTY;
