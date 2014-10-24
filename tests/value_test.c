@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(29);
+TESTS(32);
 
 /**
  * Full exercise of value reduction.
@@ -206,6 +206,15 @@ TEST_MAIN("Value Reduction")
 	TEST_ASON_EXPR("Multi-key order 3 complement intersection",
 		       "{*} & !{\"foo\":[6,7,{*}], \"bar\":![5], *} = "
 		       "{\"foo\":![6,7,{*}], *} | {\"bar\":[5], *}");
+
+	TEST_ASON_EXPR("Join of list of nulls",
+		       "[6,7,8] : [null,null,null] = [6,7,8]");
+
+	TEST_ASON_EXPR("Join to domain containing null",
+		       "5 : !5 = 5");
+
+	TEST_ASON_EXPR("Join object to domain containing {*}",
+		       "U : {\"foo\":6} = {\"foo\":6, *}");
 
 	TEST("Destructor safety") {
 		ason_destroy(NULL);

@@ -1016,19 +1016,79 @@ ason_reduce_intersect(ason_t *a)
 static void
 ason_reduce_join(ason_t *a)
 {
+	ason_t *tmp;
+	ason_t *tmp2;
+	size_t i;
+
 	if (ason_distribute(a))
 		return;
 
+	if (a->items[0]->order > a->items[1]->order ||
+	    a->items[1]->type == ASON_TYPE_NULL) {
+		tmp = a->items[0];
+		a->items[0] = a->items[1];
+		a->items[1] = tmp;
+	}
+
 	if (a->items[0]->type == ASON_TYPE_NULL) {
 		ason_clone_into(a, a->items[1]);
-	} else if (a->items[1]->type == ASON_TYPE_NULL) {
-		ason_clone_into(a, a->items[0]);
-	} else if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1])) {
-		ason_reduce_object_intersect_join(a, 1);
-	} else {
-		a->type = ASON_TYPE_INTERSECT;
-		ason_reduce_intersect(a);
+		return;
 	}
+
+	if (a->items[0]->order == 0 &&
+	    a->items[0]->type != ASON_TYPE_LIST &&
+	    !IS_OBJECT(a->items[0])) {
+		if (ason_check_represented_in(ASON_NULL, a->items[1])) {
+			ason_clone_into(a, a->items[0]);
+		} else {
+			a->type = ASON_TYPE_INTERSECT;
+			ason_reduce_intersect(a);
+		}
+		return;
+	}
+
+	if (IS_OBJECT(a->items[0]) && IS_OBJECT(a->items[1])) {
+		ason_reduce_object_intersect_join(a, 1);
+		return;
+	}
+
+	if (a->items[0]->type == ASON_TYPE_LIST &&
+	    a->items[1]->type == ASON_TYPE_LIST) {
+		if (a->items[0]->count != a->items[1]->count) {
+			ason_make_empty(a);
+			return;
+		}
+
+		if (! a->items[0]->count) {
+			ason_make_empty(a);
+			a->type = ASON_TYPE_LIST;
+			a->order = 0;
+			a->count = 0;
+			a->items = NULL;
+			return;
+		}
+
+		tmp = ason_copy(a->items[0]);
+		tmp2 = ason_copy(a->items[1]);
+		ason_make_empty(a);
+
+		a->type = ASON_TYPE_LIST;
+		a->order = ORDER_UNKNOWN;
+		a->count = tmp->count;
+
+		a->items = xcalloc(a->count, sizeof(ason_t *));
+
+		for (i = 0; i < a->count; i++)
+			a->items[i] = ason_join(tmp->items[i],
+						tmp2->items[i]);
+
+		ason_destroy(tmp);
+		ason_destroy(tmp2);
+		return;
+	}
+
+	a->type = ASON_TYPE_INTERSECT;
+	ason_reduce_intersect(a);
 }
 
 /**
