@@ -27,7 +27,7 @@
 
 #include "harness.h"
 
-TESTS(32);
+TESTS(34);
 
 /**
  * Full exercise of value reduction.
@@ -213,8 +213,15 @@ TEST_MAIN("Value Reduction")
 	TEST_ASON_EXPR("Join to domain containing null",
 		       "5 : !5 = 5");
 
+	TEST_ASON_EXPR("Splay representation check",
+		       "{\"foo\":6} | {\"foo\": 7} in {\"foo\":6|7|8}");
+
 	TEST_ASON_EXPR("Join object to domain containing {*}",
 		       "U : {\"foo\":6} = {\"foo\":6, *}");
+
+	TEST_ASON_EXPR("Splay ordering test",
+		       "[6,7,8] | [6,5,8] | [6,7,9] = "
+		       "[6,7,8] | [6,7,9] | [6,5,8]");
 
 	TEST("Destructor safety") {
 		ason_destroy(NULL);
