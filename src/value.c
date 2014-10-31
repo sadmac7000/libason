@@ -1195,7 +1195,6 @@ ason_reduce_collection(ason_t *a)
 		max_order = 3;
 
 	a->order = max_order;
-	ason_splay(a);
 }
 
 /**
@@ -1235,6 +1234,130 @@ ason_union_sort(ason_t *a, size_t start, size_t end)
 
 	ason_union_sort(a, start, pivot);
 	ason_union_sort(a, pivot + 1, end);
+}
+
+/**
+ * Take two collection values and combine them into one by turning one of their
+ * keys into a union.
+ **/
+static ason_t *
+ason_unsplay_pair(ason_t *a, ason_t *b)
+{
+	size_t diff = 0;
+	size_t i;
+	struct ason_coiterator iter;
+	const char *key;
+	ason_t *left;
+	ason_t *right;
+	ason_t *ret;
+
+	if (a->type != b->type)
+		return NULL;
+
+	if (a->type == ASON_TYPE_LIST) {
+		if (a->count != b->count)
+			return NULL;
+
+		for (i = 0; i < a->count && diff < 2; i++)
+			if (! ason_check_equal(a->items[i], b->items[i]))
+				diff++;
+	} else {
+		ason_coiterator_init(&iter, a, b);
+
+		while (ason_coiterator_next(&iter, &left, &right) &&
+		       diff < 2)
+			if (! ason_check_equal(left, right))
+				diff++;
+
+		ason_coiterator_release(&iter);
+	}
+
+	if (diff > 1)
+		return NULL;
+
+	if (diff != 1)
+		return ason_copy(a);
+
+	ret = ason_create(a->type, a->count > b->count ? a->count : b->count);
+
+	if (ret->type == ASON_TYPE_LIST) {
+		for (i = 0; i < a->count; i++) {
+			if (! ason_check_equal(a->items[i], b->items[i]))
+				ret->items[i] = ason_union(a->items[i],
+							   b->items[i]);
+			else
+				ret->items[i] = ason_copy(a->items[i]);
+		}
+	} else {
+		ason_coiterator_init(&iter, a, b);
+
+		for (i = 0; (key = ason_coiterator_next(&iter, &left, &right));
+		     i++) {
+			ret->kvs[i].key = xstrdup(key);
+
+			if (! ason_check_equal(left, right))
+				ret->kvs[i].value = ason_union(left, right);
+			else
+				ret->kvs[i].value = ason_copy(left);
+		}
+
+		ason_coiterator_release(&iter);
+	}
+
+	ason_reduce(ret);
+	return ret;
+}
+
+/**
+ * compress values in a union of values.
+ **/
+static void
+ason_unsplay(ason_t *a)
+{
+	size_t i, j;
+	ason_t *b;
+	size_t unsplayed = 0;
+
+	if (a->type != ASON_TYPE_UNION)
+		return;
+
+	ason_splay(a);
+	ason_union_sort(a, 0, a->count);
+
+restart:
+	for (i = 0; i < a->count; i++) {
+		if (a->items[i]->type != ASON_TYPE_LIST &&
+		    ! IS_OBJECT(a->items[i]))
+			continue;
+
+		for (j = i + 1; j < a->count;) {
+			if (a->items[j]->type != a->items[i]->type) {
+				j++;
+				continue;
+			}
+
+			b = ason_unsplay_pair(a->items[i], a->items[j]);
+
+			if (! b) {
+				j++;
+				continue;
+			}
+
+			unsplayed++;
+			ason_remove_items(a, j, 1, 1);
+			ason_destroy(a->items[i]);
+			a->items[i] = b;
+		}
+	}
+
+	if (ason_union_collapse(a))
+		return;
+
+	if (! unsplayed)
+		return;
+
+	unsplayed = 0;
+	goto restart;
 }
 
 /**
@@ -1334,8 +1457,10 @@ ason_reduce_union_0_3(ason_t *a)
 	for (i = 0; a->items[i]->order != 3; i++);
 
 	while ((i + 1) < a->count) {
-		if (a->items[i]->order != 3)
+		if (a->items[i]->order != 3) {
+			ason_unsplay(a);
 			return;
+		}
 
 		if (a->items[i]->type != ASON_TYPE_COMP) {
 			i++;
@@ -1377,6 +1502,7 @@ ason_reduce_union_0_3(ason_t *a)
 
 	ason_union_sort(a, 0, a->count);
 	a->order = 3;
+	ason_unsplay(a);
 }
 /**
  * Reduce a union.
@@ -1389,6 +1515,7 @@ ason_reduce_union(ason_t *a)
 	size_t k;
 	ason_t *tmp;
 
+	ason_splay(a);
 	ason_union_make_level(a);
 	ason_union_sort(a, 0, a->count);
 
@@ -1410,6 +1537,7 @@ ason_reduce_union(ason_t *a)
 
 	if (i == a->count) {
 		a->order = 1;
+		ason_unsplay(a);
 		return;
 	}
 
@@ -1689,18 +1817,26 @@ ason_check_represented_in(ason_t *a, ason_t *b)
 	if (b->order == 0)
 		return ason_check_equal(a, b);
 
-	if (a->type == ASON_TYPE_UNION) {
+	if (a->type == ASON_TYPE_UNION || a->order == 1) {
+		ason_splay(a);
 		for (i = 0; i < a->count; i++)
-			if (! ason_check_represented_in(a->items[i], b))
+			if (! ason_check_represented_in(a->items[i], b)) {
+				ason_unsplay(a);
 				return 0;
+			}
+		ason_unsplay(a);
 		return 1;
 	}
 
 	if (b->order == 1 || (a->order == 0 &&
 			      b->type == ASON_TYPE_UNION)) {
+		ason_splay(b);
 		for (i = 0; i < b->count; i++)
-			if (ason_check_equal(a, b->items[i]))
+			if (ason_check_equal(a, b->items[i])) {
+				ason_unsplay(b);
 				return 1;
+			}
+		ason_unsplay(b);
 		return 0;
 	}
 
