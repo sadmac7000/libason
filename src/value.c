@@ -1105,6 +1105,14 @@ ason_splay(ason_t *a)
 	ason_t **results;
 	size_t *positions;
 
+	if (a->type == ASON_TYPE_UNION) {
+		for (i = 0; i < a->count; i++)
+			ason_splay(a->items[i]);
+		return;
+	} else if (!IS_OBJECT(a) && a->type != ASON_TYPE_LIST) {
+		return;
+	}
+
 	for (i = 0; i < a->count; i++) {
 		if (CHILD_VALUE(a, i)->type != ASON_TYPE_UNION)
 			continue;
