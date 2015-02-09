@@ -9,6 +9,7 @@ missing
 ar-lib
 config.guess
 config.sub
+compile
 depcomp
 ltmain.sh
 Makefile
