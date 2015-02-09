@@ -14,6 +14,8 @@ libason_la_SOURCES = \
 	stringfunc.h \
 	namespace.c \
 	namespace_ram.c \
+	num_domain.c \
+	num_domain.h \
 	crc.c \
 	crc.h \
 	util.h \
