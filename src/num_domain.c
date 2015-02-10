@@ -155,6 +155,8 @@ ason_num_dom_union(ason_num_dom_t *a, ason_num_dom_t *b)
 			} else if (state_a == 0) {
 				TWOBIT_SET(ret->states, k, 3);
 			}
+
+			ret->items[k++] = a->items[i];
 		} else if (mode_b) {
 			if (a->items[i] < b->items[j])
 				goto cont;
@@ -165,6 +167,8 @@ ason_num_dom_union(ason_num_dom_t *a, ason_num_dom_t *b)
 			} else if (state_b == 0) {
 				TWOBIT_SET(ret->states, k, 3);
 			}
+
+			ret->items[k++] = b->items[i];
 		}
 
 cont:
