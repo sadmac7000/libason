@@ -17,8 +17,8 @@
  * along with libason. If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#ifndef ASON_VALUE_H
-#define ASON_VALUE_H
+#ifndef ASON_H
+#define ASON_H
 
 #include <stdint.h>
 
@@ -75,4 +75,4 @@ char *ason_string(ason_t *a);
 }
 #endif
 
-#endif /* ASON_VALUE_H */
+#endif /* ASON_H */
