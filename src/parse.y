@@ -277,19 +277,19 @@ ason_get_token_arg(char type, token_t *data, int *ttype, va_list ap)
 	switch (type) {
 	case 'i':
 		data->value = ason_create_fixnum(0);
-		data->value->n = TO_FP(va_arg(ap, int));
+		//data->value->n = TO_FP(va_arg(ap, int));
 		break;
 	case 'u':
 		data->value = ason_create_fixnum(0);
-		data->value->n = TO_FP(va_arg(ap, unsigned int));
+		//data->value->n = TO_FP(va_arg(ap, unsigned int));
 		break;
 	case 'I':
 		data->value = ason_create_fixnum(0);
-		data->value->n = TO_FP(va_arg(ap, int64_t));
+		//data->value->n = TO_FP(va_arg(ap, int64_t));
 		break;
 	case 'U':
 		data->value = ason_create_fixnum(0);
-		data->value->n = TO_FP(va_arg(ap, uint64_t));
+		//data->value->n = TO_FP(va_arg(ap, uint64_t));
 		break;
 
 	/* Float becomes double in va_arg, so we can handle these together */
@@ -297,7 +297,7 @@ ason_get_token_arg(char type, token_t *data, int *ttype, va_list ap)
 	case 'F':
 		data->value = ason_create_fixnum(0);
 		/* TO_FP was designed for integers, but this seems to work */
-		data->value->n = TO_FP(va_arg(ap, double));
+		//data->value->n = TO_FP(va_arg(ap, double));
 		break;
 	case 's':
 		data->c = xstrdup(va_arg(ap, char *));

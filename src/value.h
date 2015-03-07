@@ -26,6 +26,8 @@
 
 #include <ason/ason.h>
 
+#include "num_domain.h"
+
 /**
  * A Key-value pair.
  **/
@@ -38,30 +40,9 @@ struct kv_pair {
  * Data making up a value.
  **/
 struct ason {
-	ason_type_t type;
-	int order;
-	union {
-		int64_t n;
-		ason_t **items;
-		struct kv_pair *kvs;
-		char *string;
-	};
-
-	size_t count;
+	ason_num_dom_t *num_dom;
 	size_t refcount;
 };
-
-/**
- * Test if an ASON value is an object.
- **/
-#define IS_OBJECT(_x) (_x->type == ASON_TYPE_OBJECT || \
-		       _x->type == ASON_TYPE_UOBJECT)
-
-/**
- * Test if an ASON value is a boolean.
- **/
-#define IS_BOOL(_x) (_x->type == ASON_TYPE_TRUE || \
-		     _x->type == ASON_TYPE_FALSE)
 
 #ifdef __cplusplus
 extern "C" {

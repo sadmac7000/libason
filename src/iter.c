@@ -36,24 +36,9 @@ ason_iterate(ason_t *value)
 {
 	ason_iter_t *ret = xcalloc(1, sizeof(ason_iter_t));
 
-	ason_reduce(value);
 	ret->current = ason_copy(value);
 
 	return ret;
-}
-
-/**
- * Set the current field based on the value of the index field.
- **/
-static void
-ason_iter_index_refresh(ason_iter_t *iter)
-{
-	ason_t *parent = iter->parents[iter->depth - 1].value;
-
-	if (IS_OBJECT(parent))
-		iter->current = parent->kvs[iter->index].value;
-	else
-		iter->current = parent->items[iter->index];
 }
 
 /**
@@ -62,44 +47,8 @@ ason_iter_index_refresh(ason_iter_t *iter)
 API_EXPORT int
 ason_iter_enter(ason_iter_t *iter)
 {
-	size_t alloc_size;
-
-	switch(iter->current->type) {
-	case ASON_TYPE_UNION:
-	case ASON_TYPE_OBJECT:
-	case ASON_TYPE_UOBJECT:
-	case ASON_TYPE_LIST:
-		break;
-	default:
-		return 0;
-	};
-
-	if (! iter->current->count)
-		return 0;
-
-	alloc_size = iter->depth * 2;
-
-	if (iter->depth & (iter->depth - 1))
-		alloc_size = 0;
-
-	if (alloc_size < 8)
-		alloc_size = 0;
-
-	if (! iter->parents)
-		alloc_size = 8;
-
-	if (alloc_size)
-		iter->parents =
-			xrealloc(iter->parents,
-				 alloc_size * sizeof(struct ason_iter_frame));
-
-	iter->parents[iter->depth].value = iter->current;
-	iter->parents[iter->depth].index= iter->index;
-	iter->depth++;
-	iter->index = 0;
-	ason_iter_index_refresh(iter);
-
-	return 1;
+	(void)iter;
+	return 0;
 }
 
 /**
@@ -108,13 +57,8 @@ ason_iter_enter(ason_iter_t *iter)
 API_EXPORT int
 ason_iter_exit(ason_iter_t *iter)
 {
-	if (! iter->depth)
-		return 0;
-
-	iter->current = iter->parents[--iter->depth].value;
-	iter->index = iter->parents[iter->depth].index;
-
-	return 1;
+	(void)iter;
+	return 0;
 }
 
 /**
@@ -123,19 +67,8 @@ ason_iter_exit(ason_iter_t *iter)
 API_EXPORT int
 ason_iter_next(ason_iter_t *iter)
 {
-	ason_t *parent;
-
-	if (! iter->depth)
-		return 0;
-
-	parent = iter->parents[iter->depth - 1].value;
-
-	if ((parent->count - 1) == iter->index)
-		return 0;
-
-	iter->index++;
-	ason_iter_index_refresh(iter);
-	return 1;
+	(void)iter;
+	return 0;
 }
 
 /**
@@ -144,14 +77,8 @@ ason_iter_next(ason_iter_t *iter)
 API_EXPORT int
 ason_iter_prev(ason_iter_t *iter)
 {
-	if (! iter->depth)
-		return 0;
-	if (! iter->index)
-		return 0;
-
-	iter->index--;
-	ason_iter_index_refresh(iter);
-	return 1;
+	(void)iter;
+	return 0;
 }
 
 /**
@@ -201,18 +128,8 @@ ason_iter_string(ason_iter_t *iter)
 API_EXPORT char *
 ason_iter_key(ason_iter_t *iter)
 {
-	ason_t *parent;
-
-	if (! iter->depth)
-		errx(1, "Cannot find key for iterator root");
-
-	parent = iter->parents[iter->depth - 1].value;
-
-	if (parent->type != ASON_TYPE_OBJECT &&
-	    parent->type != ASON_TYPE_UOBJECT)
-		errx(1, "Cannot get key for member of non-object");
-
-	return xstrdup(parent->kvs[iter->index].key);
+	(void)iter;
+	return xstrdup("Key");
 }
 
 /**
