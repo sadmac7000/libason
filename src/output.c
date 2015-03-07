@@ -32,6 +32,32 @@
 #include "stringfunc.h"
 
 /**
+ * Print just the atom values of an ASON value.
+ **/
+static char *
+ason_do_asprint_atoms(ason_t *value)
+{
+	char *vals[3];
+	size_t num = 0;
+
+	if (! value->atoms)
+		return NULL;
+
+	if (value->atoms & ATOM_TRUE)
+		vals[num++] = "true";
+	if (value->atoms & ATOM_FALSE)
+		vals[num++] = "false";
+	if (value->atoms & ATOM_NULL)
+		vals[num++] = "null";
+
+	if (num == 3)
+		return xstrdup("true | false | null");
+	if (num == 2)
+		return xasprintf("%s | %s", vals[0], vals[1]);
+	return xstrdup(vals[0]);
+}
+
+/**
  * Print an ASON value as a string. Flag indicates if unicode should be used.
  **/
 static char *
@@ -39,7 +65,7 @@ ason_do_asprint(ason_t *value, int unicode)
 {
 	size_t i;
 	char *tmp;
-	char *ret = NULL;
+	char *ret = ason_do_asprint_atoms(value);
 	char *prefix;
 	char *sep;
 	char *oper;
@@ -47,10 +73,18 @@ ason_do_asprint(ason_t *value, int unicode)
 	int state;
 	int elem_state;
 
-	if (value->num_dom == NULL)
+	if (value->num_dom == NULL) {
+		if (ret)
+			return ret;
 		return xstrdup(unicode ? "∅" : "_");
-	if (value->num_dom == ASON_NUM_DOM_UNIVERSE)
-		return xstrdup("NUMBERS");
+	}
+
+	if (value->num_dom == ASON_NUM_DOM_UNIVERSE) {
+		if (! ret)
+			return xstrdup("NUMBERS");
+
+		return xasprintf("%s | NUMBERS", ret);
+	}
 
 	state = dom->minus_inf;
 
@@ -61,7 +95,7 @@ ason_do_asprint(ason_t *value, int unicode)
 
 		if (! ret)
 			sep = "";
-		else if (state)
+		else if (i && state)
 			sep = unicode ? "∩" : "&";
 		else
 			sep = unicode ? " ∪ " : " | ";

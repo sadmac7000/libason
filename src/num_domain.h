@@ -40,6 +40,7 @@ typedef struct ason_num_dom {
 } ason_num_dom_t;
 
 extern ason_num_dom_t * const ASON_NUM_DOM_UNIVERSE;
+extern ason_num_dom_t ASON_NUM_DOM_UNIVERSE_DATA;
 
 /**
  * Set a two-bit pair in a field of two-bit pairs.

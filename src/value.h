@@ -40,9 +40,17 @@ struct kv_pair {
  * Data making up a value.
  **/
 struct ason {
+	int atoms;
 	ason_num_dom_t *num_dom;
 	size_t refcount;
 };
+
+/**
+ * Flags that indicate which atom values are present.
+ **/
+#define ATOM_TRUE	0x1
+#define ATOM_FALSE	0x2
+#define ATOM_NULL	0x4
 
 #ifdef __cplusplus
 extern "C" {

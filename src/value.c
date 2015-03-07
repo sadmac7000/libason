@@ -32,36 +32,43 @@
  * Handy value constants.
  **/
 static struct ason ASON_EMPTY_DATA = {
+	.atoms = 0,
 	.num_dom = NULL,
 };
 API_EXPORT ason_t * const ASON_EMPTY = &ASON_EMPTY_DATA;
 
 static struct ason ASON_NULL_DATA = {
+	.atoms = ATOM_NULL,
 	.num_dom = NULL,
 };
 API_EXPORT ason_t * const ASON_NULL = &ASON_NULL_DATA;
 
 static struct ason ASON_UNIVERSE_DATA = {
-	.num_dom = NULL,
+	.atoms = ATOM_TRUE | ATOM_FALSE | ATOM_NULL,
+	.num_dom = &ASON_NUM_DOM_UNIVERSE_DATA,
 };
 API_EXPORT ason_t * const ASON_UNIVERSE = &ASON_UNIVERSE_DATA;
 
 static struct ason ASON_TRUE_DATA = {
+	.atoms = ATOM_TRUE,
 	.num_dom = NULL,
 };
 API_EXPORT ason_t * const ASON_TRUE = &ASON_TRUE_DATA;
 
 static struct ason ASON_FALSE_DATA = {
+	.atoms = ATOM_FALSE,
 	.num_dom = NULL,
 };
 API_EXPORT ason_t * const ASON_FALSE = &ASON_FALSE_DATA;
 
 static struct ason ASON_WILD_DATA = {
-	.num_dom = NULL,
+	.atoms = ATOM_TRUE | ATOM_FALSE,
+	.num_dom = &ASON_NUM_DOM_UNIVERSE_DATA,
 };
 API_EXPORT ason_t * const ASON_WILD = &ASON_WILD_DATA;
 
 static struct ason ASON_OBJ_ANY_DATA = {
+	.atoms = 0,
 	.num_dom = NULL,
 };
 API_EXPORT ason_t * const ASON_OBJ_ANY = &ASON_OBJ_ANY_DATA;
@@ -174,6 +181,7 @@ ason_union(ason_t *a, ason_t *b)
 	ret = xcalloc(1, sizeof(ason_t));
 	ret->refcount = 1;
 	ret->num_dom = ason_num_dom_union(a->num_dom, b->num_dom);
+	ret->atoms = a->atoms | b->atoms;
 
 	return ret;
 }
@@ -189,6 +197,7 @@ ason_intersect(ason_t *a, ason_t *b)
 	ret = xcalloc(1, sizeof(ason_t));
 	ret->refcount = 1;
 	ret->num_dom = ason_num_dom_intersect(a->num_dom, b->num_dom);
+	ret->atoms = a->atoms & b->atoms;
 
 	return ret;
 }
@@ -213,6 +222,7 @@ ason_complement(ason_t *a)
 	ret = xcalloc(1, sizeof(ason_t));
 	ret->refcount = 1;
 	ret->num_dom = ason_num_dom_invert(a->num_dom);
+	ret->atoms = (~a->atoms) & (ATOM_TRUE | ATOM_FALSE | ATOM_NULL);
 
 	return ret;
 }
@@ -223,9 +233,10 @@ ason_complement(ason_t *a)
 ason_t *
 ason_representation_in(ason_t *a, ason_t *b)
 {
-	(void)a;
-	(void)b;
-	return ASON_EMPTY;
+	if (ason_check_represented_in(a, b))
+		return ASON_TRUE;
+	else
+		return ASON_FALSE;
 }
 
 /**
@@ -234,9 +245,10 @@ ason_representation_in(ason_t *a, ason_t *b)
 ason_t *
 ason_equality(ason_t *a, ason_t *b)
 {
-	(void)a;
-	(void)b;
-	return ASON_EMPTY;
+	if (ason_check_equal(a, b))
+		return ASON_TRUE;
+	else
+		return ASON_FALSE;
 }
 
 

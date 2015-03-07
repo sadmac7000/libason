@@ -79,8 +79,8 @@ ason_num_dom_invert(ason_num_dom_t *dom)
 ason_num_dom_t *
 ason_num_dom_union(ason_num_dom_t *a, ason_num_dom_t *b)
 {
-	int mode_a = a->minus_inf;
-	int mode_b = b->minus_inf;
+	int mode_a;
+	int mode_b;
 	int state_a;
 	int state_b;
 	ason_num_dom_t *ret;
@@ -90,6 +90,9 @@ ason_num_dom_union(ason_num_dom_t *a, ason_num_dom_t *b)
 		return ason_num_dom_copy(a);
 	if (! a)
 		return ason_num_dom_copy(b);
+
+	mode_a = a->minus_inf;
+	mode_b = b->minus_inf;
 
 	if (a == ASON_NUM_DOM_UNIVERSE || b == ASON_NUM_DOM_UNIVERSE)
 		return ASON_NUM_DOM_UNIVERSE;
