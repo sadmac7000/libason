@@ -32,38 +32,10 @@
 #include "stringfunc.h"
 
 /**
- * Print an ASON value as an ASCII string.
+ * Print an ASON value as a string. Flag indicates if unicode should be used.
  **/
-API_EXPORT char *
-ason_asprint(ason_t *value)
-{
-	size_t i;
-	char *tmp;
-	char *ret = NULL;
-
-	if (value->num_dom == NULL)
-		return xstrdup("_");
-
-	for (i = 0; i < value->num_dom->count; i++) {
-		if (! ret) {
-			ret = xasprintf("%d", FP_WHOLE(value->num_dom->items[i]));
-		} else {
-			tmp = ret;
-			ret = xasprintf("%s | %d", tmp,
-					FP_WHOLE(value->num_dom->items[i]));
-			free(tmp);
-		}
-
-	}
-
-	return ret;
-}
-
-/**
- * Print an ASON value as a unicode string.
- **/
-API_EXPORT char *
-ason_asprint_unicode(ason_t *value)
+static char *
+ason_do_asprint(ason_t *value, int unicode)
 {
 	size_t i;
 	char *tmp;
@@ -76,7 +48,7 @@ ason_asprint_unicode(ason_t *value)
 	int elem_state;
 
 	if (value->num_dom == NULL)
-		return xstrdup("∅");
+		return xstrdup(unicode ? "∅" : "_");
 	if (value->num_dom == ASON_NUM_DOM_UNIVERSE)
 		return xstrdup("NUMBERS");
 
@@ -90,9 +62,9 @@ ason_asprint_unicode(ason_t *value)
 		if (! ret)
 			sep = "";
 		else if (state)
-			sep = "∩";
+			sep = unicode ? "∩" : "&";
 		else
-			sep = " ∪ ";
+			sep = unicode ? " ∪ " : " | ";
 
 		if (elem_state % 3)
 			oper = state ? "!" : "";
@@ -112,4 +84,22 @@ ason_asprint_unicode(ason_t *value)
 	if (! ret)
 		errx(1, "ason_asprint did not generate a string");
 	return ret;
+}
+
+/**
+ * Print an ASON value as an ASCII string.
+ **/
+API_EXPORT char *
+ason_asprint(ason_t *value)
+{
+	return ason_do_asprint(value, 0);
+}
+
+/**
+ * Print an ASON value as a unicode string.
+ **/
+API_EXPORT char *
+ason_asprint_unicode(ason_t *value)
+{
+	return ason_do_asprint(value, 1);
 }
